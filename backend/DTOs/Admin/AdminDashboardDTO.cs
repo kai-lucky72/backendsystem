@@ -14,7 +14,7 @@ public class AdminDashboardDTO
         public int Users { get; set; }
         public int Activity { get; set; }
     }
-    
+   
     public class UserActivity
     {
         public CountWithChange Managers { get; set; } = new();
