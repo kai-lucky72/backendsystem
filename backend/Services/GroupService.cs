@@ -131,7 +131,7 @@ public class GroupService : IGroupService
         }
         
         // Verify agent is a SALES agent
-        if (agent.AgentType != Agent.AgentType.Sales)
+        if (agent.AgentType != Agent.AgentTypeEnum.Sales)
         {
             throw new InvalidOperationException("Only sales agents can be assigned as group leaders");
         }
@@ -162,7 +162,7 @@ public class GroupService : IGroupService
         }
         
         // Verify agent is a SALES agent
-        if (agent.AgentType != Agent.AgentType.Sales)
+        if (agent.AgentType != Agent.AgentTypeEnum.Sales)
         {
             throw new InvalidOperationException("Only sales agents can be added to groups");
         }

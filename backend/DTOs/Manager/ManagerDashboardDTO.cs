@@ -4,20 +4,20 @@ namespace backend.DTOs.Manager;
 
 public class ManagerDashboardDTO
 {
-    public ManagerDashboardDTO.Stats Stats { get; set; } = new();
-    public ManagerDashboardDTO.Attendance Attendance { get; set; } = new();
+    public StatsModel Stats { get; set; } = new();
+    public AttendanceModel Attendance { get; set; } = new();
     public List<GroupPerformanceItem> GroupPerformance { get; set; } = new();
     public List<IndividualPerformanceItem> IndividualPerformance { get; set; } = new();
     public List<RecentActivity> RecentActivities { get; set; } = new();
 
-    public class Stats
+    public class StatsModel
     {
         public int TotalAgents { get; set; }
         public int ActiveToday { get; set; }
         public int ClientsCollected { get; set; }
         public int GroupsCount { get; set; }
     }
-    public class Attendance
+    public class AttendanceModel
     {
         public int Rate { get; set; }
         public int PresentCount { get; set; }
