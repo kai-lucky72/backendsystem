@@ -24,7 +24,7 @@ public class Agent
 
     [Required]
     [Column("agent_type")]
-    public AgentType AgentType { get; set; }
+    public AgentTypeEnum AgentType { get; set; }
 
     [Required]
     public string Sector { get; set; } = string.Empty;
@@ -40,7 +40,7 @@ public class Agent
     [NotMapped]
     public int ClientsCollected { get; set; }
 
-    public enum AgentType
+    public enum AgentTypeEnum
     {
         Sales,
         Individual
@@ -53,7 +53,7 @@ public class Agent
     public virtual ICollection<Group> LedGroups { get; set; } = new List<Group>();
     
     // Utility method to set up the entity correctly
-    public static Agent Create(User agentUser, Manager manager, AgentType agentType, string sector)
+    public static Agent Create(User agentUser, Manager manager, AgentTypeEnum agentType, string sector)
     {
         if (agentUser.Id == 0)
         {

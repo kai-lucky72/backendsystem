@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
         {
             return Unauthorized();
         }
-        if (!string.IsNullOrEmpty(request.Role) && !user.Role.ToString().Equals(request.Role, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(request.Role) && !user.RoleEnum.ToString().Equals(request.Role, StringComparison.OrdinalIgnoreCase))
         {
             return Unauthorized();
         }
@@ -41,7 +41,7 @@ public class AuthController : ControllerBase
             Name = user.FirstName + " " + user.LastName,
             Email = user.Email,
             WorkId = user.WorkId,
-            Role = user.Role.ToString().ToLower()
+            Role = user.RoleEnum.ToString().ToLower()
         };
         var response = new AuthResponse
         {

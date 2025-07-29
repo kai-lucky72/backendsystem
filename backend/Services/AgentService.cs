@@ -37,7 +37,7 @@ public class AgentService : IAgentService
 
     public async Task<Agent> CreateAgentAsync(string firstName, string lastName, string phoneNumber, string nationalId,
                                             string email, string workId, string? password, Manager manager, 
-                                            Agent.AgentType agentType, string sector)
+                                            Agent.AgentTypeEnum agentType, string sector)
     {
         try
         {
@@ -48,7 +48,7 @@ public class AgentService : IAgentService
             
             // Create user with AGENT role
             var agentUser = await _userService.CreateUserAsync(firstName, lastName, phoneNumber, nationalId,
-                                                              email, workId, password, User.Role.Agent, managerUser);
+                                                              email, workId, password, User.RoleEnum.Agent, managerUser);
             
             // Ensure user is persisted and has an ID
             if (agentUser.Id == 0)
@@ -66,7 +66,7 @@ public class AgentService : IAgentService
                 UserId = agentUser.Id,
                 User = agentUser,
                 Manager = manager,
-                AgentType = agentType != Agent.AgentType.Individual ? agentType : Agent.AgentType.Individual,
+                AgentType = agentType != Agent.AgentTypeEnum.Individual ? agentType : Agent.AgentTypeEnum.Individual,
                 Sector = !string.IsNullOrWhiteSpace(sector) ? sector : "General"
             };
             
@@ -128,13 +128,13 @@ public class AgentService : IAgentService
         return await _agentRepository.GetByManagerAsync(manager);
     }
 
-    public async Task<IEnumerable<Agent>> GetAgentsByTypeAsync(Agent.AgentType agentType)
+    public async Task<IEnumerable<Agent>> GetAgentsByTypeAsync(Agent.AgentTypeEnum agentType)
     {
         var allAgents = await _agentRepository.GetAllAsync();
         return allAgents.Where(agent => agent.AgentType == agentType);
     }
 
-    public async Task<IEnumerable<Agent>> GetAgentsByManagerAndTypeAsync(Manager manager, Agent.AgentType agentType)
+    public async Task<IEnumerable<Agent>> GetAgentsByManagerAndTypeAsync(Manager manager, Agent.AgentTypeEnum agentType)
     {
         return await _agentRepository.GetByManagerAndAgentTypeAsync(manager, agentType);
     }
@@ -157,7 +157,7 @@ public class AgentService : IAgentService
         return updatedAgent;
     }
 
-    public async Task<Agent> UpdateAgentTypeAsync(long id, Agent.AgentType agentType)
+    public async Task<Agent> UpdateAgentTypeAsync(long id, Agent.AgentTypeEnum agentType)
     {
         var agent = await GetAgentByIdAsync(id);
         agent.AgentType = agentType;
@@ -204,7 +204,7 @@ public class AgentService : IAgentService
         if (updateFields.ContainsKey("agentType"))
         {
             var agentTypeStr = (string)updateFields["agentType"];
-            agent.AgentType = Enum.Parse<Agent.AgentType>(agentTypeStr);
+            agent.AgentType = Enum.Parse<Agent.AgentTypeEnum>(agentTypeStr);
         }
         
         // Handle group update (can be null)

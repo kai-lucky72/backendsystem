@@ -28,7 +28,7 @@ public class UserService : IUserService
     }
 
     public async Task<User> CreateUserAsync(string firstName, string lastName, string phoneNumber, string nationalId,
-                                          string email, string workId, string? password, User.Role role, User createdBy)
+                                          string email, string workId, string? password, User.RoleEnum role, User createdBy)
     {
         if (await _userRepository.ExistsByEmailAsync(email))
         {
@@ -120,7 +120,7 @@ public class UserService : IUserService
         return allUsers.Select(MapToDTO);
     }
 
-    public async Task<int> CountUsersByRoleAsync(User.Role role)
+    public async Task<int> CountUsersByRoleAsync(User.RoleEnum role)
     {
         var allUsers = await _userRepository.GetAllAsync();
         return allUsers.Count(u => u.Role == role);
@@ -193,12 +193,12 @@ public class UserService : IUserService
             Status = user.Active ? "active" : "inactive"
         };
         
-        if (user.Role == User.Role.Agent)
+        if (user.Role == User.RoleEnum.Agent)
         {
             var agent = _agentRepository.GetByUserIdAsync(user.Id).Result;
             if (agent != null)
             {
-                builder.Type = agent.AgentType?.ToString().ToLower();
+                builder.Type = agent.AgentTypeEnum?.ToString().ToLower();
                 builder.Sector = agent.Sector;
                 builder.Group = agent.Group?.Name;
             }

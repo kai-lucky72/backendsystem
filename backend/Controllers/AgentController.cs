@@ -230,7 +230,7 @@ public class AgentController : ControllerBase
             PerformanceRate = performanceRate,
             RecentActivities = recentActivities
         };
-        if (agent.AgentType == Agent.AgentType.Sales && agent.Group != null)
+        if (agent.AgentType == Agent.AgentTypeEnum.Sales && agent.Group != null)
         {
             dto.GroupName = agent.Group.Name;
             if (agent.Group.Leader != null)
@@ -248,7 +248,7 @@ public class AgentController : ControllerBase
     {
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var agent = await _agentService.GetAgentByIdAsync(userId);
-        if (agent.AgentType != Agent.AgentType.Sales || agent.Group == null)
+        if (agent.AgentType != Agent.AgentTypeEnum.Sales || agent.Group == null)
             return StatusCode(403);
         var group = agent.Group;
         var dto = await BuildGroupPerformanceDTO(group);

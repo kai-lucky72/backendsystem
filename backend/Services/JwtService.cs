@@ -30,7 +30,7 @@ public class JwtService : IJwtService
             new("FirstName", user.FirstName),
             new("LastName", user.LastName),
             new("WorkId", user.WorkId),
-            new(ClaimTypes.Role, user.Role.ToString())
+            new(ClaimTypes.Role, user.RoleEnum.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

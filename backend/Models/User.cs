@@ -34,7 +34,7 @@ public class User : IdentityUser<long>
     public string WorkId { get; set; } = string.Empty;
 
     [Required]
-    public Role Role { get; set; }
+    public RoleEnum Role { get; set; }
 
     [Column("profile_image_url")]
     public string? ProfileImageUrl { get; set; }
@@ -48,7 +48,7 @@ public class User : IdentityUser<long>
     [Required]
     public bool Active { get; set; } = true;
 
-    public enum Role
+    public enum RoleEnum
     {
         Admin,
         Manager,

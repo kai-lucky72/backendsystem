@@ -5,7 +5,7 @@ namespace backend.DTOs.Admin;
 public class AdminDashboardDTO
 {
     public List<SystemMetric> SystemMetrics { get; set; } = new();
-    public AdminDashboardDTO.UserActivity UserActivity { get; set; } = new();
+    public UserActivityModel UserActivity { get; set; } = new();
     public List<RecentSystemActivity> RecentSystemActivities { get; set; } = new();
     
     public class SystemMetric
@@ -15,7 +15,7 @@ public class AdminDashboardDTO
         public int Activity { get; set; }
     }
     
-    public class UserActivity
+    public class UserActivityModel
     {
         public CountWithChange Managers { get; set; } = new();
         public CountWithChange Agents { get; set; } = new();

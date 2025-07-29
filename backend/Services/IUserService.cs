@@ -7,7 +7,7 @@ namespace backend.Services;
 public interface IUserService
 {
     Task<User> CreateUserAsync(string firstName, string lastName, string phoneNumber, string nationalId,
-                              string email, string workId, string? password, User.Role role, User createdBy);
+                              string email, string workId, string? password, User.RoleEnum role, User createdBy);
     
     Task<User> GetUserByIdAsync(long id);
     
@@ -21,7 +21,7 @@ public interface IUserService
     
     Task<bool> ResetPasswordAsync(long id, string newPassword);
 
-    Task<int> CountUsersByRoleAsync(User.Role role);
+    Task<int> CountUsersByRoleAsync(User.RoleEnum role);
     
     /// <summary>
     /// Checks if an email address is already taken by another user
