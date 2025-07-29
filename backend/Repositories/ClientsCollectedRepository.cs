@@ -82,4 +82,9 @@ public class ClientsCollectedRepository : IClientsCollectedRepository
                              cc.CollectedAt >= startDate && 
                              cc.CollectedAt <= endDate);
     }
+
+    public async Task<IEnumerable<ClientsCollected>> GetByAgentAsync(Agent agent)
+    {
+        return await GetByAgentOrderByCollectedAtDescAsync(agent);
+    }
 }

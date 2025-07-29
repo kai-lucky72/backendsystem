@@ -22,4 +22,6 @@ public interface IAuditLogRepository
     Task<int> CountByEventTypeAsync(string eventType);
     Task<int> CountByEventTypeAndTimestampBetweenAsync(string eventType, DateTime start, DateTime end);
     Task<IEnumerable<AuditLog>> SearchLogsAsync(string? eventType, string? entityType, string? entityId, string? details, DateTime startDate, DateTime endDate);
+    Task<IEnumerable<AuditLog>> GetByUserAsync(User user);
+    Task<IEnumerable<AuditLog>> GetByEntityTypeAndEntityIdAsync(string entityType, string entityId);
 }

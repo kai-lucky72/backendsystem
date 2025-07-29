@@ -99,13 +99,13 @@ public class UserRepository : IUserRepository
             .CountAsync(u => u.CreatedAt >= start && u.CreatedAt <= end);
     }
 
-    public async Task<int> CountByRoleAsync(User.RoleEnum role)
+    public async Task<int> CountByRoleAsync(Role role)
     {
         return await _context.Users
             .CountAsync(u => u.Role == role);
     }
 
-    public async Task<IEnumerable<User>> GetByRoleAsync(User.RoleEnum role)
+    public async Task<IEnumerable<User>> GetByRoleAsync(Role role)
     {
         return await _context.Users
             .Include(u => u.Agent)

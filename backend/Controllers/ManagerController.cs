@@ -57,8 +57,8 @@ public class ManagerController : ControllerBase
             request.WorkId,
             password,
             manager,
-            request.AgentType,
-            request.SectorOrDefault()
+            request.GetAgentType(),
+            request.GetSectorOrDefault()
         );
         // ... map to DTO and return
         return Ok();

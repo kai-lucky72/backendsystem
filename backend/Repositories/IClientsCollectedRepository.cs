@@ -14,4 +14,5 @@ public interface IClientsCollectedRepository
     Task<IEnumerable<ClientsCollected>> GetByAgentOrderByCollectedAtDescAsync(Agent agent);
     Task<IEnumerable<ClientsCollected>> GetByAgentAndDateRangeAsync(Agent agent, DateTime startDate, DateTime endDate);
     Task<long> CountByAgentAndDateRangeAsync(Agent agent, DateTime startDate, DateTime endDate);
+    Task<IEnumerable<ClientsCollected>> GetByAgentAsync(Agent agent);
 }

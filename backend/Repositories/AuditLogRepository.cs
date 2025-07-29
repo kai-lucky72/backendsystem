@@ -157,4 +157,14 @@ public class AuditLogRepository : IAuditLogRepository
             .OrderByDescending(al => al.Timestamp)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<AuditLog>> GetByUserAsync(User user)
+    {
+        return await GetByUserOrderByTimestampDescAsync(user);
+    }
+
+    public async Task<IEnumerable<AuditLog>> GetByEntityTypeAndEntityIdAsync(string entityType, string entityId)
+    {
+        return await GetByEntityTypeAndEntityIdOrderByTimestampDescAsync(entityType, entityId);
+    }
 }

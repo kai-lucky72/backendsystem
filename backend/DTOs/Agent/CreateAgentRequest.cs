@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using backend.Models;
-
 namespace backend.DTOs.Agent;
 
 public class CreateAgentRequest
@@ -36,18 +35,18 @@ public class CreateAgentRequest
     // Optional field
     public string? Sector { get; set; }
     
-    // Helper method to convert type string to Agent.AgentType enum
-    public Agent.AgentType GetAgentType()
+    // Helper method to convert type string to Agent.AgentTypeEnum enum
+    public backend.Models.Agent.AgentTypeEnum GetAgentType()
     {
         if (string.IsNullOrWhiteSpace(Type))
         {
-            return Agent.AgentType.Individual; // Default type
+            return backend.Models.Agent.AgentTypeEnum.Individual; // Default type
         }
         
         try
         {
             // Try direct enum conversion first
-            return Enum.Parse<Agent.AgentType>(Type, true);
+            return Enum.Parse<backend.Models.Agent.AgentTypeEnum>(Type, true);
         }
         catch (ArgumentException)
         {
@@ -55,22 +54,22 @@ public class CreateAgentRequest
             string normalizedType = Type.Trim().ToLower();
             if (normalizedType == "individual")
             {
-                return Agent.AgentType.Individual;
+                return backend.Models.Agent.AgentTypeEnum.Individual;
             }
             else if (normalizedType == "sales")
             {
-                return Agent.AgentType.Sales;
+                return backend.Models.Agent.AgentTypeEnum.Sales;
             }
             else if (normalizedType.Contains("individual"))
             {
-                return Agent.AgentType.Individual;
+                return backend.Models.Agent.AgentTypeEnum.Individual;
             }
             else if (normalizedType.Contains("sale"))
             {
-                return Agent.AgentType.Sales;
+                return backend.Models.Agent.AgentTypeEnum.Sales;
             }
             
-            return Agent.AgentType.Individual; // Default if not recognized
+            return backend.Models.Agent.AgentTypeEnum.Individual; // Default if not recognized
         }
     }
     

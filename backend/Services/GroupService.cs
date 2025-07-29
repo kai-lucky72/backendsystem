@@ -156,7 +156,7 @@ public class GroupService : IGroupService
         var agent = await _agentService.GetAgentByIdAsync(agentId);
         
         // Verify agent belongs to the same manager as the group
-        if (agent.Manager.Id != group.Manager.Id)
+        if (agent.Manager.UserId != group.Manager.UserId)
         {
             throw new InvalidOperationException("Agent and group must belong to the same manager");
         }

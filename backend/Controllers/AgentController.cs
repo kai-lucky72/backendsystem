@@ -8,6 +8,15 @@ using System.Security.Claims;
 
 namespace backend.Controllers;
 
+public static class DateTimeExtensions
+{
+    public static DateTime StartOfWeek(this DateTime dt, DayOfWeek startOfWeek)
+    {
+        int diff = (7 + (dt.DayOfWeek - startOfWeek)) % 7;
+        return dt.AddDays(-1 * diff).Date;
+    }
+}
+
 [ApiController]
 [Route("api/agent")]
 [Authorize(Roles = "Admin,Manager,Agent")]
@@ -263,15 +272,15 @@ public class AgentController : ControllerBase
         var agent = await _agentService.GetAgentByIdAsync(userId);
         var notifications = await _notificationService.GetNotificationsByRecipientAsync(agent.User);
         var notificationList = notifications.Select(n => new DTOs.Notification.NotificationMessage
-        {
-            Id = n.Id,
-            SenderId = n.Sender?.Id ?? 0,
-            SenderWorkId = n.Sender?.WorkId ?? string.Empty,
-            SenderName = n.Sender != null ? $"{n.Sender.FirstName} {n.Sender.LastName}" : string.Empty,
-            Message = n.Message,
-            Timestamp = n.SentAt,
-            Type = n.Type // Map as needed
-        }).ToList();
+{
+    Id = n.Id,
+    SenderId = n.Sender?.Id ?? 0,
+    SenderWorkId = n.Sender?.WorkId ?? string.Empty,
+    SenderName = n.Sender != null ? $"{n.Sender.FirstName} {n.Sender.LastName}" : string.Empty,
+    Message = n.Message ?? string.Empty, // Handle potential null message
+    Timestamp = n.SentAt,
+    Type = n.Type ?? "general" 
+}).ToList();
         return Ok(new { notifications = notificationList });
     }
 

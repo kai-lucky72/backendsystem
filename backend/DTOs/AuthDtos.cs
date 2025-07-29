@@ -9,7 +9,7 @@ public class RegisterDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string WorkId { get; set; } = string.Empty;
-    public User.RoleEnum Role { get; set; } = User.RoleEnum.Agent;
+    public Role Role { get; set; } = Role.Agent;
 }
 
 public class LoginDto
@@ -33,7 +33,7 @@ public class UserDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string WorkId { get; set; } = string.Empty;
-    public User.RoleEnum Role { get; set; }
+    public Role Role { get; set; }
 }
 
 public class ChangePasswordDto

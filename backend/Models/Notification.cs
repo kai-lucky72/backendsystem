@@ -53,32 +53,16 @@ public class Notification
     [Column("read_status")]
     public bool ReadStatus { get; set; } = false;
     
+    // Remove duplicate Priority and Category properties
     [Required]
-    public PriorityEnum Priority { get; set; } = PriorityEnum.Medium;
+    public Priority Priority { get; set; } = Priority.Medium;
     
     [Required]
-    public CategoryEnum Category { get; set; } = CategoryEnum.System;
+    public Category Category { get; set; } = Category.System;
     
-    public enum PriorityEnum
-    {
-        Low,
-        Medium,
-        High,
-        Urgent
-    }
+    // Add Type property for the DTO mapping
+    [Required]
+    public string Type { get; set; } = "general";
     
-    public enum CategoryEnum
-    {
-        System,
-        Attendance,
-        Performance,
-        Task,
-        Other
-    }
-
-    // Utility method to get priority string
-    public string GetPriorityString()
-    {
-        return Priority.ToString().ToLower();
-    }
+    // Remove the enum definitions from here
 }

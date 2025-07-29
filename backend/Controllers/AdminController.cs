@@ -52,7 +52,7 @@ public class AdminController : ControllerBase
     public async Task<ActionResult<ManagerListItemDTO>> CreateManager([FromBody] CreateManagerRequest request)
     {
         var admin = await _userService.GetUserByIdAsync(long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)));
-        var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp@1234" : request.Password;
+var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp1234" : request.Password;
         var manager = await _managerService.CreateManagerAsync(
             request.FirstName,
             request.LastName,

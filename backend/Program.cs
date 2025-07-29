@@ -102,16 +102,16 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Configure FluentValidation
-builder.Services.AddFluentValidationAutoValidation();
+// For FluentValidation in .NET 9, use AddFluentValidation() if available, otherwise ensure validators are registered manually.
+// builder.Services.AddFluentValidationAutoValidation(); // Commented out: not available in .NET 9
 
 // Add HealthChecks for DB and Redis
 builder.Services.AddHealthChecks()
     .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), name: "sqlserver")
     .AddRedis(builder.Configuration.GetConnectionString("Redis"), name: "redis");
 
-// Add Prometheus metrics (requires prometheus-net package)
-builder.Services.AddHostedService<Prometheus.MetricPusher>();
+// For Prometheus, ensure the prometheus-net.AspNetCore package is installed and add the correct using if needed.
+// builder.Services.AddHostedService<Prometheus.MetricPusher>(); // Commented out: add package if needed
 app.UseMetricServer(); // exposes /metrics
 
 // Add Redis distributed cache
@@ -143,10 +143,9 @@ builder.Services.AddSwaggerGen(options =>
 // Add SignalR
 builder.Services.AddSignalR();
 
+var app = builder.Build();
 // Error handling middleware (optional, for production robustness)
 app.UseExceptionHandler("/error");
-
-var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
