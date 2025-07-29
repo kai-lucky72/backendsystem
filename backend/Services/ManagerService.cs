@@ -50,7 +50,7 @@ public class ManagerService : IManagerService
             
             // Create user with MANAGER role
             var managerUser = await _userService.CreateUserAsync(firstName, lastName, phoneNumber, nationalId,
-                                                             email, workId, password, User.Role.Manager, admin);
+                                                             email, workId, password, Role.Manager, admin);
             
             _logger.LogDebug("Created user entity for manager with ID: {UserId}", managerUser.Id);
             

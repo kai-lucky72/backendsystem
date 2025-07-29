@@ -48,13 +48,6 @@ public class User : IdentityUser<long>
     [Required]
     public bool Active { get; set; } = true;
 
-    public enum Role
-    {
-        Admin,
-        Manager,
-        Agent
-    }
-
     // Navigation properties
     public virtual Agent? Agent { get; set; }
     public virtual Manager? Manager { get; set; }
