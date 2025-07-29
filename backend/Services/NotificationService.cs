@@ -21,7 +21,7 @@ public class NotificationService : INotificationService
         _auditLogService = auditLogService;
     }
 
-    public async Task<Notification> SendNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Notification.Category category, Notification.Priority priority)
+    public async Task<Notification> SendNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Category category, Priority priority)
     {
         var notification = new Notification
         {
@@ -49,7 +49,7 @@ public class NotificationService : INotificationService
         return savedNotification;
     }
 
-    public async Task<Notification> SendNotificationToAllAsync(User sender, string title, string message, bool viaEmail, Notification.Category category, Notification.Priority priority)
+    public async Task<Notification> SendNotificationToAllAsync(User sender, string title, string message, bool viaEmail, Category category, Priority priority)
     {
         var notification = new Notification
         {
@@ -120,14 +120,14 @@ public class NotificationService : INotificationService
         // messagingTemplate.convertAndSend("/topic/notifications", notification);
     }
 
-    public async Task<Notification> SendCompleteNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Notification.Category category, Notification.Priority priority)
+    public async Task<Notification> SendCompleteNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Category category, Priority priority)
     {
         var notification = await SendNotificationAsync(sender, recipient, title, message, viaEmail, category, priority);
         await SendWebSocketNotificationAsync(sender, recipient, message);
         return notification;
     }
 
-    public async Task<Notification> SendCompleteNotificationToAllAsync(User sender, string title, string message, bool viaEmail, Notification.Category category, Notification.Priority priority)
+    public async Task<Notification> SendCompleteNotificationToAllAsync(User sender, string title, string message, bool viaEmail, Category category, Priority priority)
     {
         var notification = await SendNotificationToAllAsync(sender, title, message, viaEmail, category, priority);
         await SendWebSocketNotificationToAllAsync(sender, message);

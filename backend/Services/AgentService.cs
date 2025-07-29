@@ -48,7 +48,7 @@ public class AgentService : IAgentService
             
             // Create user with AGENT role
             var agentUser = await _userService.CreateUserAsync(firstName, lastName, phoneNumber, nationalId,
-                                                              email, workId, password, User.Role.Agent, managerUser);
+                                                              email, workId, password, Role.Agent, managerUser);
             
             // Ensure user is persisted and has an ID
             if (agentUser.Id == 0)

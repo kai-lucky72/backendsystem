@@ -58,27 +58,4 @@ public class Notification
     
     [Required]
     public Category Category { get; set; } = Category.System;
-    
-    public enum Priority
-    {
-        Low,
-        Medium,
-        High,
-        Urgent
-    }
-    
-    public enum Category
-    {
-        System,
-        Attendance,
-        Performance,
-        Task,
-        Other
-    }
-
-    // Utility method to get priority string
-    public string GetPriorityString()
-    {
-        return Priority.ToString().ToLower();
-    }
 }
