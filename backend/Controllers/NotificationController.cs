@@ -50,11 +50,11 @@ public class NotificationController : ControllerBase
         var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var sender = await _userService.GetUserByIdAsync(senderId);
         var agent = await _agentService.GetAgentByIdAsync(agentId);
-        if (sender.Role == User.Role.Manager && agent.Manager.UserId != sender.Id)
+        if (sender.Role == Role.Manager && agent.Manager.UserId != sender.Id)
             return Forbid();
         var title = "Notification";
-        var category = Notification.Category.SYSTEM;
-        var priority = Notification.Priority.MEDIUM;
+        var category = Category.System;
+        var priority = Priority.Medium;
         Notification notification;
         if (viaWebSocket)
             notification = await _notificationService.SendCompleteNotificationAsync(sender, agent.User, title, message, viaEmail, category, priority);
@@ -71,8 +71,8 @@ public class NotificationController : ControllerBase
         var sender = await _userService.GetUserByIdAsync(senderId);
         var manager = await _managerService.GetManagerByIdAsync(managerId);
         var title = "Notification";
-        var category = Notification.Category.SYSTEM;
-        var priority = Notification.Priority.MEDIUM;
+        var category = Category.System;
+        var priority = Priority.Medium;
         Notification notification;
         if (viaWebSocket)
             notification = await _notificationService.SendCompleteNotificationAsync(sender, manager.User, title, message, viaEmail, category, priority);
@@ -88,8 +88,8 @@ public class NotificationController : ControllerBase
         var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         var sender = await _userService.GetUserByIdAsync(senderId);
         var title = "Notification";
-        var category = Notification.Category.SYSTEM;
-        var priority = Notification.Priority.MEDIUM;
+        var category = Category.System;
+        var priority = Priority.Medium;
         Notification notification;
         if (viaWebSocket)
             notification = await _notificationService.SendCompleteNotificationToAllAsync(sender, title, message, viaEmail, category, priority);
@@ -106,8 +106,8 @@ public class NotificationController : ControllerBase
         var sender = await _userService.GetUserByIdAsync(senderId);
         var managers = await _managerService.GetAllManagersAsync();
         var title = "Notification";
-        var category = Notification.Category.SYSTEM;
-        var priority = Notification.Priority.MEDIUM;
+        var category = Category.System;
+        var priority = Priority.Medium;
         var result = new List<NotificationMessage>();
         foreach (var manager in managers)
         {
