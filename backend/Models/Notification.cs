@@ -54,12 +54,12 @@ public class Notification
     public bool ReadStatus { get; set; } = false;
     
     [Required]
-    public Priority Priority { get; set; } = Priority.Medium;
+    public NotificationPriority Priority { get; set; } = NotificationPriority.Medium;
     
     [Required]
-    public Category Category { get; set; } = Category.System;
+    public NotificationCategory Category { get; set; } = NotificationCategory.System;
     
-    public enum Priority
+    public enum NotificationPriority
     {
         Low,
         Medium,
@@ -67,7 +67,7 @@ public class Notification
         Urgent
     }
     
-    public enum Category
+    public enum NotificationCategory
     {
         System,
         Attendance,
