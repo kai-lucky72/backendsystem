@@ -1,0 +1,7 @@
+C:\Users\Lamelo\RiderProject\backend\backend\DTOs\Agent\AgentDashboardDTO.cs
+C:\Users\Lamelo\RiderProject\backend\backend\DTOs\Agent\AgentListItemDTO.cs
+C:\Users\Lamelo\RiderProject\backend\backend\DTOs\Agent\AgentPerformanceDTO.cs
+C:\Users\Lamelo\RiderProject\backend\backend\DTOs\Agent\AttendanceHistoryDTO.cs
+C:\Users\Lamelo\RiderProject\backend\backend\DTOs\Agent\AttendanceMarkDTO.cs
+C:\Users\Lamelo\RiderProject\backend\backend\DTOs\Agent\CreateAgentRequest.cs
+C:\Users\Lamelo\RiderProject\backend\backend\DTOs\Agent\GroupPerformanceDTO.cs

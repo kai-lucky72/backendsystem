@@ -1,0 +1,10 @@
+C:\Users\Lamelo\RiderProject\backend\backend\Models\Agent.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\Attendance.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\AttendanceTimeframe.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\AuditLog.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\Client.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\ClientsCollected.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\Group.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\Manager.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\Notification.cs
+C:\Users\Lamelo\RiderProject\backend\backend\Models\User.cs
