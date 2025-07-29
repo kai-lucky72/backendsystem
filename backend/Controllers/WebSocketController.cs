@@ -36,8 +36,8 @@ public class WebSocketController : ControllerBase
             title,
             message.Message,
             false, // No email, just WebSocket and DB
-            Notification.Category.SYSTEM,
-            Notification.Priority.MEDIUM
+            NotificationCategory.SYSTEM,
+            NotificationPriority.MEDIUM
         );
         return Ok();
     }
@@ -55,8 +55,8 @@ public class WebSocketController : ControllerBase
             title,
             message.Message,
             false, // No email, just WebSocket and DB
-            Notification.Category.SYSTEM,
-            Notification.Priority.MEDIUM
+            NotificationCategory.SYSTEM,
+            NotificationPriority.MEDIUM
         );
         return Ok();
     }

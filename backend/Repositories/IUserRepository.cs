@@ -18,6 +18,6 @@ public interface IUserRepository
     Task<bool> ExistsByPhoneNumberAsync(string phoneNumber);
     Task<bool> ExistsByNationalIdAsync(string nationalId);
     Task<int> CountByCreatedAtBetweenAsync(DateTime start, DateTime end);
-    Task<int> CountByRoleAsync(User.Role role);
-    Task<IEnumerable<User>> GetByRoleAsync(User.Role role);
+    Task<int> CountByRoleAsync(UserRole role);
+    Task<IEnumerable<User>> GetByRoleAsync(UserRole role);
 }
