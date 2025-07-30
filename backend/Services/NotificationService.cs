@@ -10,15 +10,18 @@ public class NotificationService : INotificationService
     private readonly ILogger<NotificationService> _logger;
     private readonly INotificationRepository _notificationRepository;
     private readonly IAuditLogService _auditLogService;
+    private readonly IUserRepository _userRepository; // Added missing dependency
 
     public NotificationService(
         ILogger<NotificationService> logger,
         INotificationRepository notificationRepository,
-        IAuditLogService auditLogService)
+        IAuditLogService auditLogService,
+        IUserRepository userRepository) // Added missing parameter
     {
         _logger = logger;
         _notificationRepository = notificationRepository;
         _auditLogService = auditLogService;
+        _userRepository = userRepository; // Initialize missing dependency
     }
 
     public async Task<Notification> SendNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Category category, Priority priority)
@@ -79,17 +82,17 @@ public class NotificationService : INotificationService
 
     public async Task<IEnumerable<Notification>> GetNotificationsBySenderAsync(User sender)
     {
-        return await _notificationRepository.GetBySenderAsync(sender);
+        return await _notificationRepository.GetBySenderOrderBySentAtDescAsync(sender);
     }
 
     public async Task<IEnumerable<Notification>> GetNotificationsByRecipientAsync(User recipient)
     {
-        return await _notificationRepository.GetByRecipientAsync(recipient);
+        return await _notificationRepository.GetByRecipientOrderBySentAtDescAsync(recipient);
     }
 
     public async Task<IEnumerable<Notification>> GetBroadcastNotificationsAsync()
     {
-        return await _notificationRepository.GetBroadcastNotificationsAsync();
+        return await _notificationRepository.GetByRecipientIsNullOrderBySentAtDescAsync();
     }
     
     public async Task SendWebSocketNotificationAsync(User sender, User recipient, string message)
@@ -132,6 +135,48 @@ public class NotificationService : INotificationService
         var notification = await SendNotificationToAllAsync(sender, title, message, viaEmail, category, priority);
         await SendWebSocketNotificationToAllAsync(sender, message);
         return notification;
+    }
+
+    public async Task<Notification> SendNotificationAsync(Dictionary<string, string> body, User sender)
+    {
+        // Extract notification details from the body
+        var title = body.GetValueOrDefault("title", "System Notification");
+        var message = body.GetValueOrDefault("message", "");
+        var recipientId = body.GetValueOrDefault("recipientId", "");
+        var viaEmail = bool.Parse(body.GetValueOrDefault("viaEmail", "false"));
+        var category = Enum.Parse<Category>(body.GetValueOrDefault("category", "System"));
+        var priority = Enum.Parse<Priority>(body.GetValueOrDefault("priority", "Medium"));
+
+        if (string.IsNullOrEmpty(recipientId))
+        {
+            // Broadcast notification
+            return await SendNotificationToAllAsync(sender, title, message, viaEmail, category, priority);
+        }
+        else
+        {
+            // Direct notification
+            var recipient = await _userRepository.GetByIdAsync(long.Parse(recipientId));
+            return await SendNotificationAsync(sender, recipient, title, message, viaEmail, category, priority);
+        }
+    }
+
+    public async Task<object> GetNotificationsPagedAsync(int page, int limit)
+    {
+        var allNotifications = await _notificationRepository.GetAllAsync();
+        var totalCount = allNotifications.Count();
+        var notifications = allNotifications
+            .OrderByDescending(n => n.SentAt)
+            .Skip((page - 1) * limit)
+            .Take(limit);
+
+        return new
+        {
+            Notifications = notifications,
+            TotalCount = totalCount,
+            Page = page,
+            Limit = limit,
+            TotalPages = (int)Math.Ceiling((double)totalCount / limit)
+        };
     }
     
     private NotificationMessage CreateNotificationMessage(User sender, string message, string type)

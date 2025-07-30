@@ -167,4 +167,9 @@ public class AuditLogRepository : IAuditLogRepository
     {
         return await GetByEntityTypeAndEntityIdOrderByTimestampDescAsync(entityType, entityId);
     }
+
+    public async Task<IEnumerable<AuditLog>> GetByUserIdAsync(long userId)
+    {
+        return await GetByUserIdOrderByTimestampDescAsync(userId);
+    }
 }

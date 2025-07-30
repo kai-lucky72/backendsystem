@@ -4,6 +4,7 @@ using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
 
 namespace backend.Controllers;
 
@@ -134,5 +135,28 @@ public class NotificationController : ControllerBase
             Timestamp = n.SentAt,
             Type = n.Recipient == null ? "BROADCAST" : "DIRECT"
         };
+    }
+
+    private string FormatTimeAgo(DateTime dateTime)
+    {
+        var now = DateTime.Now;
+        var minutes = (now - dateTime).TotalMinutes;
+        var hours = (now - dateTime).TotalHours;
+        var days = (now - dateTime).TotalDays;
+        if (minutes < 60)
+            return $"{(int)minutes} minutes ago";
+        else if (hours < 24)
+            return $"{(int)hours} hours ago";
+        else
+            return $"{(int)days} days ago";
+    }
+}
+
+// Simple NotificationHub for SignalR
+public class NotificationHub : Hub
+{
+    public async Task SendNotification(string message)
+    {
+        await Clients.All.SendAsync("ReceiveNotification", message);
     }
 }

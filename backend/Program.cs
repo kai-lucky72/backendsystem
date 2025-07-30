@@ -10,6 +10,8 @@ using backend.Configurations;
 using backend.Middleware;
 using backend.Repositories;
 using Serilog;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,12 +109,12 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Add HealthChecks for DB and Redis
 builder.Services.AddHealthChecks()
-    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), name: "sqlserver")
-    .AddRedis(builder.Configuration.GetConnectionString("Redis"), name: "redis");
+    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    .AddRedis(builder.Configuration.GetConnectionString("Redis"));
 
 // For Prometheus, ensure the prometheus-net.AspNetCore package is installed and add the correct using if needed.
 // builder.Services.AddHostedService<Prometheus.MetricPusher>(); // Commented out: add package if needed
-app.UseMetricServer(); // exposes /metrics
+// app.UseMetricServer(); // exposes /metrics - commented out until package is added
 
 // Add Redis distributed cache
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -132,7 +134,7 @@ builder.Services.AddCors(options =>
 // Update SwaggerGen registration
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Prime Management App V3",
         Version = "3.0",
@@ -175,7 +177,7 @@ app.UseMiddleware<RateLimitingMiddleware>();
 app.MapHealthChecks("/health");
 app.UseSwagger();
 app.UseSwaggerUI();
-app.MapHub<NotificationHub>("/ws");
+app.MapHub<backend.Controllers.NotificationHub>("/ws");
 
 app.Run();
 

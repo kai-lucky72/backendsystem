@@ -24,4 +24,5 @@ public interface IAuditLogRepository
     Task<IEnumerable<AuditLog>> SearchLogsAsync(string? eventType, string? entityType, string? entityId, string? details, DateTime startDate, DateTime endDate);
     Task<IEnumerable<AuditLog>> GetByUserAsync(User user);
     Task<IEnumerable<AuditLog>> GetByEntityTypeAndEntityIdAsync(string entityType, string entityId);
+    Task<IEnumerable<AuditLog>> GetByUserIdAsync(long userId);
 }

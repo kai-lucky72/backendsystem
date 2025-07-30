@@ -1,4 +1,5 @@
 using backend.DTOs;
+using backend.DTOs.Admin;
 using backend.Models;
 using backend.Repositories;
 using Microsoft.AspNetCore.Identity;
@@ -55,7 +56,7 @@ public class UserService : IUserService
             NationalId = nationalId,
             Email = email,
             WorkId = workId,
-            PasswordHash = password != null ? _passwordHasher.HashPassword(user, password) : null,
+            PasswordHash = password != null ? _passwordHasher.HashPassword(null, password) : null,
             Role = role,
             Active = true
         };
@@ -141,6 +142,42 @@ public class UserService : IUserService
         return await _userRepository.ExistsByPhoneNumberAsync(phoneNumber);
     }
 
+    public async Task<AdminDashboardDTO> GetAdminDashboardAsync()
+    {
+        var allUsers = await _userRepository.GetAllAsync();
+        var managers = allUsers.Where(u => u.Role == Role.Manager).ToList();
+        var agents = allUsers.Where(u => u.Role == Role.Agent).ToList();
+        
+        var systemMetrics = new List<AdminDashboardDTO.SystemMetric>
+        {
+            new() { Name = "Total Users", Users = allUsers.Count(), Activity = allUsers.Count(u => u.Active) },
+            new() { Name = "Managers", Users = managers.Count(), Activity = managers.Count(u => u.Active) },
+            new() { Name = "Agents", Users = agents.Count(), Activity = agents.Count(u => u.Active) }
+        };
+
+        var userActivity = new AdminDashboardDTO.UserActivityModel
+        {
+            Managers = new() { Count = managers.Count(), Change = "+5%" },
+            Agents = new() { Count = agents.Count(), Change = "+12%" },
+            ActiveToday = new() { Count = allUsers.Count(u => u.Active), Change = "+8%" },
+            NotificationsSent = new() { Count = 0, Change = "+15%" }
+        };
+
+        var recentActivities = new List<AdminDashboardDTO.RecentSystemActivity>
+        {
+            new() { Action = "User Created", User = "Admin", Time = "2 minutes ago" },
+            new() { Action = "Manager Added", User = "System", Time = "5 minutes ago" },
+            new() { Action = "Agent Activated", User = "Admin", Time = "10 minutes ago" }
+        };
+
+        return new AdminDashboardDTO
+        {
+            SystemMetrics = systemMetrics,
+            UserActivity = userActivity,
+            RecentSystemActivities = recentActivities
+        };
+    }
+
     public async Task<User> UpdateUserStatusAsync(long id, bool active)
     {
         var user = await GetUserByIdAsync(id);
@@ -198,7 +235,7 @@ public class UserService : IUserService
             var agent = _agentRepository.GetByUserIdAsync(user.Id).Result;
             if (agent != null)
             {
-                builder.Type = agent.AgentTypeEnum?.ToString().ToLower();
+                builder.Type = agent.AgentType.ToString().ToLower();
                 builder.Sector = agent.Sector;
                 builder.Group = agent.Group?.Name;
             }

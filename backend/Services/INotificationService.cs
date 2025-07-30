@@ -24,4 +24,9 @@ public interface INotificationService
     Task<Notification> SendCompleteNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Category category, Priority priority);
     
     Task<Notification> SendCompleteNotificationToAllAsync(User sender, string title, string message, bool viaEmail, Category category, Priority priority);
+
+    // Additional methods for AdminController
+    Task<Notification> SendNotificationAsync(Dictionary<string, string> body, User sender);
+    
+    Task<object> GetNotificationsPagedAsync(int page, int limit);
 }

@@ -103,12 +103,12 @@ public class ClientService : IClientService
 
     public async Task<IEnumerable<Client>> GetClientsByAgentAndDateRangeAsync(Agent agent, DateTime startDate, DateTime endDate)
     {
-        return await _clientRepository.GetByAgentAndDateRangeAsync(agent, startDate, endDate);
+        return await _clientRepository.GetByAgentAndCreatedAtBetweenAsync(agent, startDate, endDate);
     }
 
     public async Task<long> CountClientsByAgentAndDateRangeAsync(Agent agent, DateTime startDate, DateTime endDate)
     {
-        return await _clientRepository.CountByAgentAndDateRangeAsync(agent, startDate, endDate);
+        return await _clientRepository.CountByAgentAndCreatedAtBetweenAsync(agent, startDate, endDate);
     }
     
     public async Task<long> CountClientsByAgentAsync(Agent agent)

@@ -1,4 +1,5 @@
 using backend.DTOs;
+using backend.DTOs.Admin;
 using backend.Models;
 using Microsoft.AspNetCore.Identity;
 
@@ -43,4 +44,9 @@ public interface IUserService
     /// <param name="phoneNumber">The phone number to check</param>
     /// <returns>true if the phone number is already in use, false otherwise</returns>
     Task<bool> IsPhoneNumberTakenAsync(string phoneNumber);
+
+    /// <summary>
+    /// Get admin dashboard data
+    /// </summary>
+    Task<AdminDashboardDTO> GetAdminDashboardAsync();
 }

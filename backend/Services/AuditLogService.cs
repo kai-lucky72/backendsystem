@@ -64,12 +64,12 @@ public class AuditLogService : IAuditLogService
 
     public async Task<IEnumerable<AuditLog>> GetLogsByDateRangeAsync(DateTime start, DateTime end)
     {
-        return await _auditLogRepository.GetByDateRangeAsync(start, end);
+        return await _auditLogRepository.GetByTimestampBetweenOrderByTimestampDescAsync(start, end);
     }
     
     public async Task<IEnumerable<AuditLog>> GetLogsByActionAsync(string action)
     {
-        return await _auditLogRepository.GetByEventTypeAsync(action);
+        return await _auditLogRepository.GetByEventTypeOrderByTimestampDescAsync(action);
     }
     
     public async Task<(IEnumerable<AuditLog> Logs, int TotalCount)> GetAllLogsPaginatedAsync(int page, int pageSize)
@@ -129,5 +129,15 @@ public class AuditLogService : IAuditLogService
         var logs = query.Skip((page - 1) * pageSize).Take(pageSize);
         
         return (logs, totalCount);
+    }
+
+    public async Task<AuditLog?> GetLogByIdAsync(long id)
+    {
+        return await _auditLogRepository.GetByIdAsync(id);
+    }
+
+    public async Task<IEnumerable<AuditLog>> GetLogsByUserIdAsync(long userId)
+    {
+        return await _auditLogRepository.GetByUserIdAsync(userId);
     }
 }

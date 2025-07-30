@@ -76,7 +76,7 @@ var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp1234" : reques
             Status = user.Active ? "active" : "inactive",
             AgentsCount = 0,
             LastLogin = user.LastLogin?.ToString(),
-            CreatedAt = user.CreatedAt?.ToString("yyyy-MM-dd")
+            CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd")
         };
         return CreatedAtAction(nameof(CreateManager), managerDTO);
     }
@@ -159,7 +159,14 @@ var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp1234" : reques
     {
         var start = startDate ?? DateTime.Today.AddDays(-30);
         var end = endDate ?? DateTime.Today.AddDays(1).AddSeconds(-1);
-        var logs = await _auditLogService.SearchLogsAsync(action, entityType, entityId, userRole, details, start, end);
+        
+        var filters = new Dictionary<string, string>();
+        if (!string.IsNullOrEmpty(action)) filters["action"] = action;
+        if (!string.IsNullOrEmpty(entityType)) filters["entityType"] = entityType;
+        if (!string.IsNullOrEmpty(entityId)) filters["entityId"] = entityId;
+        if (!string.IsNullOrEmpty(details)) filters["details"] = details;
+        
+        var logs = await _auditLogService.SearchLogsAsync(filters, start, end);
         return Ok(logs);
     }
 
@@ -185,7 +192,7 @@ var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp1234" : reques
                 Status = user.Active ? "active" : "inactive",
                 AgentsCount = agentsCount,
                 LastLogin = user.LastLogin?.ToString(),
-                CreatedAt = user.CreatedAt?.ToString("yyyy-MM-dd")
+                CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd")
             });
         }
         return Ok(managerDTOs);

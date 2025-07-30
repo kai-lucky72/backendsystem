@@ -32,8 +32,7 @@ public class AttendanceService : IAttendanceService
         }
         
         // Get the attendance timeframe for the manager
-        var timeframes = await _attendanceTimeframeRepository.GetByManagerAsync(agent.Manager);
-        var timeframe = timeframes.FirstOrDefault();
+        var timeframe = await _attendanceTimeframeRepository.GetByManagerAsync(agent.Manager);
         
         var startTime = timeframe?.StartTime ?? new TimeOnly(6, 0); // Default 6:00 AM
         var endTime = timeframe?.EndTime ?? new TimeOnly(9, 0); // Default 9:00 AM
@@ -80,7 +79,7 @@ public class AttendanceService : IAttendanceService
 
     public async Task<IEnumerable<Attendance>> GetAttendanceByAgentAsync(Agent agent)
     {
-        return await _attendanceRepository.GetByAgentAsync(agent);
+        return await _attendanceRepository.GetByAgentOrderByTimestampDescAsync(agent);
     }
 
     public async Task<IEnumerable<Attendance>> GetAttendanceByAgentAndDateRangeAsync(Agent agent, DateTime start, DateTime end)
@@ -90,17 +89,17 @@ public class AttendanceService : IAttendanceService
 
     public async Task<bool> HasMarkedAttendanceTodayAsync(Agent agent)
     {
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var startOfDay = today.ToDateTime(new TimeOnly(0, 0));
-        var endOfDay = today.ToDateTime(new TimeOnly(23, 59, 59));
+        var today = DateTime.Today;
+        var startOfDay = today;
+        var endOfDay = today.AddDays(1).AddSeconds(-1);
         
-        var attendances = await _attendanceRepository.GetByAgentAndDateRangeAsync(agent, startOfDay, endOfDay);
-        return attendances.Any();
+        var attendance = await _attendanceRepository.GetFirstByAgentAndTimestampBetweenOrderByTimestampDescAsync(agent, startOfDay, endOfDay);
+        return attendance != null;
     }
 
     public async Task<DateTime?> GetLastAttendanceTimeAsync(Agent agent)
     {
-        var attendances = await _attendanceRepository.GetByAgentAsync(agent);
+        var attendances = await _attendanceRepository.GetByAgentOrderByTimestampDescAsync(agent);
         return attendances.OrderByDescending(a => a.Timestamp).FirstOrDefault()?.Timestamp;
     }
 }
