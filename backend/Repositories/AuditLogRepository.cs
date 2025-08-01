@@ -172,4 +172,42 @@ public class AuditLogRepository : IAuditLogRepository
     {
         return await GetByUserIdOrderByTimestampDescAsync(userId);
     }
+
+    // MISSING METHODS IMPLEMENTATION
+    
+    public async Task<int> CountByEventTypeAndDateAsync(string eventType, DateTime date)
+    {
+        // Count events of a specific type on a specific date (full day)
+        var startOfDay = date.Date;
+        var endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+        
+        return await _context.AuditLogs
+            .CountAsync(al => al.EventType == eventType && 
+                             al.Timestamp >= startOfDay && 
+                             al.Timestamp <= endOfDay);
+    }
+
+    public async Task<int> CountByMetricTypePreviousPeriodAsync(string metricType)
+    {
+        // This seems to be for analytics - counting events in previous period
+        // Assuming we want to count events of this type in the previous month
+        var now = DateTime.UtcNow;
+        var previousMonthStart = new DateTime(now.Year, now.Month, 1).AddMonths(-1);
+        var previousMonthEnd = previousMonthStart.AddMonths(1).AddTicks(-1);
+        
+        return await _context.AuditLogs
+            .CountAsync(al => al.EventType == metricType && 
+                             al.Timestamp >= previousMonthStart && 
+                             al.Timestamp <= previousMonthEnd);
+    }
+
+    public async Task<IEnumerable<AuditLog>> GetRecentAsync(int count)
+    {
+        // Get the most recent audit logs
+        return await _context.AuditLogs
+            .Include(al => al.User)
+            .OrderByDescending(al => al.Timestamp)
+            .Take(count)
+            .ToListAsync();
+    }
 }

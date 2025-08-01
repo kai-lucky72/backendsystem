@@ -25,4 +25,9 @@ public interface IAuditLogRepository
     Task<IEnumerable<AuditLog>> GetByUserAsync(User user);
     Task<IEnumerable<AuditLog>> GetByEntityTypeAndEntityIdAsync(string entityType, string entityId);
     Task<IEnumerable<AuditLog>> GetByUserIdAsync(long userId);
+    
+    // Missing methods that AuditLogService is calling
+    Task<int> CountByEventTypeAndDateAsync(string eventType, DateTime date);
+    Task<int> CountByMetricTypePreviousPeriodAsync(string metricType);
+    Task<IEnumerable<AuditLog>> GetRecentAsync(int count);
 }

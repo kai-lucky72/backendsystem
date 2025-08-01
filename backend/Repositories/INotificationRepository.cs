@@ -14,4 +14,6 @@ public interface INotificationRepository
     Task<IEnumerable<Notification>> GetByRecipientOrderBySentAtDescAsync(User recipient);
     Task<IEnumerable<Notification>> GetBySenderOrderBySentAtDescAsync(User sender);
     Task<IEnumerable<Notification>> GetByRecipientIsNullOrderBySentAtDescAsync();
+
+    Task<int> CountAllAsync();
 }

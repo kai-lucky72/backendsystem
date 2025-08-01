@@ -1,0 +1,71 @@
+2025-08-01 08:04:30.304 +02:00 [INF] No migrations were found in assembly 'backend'. A migration needs to be added before the database can be updated.
+2025-08-01 08:04:30.930 +02:00 [INF] Executed DbCommand (41ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-01 08:04:30.974 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-01 08:04:31.090 +02:00 [INF] Executed DbCommand (110ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-01 08:04:31.336 +02:00 [INF] Executed DbCommand (33ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-01 08:04:31.361 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-01 08:04:31.369 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-01 08:04:31.416 +02:00 [INF] Executed DbCommand (35ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-01 08:04:31.440 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-01 08:04:31.494 +02:00 [INF] Executed DbCommand (48ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-08-01 08:04:31.609 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-01 08:04:31.865 +02:00 [INF] Now listening on: http://localhost:5238
+2025-08-01 08:04:31.872 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-08-01 08:04:31.875 +02:00 [INF] Hosting environment: Development
+2025-08-01 08:04:31.881 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-08-01 08:04:36.527 +02:00 [INF] Application is shutting down...
+2025-08-01 08:32:39.849 +02:00 [INF] No migrations were found in assembly 'backend'. A migration needs to be added before the database can be updated.
+2025-08-01 08:32:40.346 +02:00 [INF] Executed DbCommand (46ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-01 08:32:40.365 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-01 08:32:40.438 +02:00 [INF] Executed DbCommand (68ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-01 08:32:40.595 +02:00 [INF] Executed DbCommand (15ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-01 08:32:40.616 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-01 08:32:40.625 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-01 08:32:40.674 +02:00 [INF] Executed DbCommand (41ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-01 08:32:40.685 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-01 08:32:40.695 +02:00 [INF] Executed DbCommand (8ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-08-01 08:32:40.757 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-01 08:32:40.867 +02:00 [INF] Now listening on: http://localhost:5238
+2025-08-01 08:32:40.871 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-08-01 08:32:40.873 +02:00 [INF] Hosting environment: Development
+2025-08-01 08:32:40.875 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend

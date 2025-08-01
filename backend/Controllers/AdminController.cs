@@ -1,6 +1,7 @@
 using backend.DTOs;
 using backend.DTOs.Admin;
 using backend.DTOs.Manager;
+using backend.DTOs.Notification;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -176,20 +177,20 @@ public class AdminController(
         
         if (!string.IsNullOrEmpty(level))
         {
-            filteredLogs = filteredLogs.Where(l => l.EventType?.Equals(level, StringComparison.OrdinalIgnoreCase) == true);
+            filteredLogs = filteredLogs.Where(l => string.Equals(l.EventType, level, StringComparison.OrdinalIgnoreCase));
         }
         
         if (!string.IsNullOrEmpty(category))
         {
-            filteredLogs = filteredLogs.Where(l => l.EntityType?.Equals(category, StringComparison.OrdinalIgnoreCase) == true);
+            filteredLogs = filteredLogs.Where(l => string.Equals(l.EntityType, category, StringComparison.OrdinalIgnoreCase));
         }
         
         if (!string.IsNullOrEmpty(search))
         {
             filteredLogs = filteredLogs.Where(l => 
-                (l.Details?.Contains(search, StringComparison.OrdinalIgnoreCase) == true) ||
-                (l.EventType?.Contains(search, StringComparison.OrdinalIgnoreCase) == true) ||
-                (l.EntityType?.Contains(search, StringComparison.OrdinalIgnoreCase) == true));
+                (l.Details != null && l.Details.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                (l.EventType != null && l.EventType.Contains(search, StringComparison.OrdinalIgnoreCase)) ||
+                (l.EntityType != null && l.EntityType.Contains(search, StringComparison.OrdinalIgnoreCase)));
         }
         
         var logsList = filteredLogs.ToList();
@@ -206,7 +207,7 @@ public class AdminController(
             level = log.EventType,
             category = log.EntityType,
             message = log.EventType + (!string.IsNullOrEmpty(log.EntityType) ? " " + log.EntityType : ""),
-            user = log.UserEmail ?? "System",
+            user = log.User?.Email ?? "System",
             ip = ExtractIpFromDetails(log.Details),
             details = log.Details
         }).ToList();
@@ -214,10 +215,10 @@ public class AdminController(
         // Calculate stats
         var stats = new
         {
-            errorCount = logsList.Count(l => l.EventType?.Equals("error", StringComparison.OrdinalIgnoreCase) == true),
-            warningCount = logsList.Count(l => l.EventType?.Equals("warning", StringComparison.OrdinalIgnoreCase) == true),
-            infoCount = logsList.Count(l => l.EventType?.Equals("info", StringComparison.OrdinalIgnoreCase) == true),
-            successCount = logsList.Count(l => l.EventType?.Equals("success", StringComparison.OrdinalIgnoreCase) == true)
+            errorCount = logsList.Count(l => string.Equals(l.EventType, "error", StringComparison.OrdinalIgnoreCase)),
+            warningCount = logsList.Count(l => string.Equals(l.EventType, "warning", StringComparison.OrdinalIgnoreCase)),
+            infoCount = logsList.Count(l => string.Equals(l.EventType, "info", StringComparison.OrdinalIgnoreCase)),
+            successCount = logsList.Count(l => string.Equals(l.EventType, "success", StringComparison.OrdinalIgnoreCase))
         };
         
         var pagination = new
@@ -364,12 +365,12 @@ public class AdminController(
         var senderWorkId = body.GetValueOrDefault("senderWorkId", "");
         
         // Validate sender role and workId
-        if (!string.IsNullOrEmpty(senderRole) && !senderRole.Equals(sender.Role, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(senderRole) && !string.Equals(senderRole, sender.Role.ToString(), StringComparison.OrdinalIgnoreCase))
         {
             return StatusCode(403, new { error = "Sender role mismatch" });
         }
         
-        if (!string.IsNullOrEmpty(senderWorkId) && !senderWorkId.Equals(sender.WorkId))
+        if (!string.IsNullOrEmpty(senderWorkId) && !string.Equals(senderWorkId, sender.WorkId))
         {
             return StatusCode(403, new { error = "Sender workId mismatch" });
         }
@@ -391,7 +392,7 @@ public class AdminController(
             totalRecipients = result.TotalRecipients,
             sender = new
             {
-            role = sender.Role.ToString().ToLower(),
+                role = sender.Role.ToString().ToLower(),
                 workId = sender.WorkId,
                 name = $"{sender.FirstName} {sender.LastName}"
             }
@@ -404,38 +405,39 @@ public class AdminController(
     public async Task<ActionResult<object>> GetNotifications([FromQuery] int page = 1, [FromQuery] int limit = 10)
     {
         var result = await notificationService.GetNotificationsPagedAsync(page, limit);
-        // Transform to match Java response structure
+        
+        // Transform to match Java response structure - FIXED
         var notifications = result.Notifications?.Select(n => new
         {
-            id = n.Id?.ToString(),
+            id = n.Id.ToString(),
             title = n.Title,
             message = n.Message,
-            recipient = n.Recipient ?? "All Users",
+            recipient = n.RecipientName ?? "All Users",
             status = n.Status ?? "sent",
-            sentAt = n.SentAt?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            readBy = n.ReadBy ?? 0,
-            totalRecipients = n.TotalRecipients ?? 0,
+            sentAt = n.SentAt.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+            readBy = n.ReadBy,
+            totalRecipients = n.TotalRecipients,
             priority = n.Priority ?? "normal",
-            sender = n.Sender != null ? new
+            sender = new
             {
-                role = n.Sender.Role?.ToLower(),
-                workId = n.Sender.WorkId,
-                name = $"{n.Sender.FirstName} {n.Sender.LastName}"
-            } : null
-        }) ?? new List<object>();
+                role = n.SenderRole?.ToLower(),
+                workId = n.SenderWorkId,
+                name = n.SenderName
+            }
+        }).Cast<object>().ToList() ?? new List<object>();
         
         var stats = new
         {
-            totalSent = result.TotalCount ?? 0,
-            thisWeek = result.ThisWeekCount ?? 0,
-            readRate = result.ReadRate ?? 0.0
+            totalSent = result.TotalCount,
+            thisWeek = result.ThisWeekCount,
+            readRate = result.ReadRate
         };
         
         var pagination = new
         {
             page = page,
             limit = limit,
-            total = result.TotalCount ?? 0
+            total = result.TotalCount
         };
         
         var response = new
@@ -512,8 +514,18 @@ public class AdminController(
         return recentLogs.Select(log => new
         {
             action = $"{log.EventType} {log.EntityType}",
-            user = log.UserName ?? "System",
+            user = GetUserNameFromLog(log),
             time = FormatTimeAgo(log.Timestamp ?? DateTime.Now)
         }).Cast<object>().ToList();
+    }
+
+    // Helper method to get username from audit log
+    private string GetUserNameFromLog(backend.Models.AuditLog log)
+    {
+        if (log.User != null)
+        {
+            return $"{log.User.FirstName} {log.User.LastName}";
+        }
+        return "System";
     }
 }

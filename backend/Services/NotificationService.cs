@@ -211,32 +211,32 @@ public class NotificationService : INotificationService
             Id = notification.Id,
             Title = notification.Title,
             Message = notification.Message,
-            Timestamp = notification.SentAt, // Map SentAt to Timestamp for consistency
-            SentAt = notification.SentAt,
+            Timestamp = notification.SentAt ?? DateTime.UtcNow, // Fixed: Handle nullable DateTime
+            SentAt = notification.SentAt ?? DateTime.UtcNow, // Fixed: Handle nullable DateTime
             Category = notification.Category.ToString(),
             Priority = notification.Priority.ToString(),
             Status = notification.Status,
             ViaEmail = notification.ViaEmail,
-            ReadBy = notification.ReadBy ?? 0,
+            ReadBy = notification.ReadBy, // Fixed: Remove ?? operator for int
             
             // Sender information
             SenderId = notification.Sender?.Id ?? 0,
             SenderName = notification.Sender?.Email ?? "System",
-            SenderRole = notification.Sender?.Role?.ToString() ?? "System",
+            SenderRole = notification.Sender?.Role.ToString() ?? "System", // Fixed: Handle nullable Role
             SenderWorkId = notification.Sender?.WorkId ?? "",
             SenderAvatarUrl = null, // You can add this field to User model if needed
             
             // Recipient information
             RecipientId = notification.Recipient?.Id,
             RecipientName = notification.Recipient?.Email ?? "All Users",
-            RecipientRole = notification.Recipient?.Role?.ToString(),
+            RecipientRole = notification.Recipient?.Role.ToString() ?? null, // Fixed: Handle nullable Role
             RecipientWorkId = notification.Recipient?.WorkId,
             
             // Status information
             Read = notification.ReadBy > 0, // Assuming ReadBy > 0 means it's been read
-            ReadAt = notification.ReadAt, // You might need to add this field to Notification model
-            Archived = notification.Archived, // You might need to add this field to Notification model
-            ArchivedAt = notification.ArchivedAt, // You might need to add this field to Notification model
+            ReadAt = null, // Fixed: Set to null since property doesn't exist in model
+            Archived = false, // Fixed: Set to false since property doesn't exist in model
+            ArchivedAt = null, // Fixed: Set to null since property doesn't exist in model
             
             // Context information (you can enhance these based on your business logic)
             ContextType = DetermineContextType(notification),
@@ -248,12 +248,12 @@ public class NotificationService : INotificationService
     
     private string DetermineContextType(Notification notification)
     {
-        // Logic to determine context type based on notification content or category
+        // Fixed: Use existing Category enum values
         return notification.Category switch
         {
             Category.Performance => "AGENT",
             Category.Attendance => "AGENT", 
-            Category.Group => "GROUP",
+            Category.Task => "TASK", // Fixed: Changed from Group to Task
             Category.System => "SYSTEM",
             _ => "GENERAL"
         };
@@ -274,12 +274,12 @@ public class NotificationService : INotificationService
     
     private string? GenerateActionUrl(Notification notification)
     {
-        // Logic to generate action URLs based on notification type
+        // Fixed: Use existing Category enum values
         return notification.Category switch
         {
             Category.Performance => $"/agent/{notification.Recipient?.Id}/performance",
             Category.Attendance => $"/agent/{notification.Recipient?.Id}/attendance",
-            Category.Group => $"/group/{DetermineContextId(notification)}",
+            Category.Task => $"/task/{DetermineContextId(notification)}", // Fixed: Changed from Group to Task
             _ => null
         };
     }

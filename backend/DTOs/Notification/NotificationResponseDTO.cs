@@ -5,10 +5,10 @@ namespace backend.DTOs.Notification;
 public class NotificationResponseDTO
 {
     public long Id { get; set; }
-    public string Title { get; set; } = string.Empty; // Added to match Notification model
+    public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; }
-    public DateTime SentAt { get; set; } // Added to match Notification model
+    public DateTime SentAt { get; set; } // Non-nullable to fix the ? operator error
     public bool? Read { get; set; }
     
     // Enhanced sender information
@@ -18,25 +18,26 @@ public class NotificationResponseDTO
     public string SenderWorkId { get; set; } = string.Empty;
     public string? SenderAvatarUrl { get; set; }
     
-    // Enhanced recipient information
+    // Enhanced recipient information - Fixed naming to match controller usage
     public long? RecipientId { get; set; }
-    public string? RecipientName { get; set; }
+    public string? RecipientName { get; set; } // This is what the controller uses
     public string? RecipientRole { get; set; }
     public string? RecipientWorkId { get; set; }
     
     // Category and context information
-    public string Category { get; set; } = string.Empty;  // e.g., "PERFORMANCE", "ATTENDANCE", "SYSTEM", "GROUP"
-    public string Priority { get; set; } = string.Empty;  // e.g., "LOW", "MEDIUM", "HIGH", "URGENT"
-    public string? ContextType { get; set; }  // e.g., "AGENT", "GROUP", "MANAGER", "SYSTEM"
-    public string? ContextId { get; set; }  // ID of the related entity (agent ID, group ID, etc.)
-    public string? ActionRequired { get; set; }  // Whether any action is required from recipient
-    public string? ActionUrl { get; set; }  // Optional URL for taking action
+    public string Category { get; set; } = string.Empty;
+    public string Priority { get; set; } = string.Empty;
+    public string? ContextType { get; set; }
+    public string? ContextId { get; set; }
+    public string? ActionRequired { get; set; }
+    public string? ActionUrl { get; set; }
     
     // Status and metadata information
-    public string Status { get; set; } = string.Empty; // Added to match Notification model
-    public bool ViaEmail { get; set; } // Added to match Notification model
-    public int ReadBy { get; set; } // Added to match what's used in the service
-    public DateTime? ReadAt { get; set; }  // When the notification was read (if applicable)
+    public string Status { get; set; } = string.Empty;
+    public bool ViaEmail { get; set; }
+    public int ReadBy { get; set; } // Non-nullable to fix the ?? operator error
+    public int TotalRecipients { get; set; } // Added this property that was missing
+    public DateTime? ReadAt { get; set; }
     public bool? Archived { get; set; }
-    public DateTime? ArchivedAt { get; set; }  // When the notification was archived (if applicable)
+    public DateTime? ArchivedAt { get; set; }
 }
