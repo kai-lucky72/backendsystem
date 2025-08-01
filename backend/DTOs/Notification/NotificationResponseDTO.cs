@@ -5,8 +5,10 @@ namespace backend.DTOs.Notification;
 public class NotificationResponseDTO
 {
     public long Id { get; set; }
+    public string Title { get; set; } = string.Empty; // Added to match Notification model
     public string Message { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; }
+    public DateTime SentAt { get; set; } // Added to match Notification model
     public bool? Read { get; set; }
     
     // Enhanced sender information
@@ -30,7 +32,10 @@ public class NotificationResponseDTO
     public string? ActionRequired { get; set; }  // Whether any action is required from recipient
     public string? ActionUrl { get; set; }  // Optional URL for taking action
     
-    // Status information
+    // Status and metadata information
+    public string Status { get; set; } = string.Empty; // Added to match Notification model
+    public bool ViaEmail { get; set; } // Added to match Notification model
+    public int ReadBy { get; set; } // Added to match what's used in the service
     public DateTime? ReadAt { get; set; }  // When the notification was read (if applicable)
     public bool? Archived { get; set; }
     public DateTime? ArchivedAt { get; set; }  // When the notification was archived (if applicable)

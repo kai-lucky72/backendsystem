@@ -36,3 +36,525 @@ SELECT @result
 2025-07-30 06:14:14.225 +02:00 [INF] Hosting environment: Development
 2025-07-30 06:14:14.267 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
 2025-07-30 06:14:40.346 +02:00 [INF] Application is shutting down...
+2025-07-30 06:23:47.140 +02:00 [INF] No migrations were found in assembly 'backend'. A migration needs to be added before the database can be updated.
+2025-07-30 06:23:48.688 +02:00 [INF] Executed DbCommand (101ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 06:23:48.764 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-07-30 06:23:48.985 +02:00 [INF] Executed DbCommand (209ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-07-30 06:23:49.478 +02:00 [INF] Executed DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-07-30 06:23:49.524 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 06:23:49.532 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-07-30 06:23:49.598 +02:00 [INF] Executed DbCommand (52ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-07-30 06:23:49.628 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-07-30 06:23:49.654 +02:00 [INF] Executed DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-07-30 06:23:49.850 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-30 06:23:50.094 +02:00 [INF] Now listening on: http://localhost:5238
+2025-07-30 06:23:50.099 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-30 06:23:50.102 +02:00 [INF] Hosting environment: Development
+2025-07-30 06:23:50.105 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-07-30 06:44:18.907 +02:00 [INF] Request starting HTTP/1.1 POST http://localhost:5238/api/auth/login - application/json 44
+2025-07-30 06:44:20.852 +02:00 [WRN] Failed to determine the https port for redirect.
+2025-07-30 06:44:21.518 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+   at System.Lazy`1.ExecutionAndPublication(LazyHelper executionAndPublication, Boolean useDefaultConstructor)
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+2025-07-30 06:44:24.300 +02:00 [ERR] An exception was thrown attempting to execute the error handler.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+--- End of stack trace from previous location ---
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+2025-07-30 06:44:24.999 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+   at System.Lazy`1.ExecutionAndPublication(LazyHelper executionAndPublication, Boolean useDefaultConstructor)
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-07-30 06:44:25.833 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5238/api/auth/login - 500 null text/plain; charset=utf-8 6988.4103ms
+2025-07-30 07:31:53.754 +02:00 [INF] Application is shutting down...
+2025-07-30 08:32:15.212 +02:00 [INF] No migrations were found in assembly 'backend'. A migration needs to be added before the database can be updated.
+2025-07-30 08:32:15.836 +02:00 [INF] Executed DbCommand (44ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 08:32:15.863 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-07-30 08:32:16.004 +02:00 [INF] Executed DbCommand (131ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-07-30 08:32:16.287 +02:00 [INF] Executed DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-07-30 08:32:16.316 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 08:32:16.326 +02:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-07-30 08:32:16.416 +02:00 [INF] Executed DbCommand (77ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-07-30 08:32:16.441 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-07-30 08:32:16.477 +02:00 [INF] Executed DbCommand (29ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-07-30 08:32:16.627 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-30 08:32:16.828 +02:00 [INF] Now listening on: http://localhost:5238
+2025-07-30 08:32:16.834 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-30 08:32:16.837 +02:00 [INF] Hosting environment: Development
+2025-07-30 08:32:16.840 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-07-30 08:32:59.041 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger - null null
+2025-07-30 08:32:59.074 +02:00 [WRN] Failed to determine the https port for redirect.
+2025-07-30 08:32:59.118 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+   at System.Lazy`1.ExecutionAndPublication(LazyHelper executionAndPublication, Boolean useDefaultConstructor)
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+2025-07-30 08:32:59.156 +02:00 [ERR] An exception was thrown attempting to execute the error handler.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+--- End of stack trace from previous location ---
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+2025-07-30 08:32:59.166 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+   at System.Lazy`1.ExecutionAndPublication(LazyHelper executionAndPublication, Boolean useDefaultConstructor)
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-07-30 08:32:59.233 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger - 500 null text/html; charset=utf-8 192.9172ms
+2025-07-30 08:33:00.273 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/favicon.ico - null null
+2025-07-30 08:33:00.286 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+--- End of stack trace from previous location ---
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+2025-07-30 08:33:00.300 +02:00 [ERR] An exception was thrown attempting to execute the error handler.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+--- End of stack trace from previous location ---
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+2025-07-30 08:33:00.312 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+System.ArgumentException: IDX10703: Cannot create a 'Microsoft.IdentityModel.Tokens.SymmetricSecurityKey', key length is zero.
+   at Microsoft.IdentityModel.Tokens.SymmetricSecurityKey..ctor(Byte[] key)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__3(JwtBearerOptions options) in C:\Users\Lamelo\RiderProject\backend\backend\Program.cs:line 63
+   at Microsoft.Extensions.Options.OptionsFactory`1.Create(String name)
+   at System.Lazy`1.ViaFactory(LazyThreadSafetyMode mode)
+--- End of stack trace from previous location ---
+   at System.Lazy`1.CreateValue()
+   at Microsoft.Extensions.Options.OptionsCache`1.GetOrAdd[TArg](String name, Func`3 createOptions, TArg factoryArgument)
+   at Microsoft.Extensions.Options.OptionsMonitor`1.Get(String name)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandler`1.InitializeAsync(AuthenticationScheme scheme, HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationHandlerProvider.GetHandlerAsync(HttpContext context, String authenticationScheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationService.AuthenticateAsync(HttpContext context, String scheme)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-07-30 08:33:00.340 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/favicon.ico - 500 null text/plain; charset=utf-8 66.8574ms
+2025-07-30 08:37:02.740 +02:00 [INF] Application is shutting down...
+2025-07-30 08:37:15.356 +02:00 [INF] No migrations were found in assembly 'backend'. A migration needs to be added before the database can be updated.
+2025-07-30 08:37:15.908 +02:00 [INF] Executed DbCommand (40ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 08:37:15.931 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-07-30 08:37:15.999 +02:00 [INF] Executed DbCommand (64ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-07-30 08:37:16.191 +02:00 [INF] Executed DbCommand (18ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-07-30 08:37:16.207 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 08:37:16.211 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-07-30 08:37:16.251 +02:00 [INF] Executed DbCommand (33ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-07-30 08:37:16.263 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-07-30 08:37:16.286 +02:00 [INF] Executed DbCommand (18ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-07-30 08:37:16.340 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-30 08:37:16.433 +02:00 [INF] Now listening on: http://localhost:5238
+2025-07-30 08:37:16.438 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-30 08:37:16.440 +02:00 [INF] Hosting environment: Development
+2025-07-30 08:37:16.441 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-07-30 08:37:30.533 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger - null null
+2025-07-30 08:37:30.567 +02:00 [WRN] Failed to determine the https port for redirect.
+2025-07-30 08:37:30.647 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger - 301 0 null 114.0225ms
+2025-07-30 08:37:30.661 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.html - null null
+2025-07-30 08:37:30.756 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.html - 200 null text/html;charset=utf-8 95.2642ms
+2025-07-30 08:37:30.873 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - null null
+2025-07-30 08:37:30.873 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui.css - null null
+2025-07-30 08:37:30.873 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.css - null null
+2025-07-30 08:37:30.873 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.js - null null
+2025-07-30 08:37:30.873 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - null null
+2025-07-30 08:37:30.894 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.js - 200 null application/javascript;charset=utf-8 21.0181ms
+2025-07-30 08:37:30.933 +02:00 [INF] Sending file. Request path: '/index.css'. Physical path: 'N/A'
+2025-07-30 08:37:30.940 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.css - 200 202 text/css 66.5172ms
+2025-07-30 08:37:30.946 +02:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2025-07-30 08:37:30.946 +02:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2025-07-30 08:37:30.961 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - 200 230007 text/javascript 88.4625ms
+2025-07-30 08:37:31.000 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui.css - 200 152035 text/css 127.3011ms
+2025-07-30 08:37:31.002 +02:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2025-07-30 08:37:31.029 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - 200 1426001 text/javascript 155.6385ms
+2025-07-30 08:37:31.263 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - null null
+2025-07-30 08:37:31.483 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 220.045ms
+2025-07-30 08:37:32.074 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/favicon-32x32.png - null null
+2025-07-30 08:37:32.087 +02:00 [INF] Sending file. Request path: '/favicon-32x32.png'. Physical path: 'N/A'
+2025-07-30 08:37:32.091 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/favicon-32x32.png - 200 628 image/png 16.7769ms
+2025-07-30 08:37:38.885 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - null null
+2025-07-30 08:37:38.885 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - null null
+2025-07-30 08:37:38.885 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.js - null null
+2025-07-30 08:37:38.891 +02:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2025-07-30 08:37:38.901 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.js - 200 null application/javascript;charset=utf-8 15.8622ms
+2025-07-30 08:37:38.903 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - 200 230007 text/javascript 17.8321ms
+2025-07-30 08:37:38.932 +02:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2025-07-30 08:37:38.936 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - 200 1426001 text/javascript 50.9305ms
+2025-07-30 08:49:20.214 +02:00 [INF] Request starting HTTP/1.1 POST http://localhost:5238/api/auth/login - application/json 75
+2025-07-30 08:49:20.436 +02:00 [INF] CORS policy execution successful.
+2025-07-30 08:49:20.515 +02:00 [INF] Executing endpoint 'backend.Controllers.AuthController.Login (backend)'
+2025-07-30 08:49:20.809 +02:00 [INF] Route matched with {action = "Login", controller = "Auth"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[backend.DTOs.Auth.AuthResponse]] Login(backend.DTOs.Auth.AuthRequest) on controller backend.Controllers.AuthController (backend).
+2025-07-30 08:49:21.133 +02:00 [INF] Executing action method backend.Controllers.AuthController.Login (backend) - Validation state: "Valid"
+2025-07-30 08:49:22.719 +02:00 [ERR] Failed executing DbCommand (106ms) [Parameters=[@__workId_0='?' (Size = 450)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [u].[Id], [u].[AccessFailedCount], [u].[Active], [u].[ConcurrencyStamp], [u].[created_at], [u].[Email], [u].[EmailConfirmed], [u].[first_name], [u].[last_login], [u].[last_name], [u].[LockoutEnabled], [u].[LockoutEnd], [u].[national_id], [u].[NormalizedEmail], [u].[NormalizedUserName], [u].[password_hash], [u].[phone_number], [u].[PhoneNumberConfirmed], [u].[profile_image_url], [u].[Role], [u].[SecurityStamp], [u].[TwoFactorEnabled], [u].[UserName], [u].[work_id], [a].[user_id], [a].[agent_type], [a].[group_id], [a].[manager_id], [a].[Sector], [m].[user_id], [m].[created_by], [m].[department]
+FROM [users] AS [u]
+LEFT JOIN [agents] AS [a] ON [u].[Id] = [a].[user_id]
+LEFT JOIN [managers] AS [m] ON [u].[Id] = [m].[user_id]
+WHERE [u].[work_id] = @__workId_0
+2025-07-30 08:49:22.795 +02:00 [ERR] An exception occurred while iterating over the results of a query for context type 'backend.Data.ApplicationDbContext'.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'AccessFailedCount'.
+Invalid column name 'ConcurrencyStamp'.
+Invalid column name 'EmailConfirmed'.
+Invalid column name 'LockoutEnabled'.
+Invalid column name 'LockoutEnd'.
+Invalid column name 'NormalizedEmail'.
+Invalid column name 'NormalizedUserName'.
+Invalid column name 'PhoneNumberConfirmed'.
+Invalid column name 'SecurityStamp'.
+Invalid column name 'TwoFactorEnabled'.
+Invalid column name 'UserName'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__195_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+ClientConnectionId:cab6a104-88fc-4d5e-b927-852a709f5ab2
+Error Number:207,State:1,Class:16
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'AccessFailedCount'.
+Invalid column name 'ConcurrencyStamp'.
+Invalid column name 'EmailConfirmed'.
+Invalid column name 'LockoutEnabled'.
+Invalid column name 'LockoutEnd'.
+Invalid column name 'NormalizedEmail'.
+Invalid column name 'NormalizedUserName'.
+Invalid column name 'PhoneNumberConfirmed'.
+Invalid column name 'SecurityStamp'.
+Invalid column name 'TwoFactorEnabled'.
+Invalid column name 'UserName'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__195_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+ClientConnectionId:cab6a104-88fc-4d5e-b927-852a709f5ab2
+Error Number:207,State:1,Class:16
+2025-07-30 08:49:22.847 +02:00 [INF] Executed action backend.Controllers.AuthController.Login (backend) in 2024.4325ms
+2025-07-30 08:49:22.853 +02:00 [INF] Executed endpoint 'backend.Controllers.AuthController.Login (backend)'
+2025-07-30 08:49:22.864 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'AccessFailedCount'.
+Invalid column name 'ConcurrencyStamp'.
+Invalid column name 'EmailConfirmed'.
+Invalid column name 'LockoutEnabled'.
+Invalid column name 'LockoutEnd'.
+Invalid column name 'NormalizedEmail'.
+Invalid column name 'NormalizedUserName'.
+Invalid column name 'PhoneNumberConfirmed'.
+Invalid column name 'SecurityStamp'.
+Invalid column name 'TwoFactorEnabled'.
+Invalid column name 'UserName'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__195_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at backend.Repositories.UserRepository.GetByWorkIdAsync(String workId) in C:\Users\Lamelo\RiderProject\backend\backend\Repositories\UserRepository.cs:line 66
+   at backend.Services.UserService.GetUserByWorkIdAsync(String workId) in C:\Users\Lamelo\RiderProject\backend\backend\Services\UserService.cs:line 100
+   at backend.Controllers.AuthController.Login(AuthRequest request) in C:\Users\Lamelo\RiderProject\backend\backend\Controllers\AuthController.cs:line 26
+   at lambda_method29(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at backend.Middleware.RateLimitingMiddleware.InvokeAsync(HttpContext context) in C:\Users\Lamelo\RiderProject\backend\backend\Middleware\RateLimitingMiddleware.cs:line 33
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+ClientConnectionId:cab6a104-88fc-4d5e-b927-852a709f5ab2
+Error Number:207,State:1,Class:16
+2025-07-30 08:49:22.952 +02:00 [INF] CORS policy execution successful.
+2025-07-30 08:49:22.995 +02:00 [ERR] An unhandled exception has occurred while executing the request.
+System.InvalidOperationException: The exception handler configured on ExceptionHandlerOptions produced a 404 status response. This InvalidOperationException containing the original exception was thrown since this is often due to a misconfigured ExceptionHandlingPath. If the exception handler is expected to return 404 status responses then set AllowStatusCode404Response to true.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Invalid column name 'AccessFailedCount'.
+Invalid column name 'ConcurrencyStamp'.
+Invalid column name 'EmailConfirmed'.
+Invalid column name 'LockoutEnabled'.
+Invalid column name 'LockoutEnd'.
+Invalid column name 'NormalizedEmail'.
+Invalid column name 'NormalizedUserName'.
+Invalid column name 'PhoneNumberConfirmed'.
+Invalid column name 'SecurityStamp'.
+Invalid column name 'TwoFactorEnabled'.
+Invalid column name 'UserName'.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__195_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal.SqlServerExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Query.ShapedQueryCompilingExpressionVisitor.SingleOrDefaultAsync[TSource](IAsyncEnumerable`1 asyncEnumerable, CancellationToken cancellationToken)
+   at backend.Repositories.UserRepository.GetByWorkIdAsync(String workId) in C:\Users\Lamelo\RiderProject\backend\backend\Repositories\UserRepository.cs:line 66
+   at backend.Services.UserService.GetUserByWorkIdAsync(String workId) in C:\Users\Lamelo\RiderProject\backend\backend\Services\UserService.cs:line 100
+   at backend.Controllers.AuthController.Login(AuthRequest request) in C:\Users\Lamelo\RiderProject\backend\backend\Controllers\AuthController.cs:line 26
+   at lambda_method29(Closure, Object)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ActionMethodExecutor.AwaitableObjectResultExecutor.Execute(ActionContext actionContext, IActionResultTypeMapper mapper, ObjectMethodExecutor executor, Object controller, Object[] arguments)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeActionMethodAsync>g__Logged|12_1(ControllerActionInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeNextActionFilterAsync>g__Awaited|10_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Rethrow(ActionExecutedContextSealed context)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.Next(State& next, Scope& scope, Object& state, Boolean& isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker.<InvokeInnerFilterAsync>g__Awaited|13_0(ControllerActionInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeFilterPipelineAsync>g__Awaited|20_0(ResourceInvoker invoker, Task lastTask, State next, Scope scope, Object state, Boolean isCompleted)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Mvc.Infrastructure.ResourceInvoker.<InvokeAsync>g__Logged|17_1(ResourceInvoker invoker)
+   at Microsoft.AspNetCore.Routing.EndpointMiddleware.<Invoke>g__AwaitRequestTask|7_0(Endpoint endpoint, Task requestTask, ILogger logger)
+   at Swashbuckle.AspNetCore.SwaggerUI.SwaggerUIMiddleware.Invoke(HttpContext httpContext)
+   at Swashbuckle.AspNetCore.Swagger.SwaggerMiddleware.Invoke(HttpContext httpContext, ISwaggerProvider swaggerProvider)
+   at backend.Middleware.RateLimitingMiddleware.InvokeAsync(HttpContext context) in C:\Users\Lamelo\RiderProject\backend\backend\Middleware\RateLimitingMiddleware.cs:line 33
+   at Microsoft.AspNetCore.Authorization.AuthorizationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Authentication.AuthenticationMiddleware.Invoke(HttpContext context)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+ClientConnectionId:cab6a104-88fc-4d5e-b927-852a709f5ab2
+Error Number:207,State:1,Class:16
+   --- End of inner exception stack trace ---
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.HandleException(HttpContext context, ExceptionDispatchInfo edi)
+   at Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddlewareImpl.<Invoke>g__Awaited|10_0(ExceptionHandlerMiddlewareImpl middleware, HttpContext context, Task task)
+   at Microsoft.AspNetCore.Diagnostics.DeveloperExceptionPageMiddlewareImpl.Invoke(HttpContext context)
+2025-07-30 08:49:23.071 +02:00 [INF] Request finished HTTP/1.1 POST http://localhost:5238/api/auth/login - 500 null text/plain; charset=utf-8 2873.5287ms
+2025-07-30 08:49:23.084 +02:00 [INF] Request reached the end of the middleware pipeline without being handled by application code. Request path: POST http://localhost:5238/api/auth/login, Response status code: 500
+2025-07-30 10:06:59.683 +02:00 [INF] Application is shutting down...
+2025-07-30 17:09:25.475 +02:00 [INF] No migrations were found in assembly 'backend'. A migration needs to be added before the database can be updated.
+2025-07-30 17:09:26.084 +02:00 [INF] Executed DbCommand (43ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 17:09:26.109 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-07-30 17:09:26.216 +02:00 [INF] Executed DbCommand (98ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-07-30 17:09:26.426 +02:00 [INF] Executed DbCommand (23ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-07-30 17:09:26.452 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-07-30 17:09:26.460 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-07-30 17:09:26.540 +02:00 [INF] Executed DbCommand (70ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-07-30 17:09:26.552 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-07-30 17:09:26.582 +02:00 [INF] Executed DbCommand (26ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-07-30 17:09:26.646 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-07-30 17:09:26.741 +02:00 [INF] Now listening on: http://localhost:5238
+2025-07-30 17:09:26.744 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-30 17:09:26.747 +02:00 [INF] Hosting environment: Development
+2025-07-30 17:09:26.749 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-07-30 17:09:39.880 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.html - null null
+2025-07-30 17:09:39.913 +02:00 [WRN] Failed to determine the https port for redirect.
+2025-07-30 17:09:40.061 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.html - 200 null text/html;charset=utf-8 182.6154ms
+2025-07-30 17:09:40.266 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.css - null null
+2025-07-30 17:09:40.266 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui.css - null null
+2025-07-30 17:09:40.267 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - null null
+2025-07-30 17:09:40.268 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - null null
+2025-07-30 17:09:40.268 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.js - null null
+2025-07-30 17:09:40.291 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.js - 200 null application/javascript;charset=utf-8 22.8977ms
+2025-07-30 17:09:40.328 +02:00 [INF] Sending file. Request path: '/index.css'. Physical path: 'N/A'
+2025-07-30 17:09:40.335 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.css - 200 202 text/css 68.4749ms
+2025-07-30 17:09:40.370 +02:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2025-07-30 17:09:40.382 +02:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2025-07-30 17:09:40.402 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - 200 230007 text/javascript 133.6924ms
+2025-07-30 17:09:40.402 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui.css - 200 152035 text/css 135.6232ms
+2025-07-30 17:09:40.402 +02:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2025-07-30 17:09:40.429 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - 200 1426001 text/javascript 162.5811ms
+2025-07-30 17:09:40.782 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - null null
+2025-07-30 17:09:40.838 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/favicon-32x32.png - null null
+2025-07-30 17:09:40.847 +02:00 [INF] Sending file. Request path: '/favicon-32x32.png'. Physical path: 'N/A'
+2025-07-30 17:09:40.859 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/favicon-32x32.png - 200 628 image/png 18.7792ms
+2025-07-30 17:09:41.700 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 918.2052ms
+2025-07-30 17:15:26.236 +02:00 [INF] Application is shutting down...

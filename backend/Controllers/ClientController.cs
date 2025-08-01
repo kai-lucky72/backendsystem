@@ -24,7 +24,7 @@ public class ClientController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ClientDTO>>> GetAllClients()
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var agent = await _agentService.GetAgentByIdAsync(userId);
         var clients = await _clientService.GetClientsByAgentAsync(agent);
         var clientDTOs = _clientService.MapToDTOList(clients);
@@ -34,7 +34,7 @@ public class ClientController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ClientDTO>> CreateClient([FromBody] CreateClientRequest request)
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var agent = await _agentService.GetAgentByIdAsync(userId);
         var client = await _clientService.CreateClientAsync(request, agent, agent.User);
         var clientDTO = _clientService.MapToDTO(client);

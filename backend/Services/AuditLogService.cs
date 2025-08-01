@@ -85,15 +85,33 @@ public class AuditLogService : IAuditLogService
     
     public async Task<IEnumerable<AuditLog>> SearchLogsAsync(Dictionary<string, string> filters, DateTime start, DateTime end)
     {
-        // Extract filter values
-        var eventType = filters.GetValueOrDefault("action", null); // Map "action" to "eventType"
-        var entityType = filters.GetValueOrDefault("entityType", null);
-        var entityId = filters.GetValueOrDefault("entityId", null);
-        var details = filters.GetValueOrDefault("details", null);
+// Extract filter values
+    filters.TryGetValue("action", out var eventType); // Map "action" to "eventType"
+    filters.TryGetValue("entityType", out var entityType);
+    filters.TryGetValue("entityId", out var entityId);
+    filters.TryGetValue("details", out var details);
         
         // Use the repository method for efficient database querying
         return await _auditLogRepository.SearchLogsAsync(eventType, entityType, entityId, details, start, end);
     }
+    
+    public Task<IEnumerable<AuditLog>> GetAllLogsAsync() =>
+        _auditLogRepository.GetAllAsync();
+
+    public Task<int> GetActivityCountForMonthAsync(DateTime monthStart) =>
+        _auditLogRepository.CountByTimestampBetweenAsync(
+            monthStart,
+            monthStart.AddMonths(1).AddSeconds(-1)
+        );
+
+    public Task<int> GetActiveTodayCountAsync() =>
+        _auditLogRepository.CountByEventTypeAndDateAsync("ACTIVATE_USER", DateTime.Today);
+
+    public Task<int> GetPreviousPeriodCountAsync(string metricType) =>
+        _auditLogRepository.CountByMetricTypePreviousPeriodAsync(metricType);
+
+    public Task<IEnumerable<AuditLog>> GetRecentActivitiesAsync(int count) =>
+        _auditLogRepository.GetRecentAsync(count);
     
     public async Task ClearAuditLogCacheAsync()
     {

@@ -39,6 +39,13 @@ public interface IAuditLogService
     /// </summary>
     Task<IEnumerable<AuditLog>> GetLogsByActionAsync(string action);
     
+    Task<IEnumerable<AuditLog>> GetAllLogsAsync();
+    Task<int> GetActivityCountForMonthAsync(DateTime monthStart);
+    Task<int> GetActiveTodayCountAsync();
+    Task<int> GetPreviousPeriodCountAsync(string metricType);
+    Task<IEnumerable<AuditLog>> GetRecentActivitiesAsync(int count);
+
+    
     /// <summary>
     /// Get paginated logs
     /// </summary>

@@ -10,18 +10,18 @@ public class NotificationService : INotificationService
     private readonly ILogger<NotificationService> _logger;
     private readonly INotificationRepository _notificationRepository;
     private readonly IAuditLogService _auditLogService;
-    private readonly IUserRepository _userRepository; // Added missing dependency
+    private readonly IUserRepository _userRepository;
 
     public NotificationService(
         ILogger<NotificationService> logger,
         INotificationRepository notificationRepository,
         IAuditLogService auditLogService,
-        IUserRepository userRepository) // Added missing parameter
+        IUserRepository userRepository)
     {
         _logger = logger;
         _notificationRepository = notificationRepository;
         _auditLogService = auditLogService;
-        _userRepository = userRepository; // Initialize missing dependency
+        _userRepository = userRepository;
     }
 
     public async Task<Notification> SendNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Category category, Priority priority)
@@ -95,7 +95,7 @@ public class NotificationService : INotificationService
         return await _notificationRepository.GetByRecipientIsNullOrderBySentAtDescAsync();
     }
     
-    public async Task SendWebSocketNotificationAsync(User sender, User recipient, string message)
+    public Task SendWebSocketNotificationAsync(User sender, User recipient, string message)
     {
         var notification = CreateNotificationMessage(sender, message, "DIRECT");
         
@@ -109,9 +109,11 @@ public class NotificationService : INotificationService
         //     "/queue/notifications", // User-specific destination prefix
         //     notification           // Payload
         // );
+        
+        return Task.CompletedTask;
     }
 
-    public async Task SendWebSocketNotificationToAllAsync(User sender, string message)
+    public Task SendWebSocketNotificationToAllAsync(User sender, string message)
     {
         var notification = CreateNotificationMessage(sender, message, "BROADCAST");
         
@@ -121,6 +123,8 @@ public class NotificationService : INotificationService
         
         // Send to all connected users
         // messagingTemplate.convertAndSend("/topic/notifications", notification);
+        
+        return Task.CompletedTask;
     }
 
     public async Task<Notification> SendCompleteNotificationAsync(User sender, User recipient, string title, string message, bool viaEmail, Category category, Priority priority)
@@ -144,9 +148,12 @@ public class NotificationService : INotificationService
         var message = body.GetValueOrDefault("message", "");
         var recipientId = body.GetValueOrDefault("recipientId", "");
         var viaEmail = bool.Parse(body.GetValueOrDefault("viaEmail", "false"));
-        var category = Enum.Parse<Category>(body.GetValueOrDefault("category", "System"));
-        var priority = Enum.Parse<Priority>(body.GetValueOrDefault("priority", "Medium"));
-
+        
+        if (!Enum.TryParse(body.GetValueOrDefault("category", "System"), out Category category))
+            throw new ArgumentException("Invalid category");
+        if (!Enum.TryParse(body.GetValueOrDefault("priority", "Medium"), out Priority priority))
+            throw new ArgumentException("Invalid Priority");
+            
         if (string.IsNullOrEmpty(recipientId))
         {
             // Broadcast notification
@@ -156,27 +163,32 @@ public class NotificationService : INotificationService
         {
             // Direct notification
             var recipient = await _userRepository.GetByIdAsync(long.Parse(recipientId));
-            return await SendNotificationAsync(sender, recipient, title, message, viaEmail, category, priority);
+            return await SendNotificationAsync(sender, recipient ?? throw new InvalidOperationException(), title, message, viaEmail, category, priority);
         }
     }
 
-    public async Task<object> GetNotificationsPagedAsync(int page, int limit)
+    public async Task<PagedNotificationsResponseDTO> GetNotificationsPagedAsync(int page, int limit)
     {
-        var allNotifications = await _notificationRepository.GetAllAsync();
-        var totalCount = allNotifications.Count();
-        var notifications = allNotifications
-            .OrderByDescending(n => n.SentAt)
-            .Skip((page - 1) * limit)
-            .Take(limit);
+        var allNotifications = (await _notificationRepository.GetAllAsync()).OrderByDescending(n => n.SentAt).ToList();
+        var totalCount = allNotifications.Count;
+        var thisWeekCount = allNotifications.Count(n => n.SentAt > DateTime.UtcNow.AddDays(-7));
+        var pageItems = allNotifications.Skip((page - 1) * limit).Take(limit).ToList();
 
-        return new
+        return new PagedNotificationsResponseDTO
         {
-            Notifications = notifications,
+            Notifications = pageItems.Select(MapToResponseDto).ToList(),
             TotalCount = totalCount,
+            ThisWeekCount = thisWeekCount,
+            ReadRate = totalCount == 0 ? 0 : pageItems.Count(n => n.ReadBy > 0) / (double)totalCount * 100,
             Page = page,
             Limit = limit,
             TotalPages = (int)Math.Ceiling((double)totalCount / limit)
         };
+    }
+
+    public async Task<int> GetTotalSentCountAsync()
+    {
+        return await _notificationRepository.CountAllAsync();
     }
     
     private NotificationMessage CreateNotificationMessage(User sender, string message, string type)
@@ -189,6 +201,86 @@ public class NotificationService : INotificationService
             Message = message,
             Timestamp = DateTime.Now,
             Type = type
+        };
+    }
+    
+    private NotificationResponseDTO MapToResponseDto(Notification notification)
+    {
+        return new NotificationResponseDTO
+        {
+            Id = notification.Id,
+            Title = notification.Title,
+            Message = notification.Message,
+            Timestamp = notification.SentAt, // Map SentAt to Timestamp for consistency
+            SentAt = notification.SentAt,
+            Category = notification.Category.ToString(),
+            Priority = notification.Priority.ToString(),
+            Status = notification.Status,
+            ViaEmail = notification.ViaEmail,
+            ReadBy = notification.ReadBy ?? 0,
+            
+            // Sender information
+            SenderId = notification.Sender?.Id ?? 0,
+            SenderName = notification.Sender?.Email ?? "System",
+            SenderRole = notification.Sender?.Role?.ToString() ?? "System",
+            SenderWorkId = notification.Sender?.WorkId ?? "",
+            SenderAvatarUrl = null, // You can add this field to User model if needed
+            
+            // Recipient information
+            RecipientId = notification.Recipient?.Id,
+            RecipientName = notification.Recipient?.Email ?? "All Users",
+            RecipientRole = notification.Recipient?.Role?.ToString(),
+            RecipientWorkId = notification.Recipient?.WorkId,
+            
+            // Status information
+            Read = notification.ReadBy > 0, // Assuming ReadBy > 0 means it's been read
+            ReadAt = notification.ReadAt, // You might need to add this field to Notification model
+            Archived = notification.Archived, // You might need to add this field to Notification model
+            ArchivedAt = notification.ArchivedAt, // You might need to add this field to Notification model
+            
+            // Context information (you can enhance these based on your business logic)
+            ContextType = DetermineContextType(notification),
+            ContextId = DetermineContextId(notification),
+            ActionRequired = DetermineActionRequired(notification),
+            ActionUrl = GenerateActionUrl(notification)
+        };
+    }
+    
+    private string DetermineContextType(Notification notification)
+    {
+        // Logic to determine context type based on notification content or category
+        return notification.Category switch
+        {
+            Category.Performance => "AGENT",
+            Category.Attendance => "AGENT", 
+            Category.Group => "GROUP",
+            Category.System => "SYSTEM",
+            _ => "GENERAL"
+        };
+    }
+    
+    private string? DetermineContextId(Notification notification)
+    {
+        // Logic to extract context ID from notification
+        // This would depend on how you structure your notifications
+        return notification.Recipient?.Id.ToString();
+    }
+    
+    private string? DetermineActionRequired(Notification notification)
+    {
+        // Logic to determine if action is required
+        return notification.Priority == Priority.Urgent ? "true" : "false";
+    }
+    
+    private string? GenerateActionUrl(Notification notification)
+    {
+        // Logic to generate action URLs based on notification type
+        return notification.Category switch
+        {
+            Category.Performance => $"/agent/{notification.Recipient?.Id}/performance",
+            Category.Attendance => $"/agent/{notification.Recipient?.Id}/attendance",
+            Category.Group => $"/group/{DetermineContextId(notification)}",
+            _ => null
         };
     }
 }

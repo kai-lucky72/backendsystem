@@ -14,6 +14,9 @@ public interface IGroupService
     
     Task<IEnumerable<Group>> GetGroupsByManagerAsync(Manager manager);
     
+    Task<IEnumerable<Group>> GetAllGroupsAsync();
+
+    
     Task<Group> UpdateGroupNameAsync(long id, string name);
     
     Task<Group> AssignLeaderAsync(long groupId, long agentId);

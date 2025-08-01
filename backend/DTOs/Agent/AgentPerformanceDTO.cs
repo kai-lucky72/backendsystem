@@ -18,7 +18,7 @@ public class AgentPerformanceDTO
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string WorkId { get; set; } = string.Empty;
+        public string? WorkId { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
     }

@@ -348,7 +348,7 @@ public class AgentService : IAgentService
             {
                 ["id"] = group.Leader.UserId,
                 ["email"] = leaderUser.Email,
-                ["workId"] = leaderUser.WorkId
+                ["workId"] = leaderUser.WorkId ?? throw new InvalidOperationException(message:"null value for workid in agentservice")
             };
         }
         
@@ -366,4 +366,11 @@ public class AgentService : IAgentService
         // Delegate to the ClientsCollectedService
         return await _clientsCollectedService.CountClientsByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
     }
+    
+    public async Task<IEnumerable<Agent>> GetAgentsByGroupIdAsync(long groupId)
+    {
+        var allAgents = await GetAllAgentsAsync(); // Assuming this exists
+        return allAgents.Where(a => a.Group != null && a.Group.Id == groupId);
+    }
+
 }

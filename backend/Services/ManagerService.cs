@@ -296,7 +296,7 @@ public class ManagerService : IManagerService
             var groupMap = new Dictionary<string, object>
             {
                 ["name"] = group.Name,
-                ["teamLeader"] = leader != null ? $"{leader.User.FirstName} {leader.User.LastName}" : null,
+                ["teamLeader"] = (leader != null ? $"{leader.User.FirstName} {leader.User.LastName}" : null) ?? throw new InvalidOperationException(),
                 ["members"] = groupAgents.Count,
                 ["clients"] = groupClients,
                 ["membersList"] = membersList
@@ -324,8 +324,8 @@ public class ManagerService : IManagerService
             ["payingAmount"] = client.PayingAmount,
             ["payingMethod"] = client.PayingMethod,
             ["contractYears"] = client.ContractYears,
-            ["agentName"] = client.Agent?.User != null ? $"{client.Agent.User.FirstName} {client.Agent.User.LastName}" : null,
-            ["agentWorkLocation"] = client.Agent?.Sector
+            ["agentName"] = (client.Agent?.User != null ? $"{client.Agent.User.FirstName} {client.Agent.User.LastName}" : null) ?? throw new InvalidOperationException(),
+            ["agentWorkLocation"] = client.Agent?.Sector ?? throw new InvalidOperationException()
         }).ToList();
 
         var response = new Dictionary<string, object>

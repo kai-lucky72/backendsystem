@@ -18,7 +18,7 @@ public class Attendance
     public virtual Agent Agent { get; set; } = null!;
 
     [Required]
-    public DateTime Timestamp { get; set; }
+    public DateTime? Timestamp { get; set; }
 
     [Required]
     [StringLength(255)]

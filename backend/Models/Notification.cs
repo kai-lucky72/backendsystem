@@ -43,7 +43,7 @@ public class Notification
 
     [Required]
     [Column("sent_at")]
-    public DateTime SentAt { get; set; } = DateTime.UtcNow;
+    public DateTime? SentAt { get; set; } = DateTime.UtcNow;
 
     [Required]
     [Column("via_email")]

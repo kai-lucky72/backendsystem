@@ -29,7 +29,7 @@ public class JwtService : IJwtService
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
             new("FirstName", user.FirstName),
             new("LastName", user.LastName),
-            new("WorkId", user.WorkId),
+            new("WorkId", user.WorkId ?? throw new InvalidOperationException()),
             new(ClaimTypes.Role, user.Role.ToString())
         };
 

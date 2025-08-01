@@ -16,13 +16,22 @@ public interface IUserService
     
     Task<User> GetUserByWorkIdAsync(string workId);
     
-    Task<IEnumerable<UserDTO>> GetAllUsersAsync();
+    Task<IEnumerable<User>> GetAllUsersAsync();
+    
+    /// <summary>Count users in a given role by name (e.g. "Agent", "Manager").</summary>
+    Task<int> GetUserCountByRoleAsync(string roleName);
+    /// <summary>Count new users created in the given month.</summary>
+    Task<int> GetUserCountForMonthAsync(DateTime monthStart);
+
     
     Task<User> UpdateUserStatusAsync(long id, bool active);
     
     Task<bool> ResetPasswordAsync(long id, string newPassword);
 
     Task<int> CountUsersByRoleAsync(Role role);
+    
+    Task<IEnumerable<User>> GetUsersByRoleAsync(Role role);
+
     
     /// <summary>
     /// Checks if an email address is already taken by another user

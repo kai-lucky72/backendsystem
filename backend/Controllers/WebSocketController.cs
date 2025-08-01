@@ -26,7 +26,7 @@ public class WebSocketController : ControllerBase
     [Authorize]
     public async Task<IActionResult> SendPrivateNotification([FromBody] NotificationMessage message)
     {
-        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var sender = await _userService.GetUserByIdAsync(senderId);
         var recipient = await _userService.GetUserByIdAsync(message.SenderId); // SenderId used as recipientId
         var title = "Notification";
@@ -47,7 +47,7 @@ public class WebSocketController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> SendBroadcastNotification([FromBody] NotificationMessage message)
     {
-        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var sender = await _userService.GetUserByIdAsync(senderId);
         var title = "Notification";
         await _notificationService.SendCompleteNotificationToAllAsync(

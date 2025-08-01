@@ -105,21 +105,21 @@ public class UserService : IUserService
         return user;
     }
 
-    public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
+public async Task<IEnumerable<User>> GetAllUsersAsync()
+{
+    _logger.LogDebug("Retrieving all users from database");
+    var allUsers = await _userRepository.GetAllAsync();
+    _logger.LogDebug("Found {UserCount} users in database", allUsers.Count());
+    
+    // Log details about each user for debugging
+    foreach (var user in allUsers)
     {
-        _logger.LogDebug("Retrieving all users from database");
-        var allUsers = await _userRepository.GetAllAsync();
-        _logger.LogDebug("Found {UserCount} users in database", allUsers.Count());
-        
-        // Log details about each user for debugging
-        foreach (var user in allUsers)
-        {
-            _logger.LogDebug("User: id={UserId}, workId={WorkId}, email={Email}, role={Role}, active={Active}", 
-                     user.Id, user.WorkId, user.Email, user.Role, user.Active);
-        }
-        
-        return allUsers.Select(MapToDTO);
+        _logger.LogDebug("User: id={UserId}, workId={WorkId}, email={Email}, role={Role}, active={Active}", 
+                 user.Id, user.WorkId, user.Email, user.Role, user.Active);
     }
+    
+    return allUsers;
+}
 
     public async Task<int> CountUsersByRoleAsync(Role role)
     {
@@ -177,6 +177,13 @@ public class UserService : IUserService
             RecentSystemActivities = recentActivities
         };
     }
+    
+    public async Task<IEnumerable<User>> GetUsersByRoleAsync(Role role)
+    {
+        var allUsers = await _userRepository.GetAllAsync();
+        return allUsers.Where(u => u.Role == role);
+    }
+
 
     public async Task<User> UpdateUserStatusAsync(long id, bool active)
     {
@@ -220,15 +227,17 @@ public class UserService : IUserService
             Id = $"usr-{user.Id:D3}",
             FirstName = user.FirstName,
             LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            NationalId = user.NationalId,
+            PhoneNumber = user.PhoneNumber ?? throw new InvalidOperationException(message:"null value for phonenumber in userservice"),
+            NationalId = user.NationalId ?? throw new InvalidOperationException(message:"null value for nationalid in userservice"),
             Email = user.Email,
             WorkId = user.WorkId,
             Role = user.Role,
-            CreatedAt = UserDTO.FormatDate(user.CreatedAt),
+            CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? throw new InvalidOperationException(message:"null value for createdat in userservice"),
             Active = user.Active,
             Status = user.Active ? "active" : "inactive"
         };
+        
+        
         
         if (user.Role == Role.Agent)
         {
@@ -243,4 +252,17 @@ public class UserService : IUserService
         
         return builder;
     }
+    
+    public Task<int> GetUserCountByRoleAsync(string roleName)
+    {
+        if (!Enum.TryParse<Role>(roleName, true, out var role))
+            throw new ArgumentException($"Invalid role: {roleName}");
+        return CountUsersByRoleAsync(role);
+    }
+
+    public Task<int> GetUserCountForMonthAsync(DateTime monthStart) =>
+        _userRepository.CountByCreatedAtBetweenAsync(
+            monthStart,
+            monthStart.AddMonths(1).AddSeconds(-1)
+        );
 }

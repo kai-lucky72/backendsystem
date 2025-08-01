@@ -25,7 +25,7 @@ public class Group
 
     [Required]
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("Leader")]
     [Column("leader_id")]

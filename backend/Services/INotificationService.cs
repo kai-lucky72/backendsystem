@@ -1,3 +1,4 @@
+using backend.DTOs.Notification;
 using backend.Models;
 
 namespace backend.Services;
@@ -28,5 +29,7 @@ public interface INotificationService
     // Additional methods for AdminController
     Task<Notification> SendNotificationAsync(Dictionary<string, string> body, User sender);
     
-    Task<object> GetNotificationsPagedAsync(int page, int limit);
+    Task<PagedNotificationsResponseDTO> GetNotificationsPagedAsync(int page, int limit);
+    
+    Task<int> GetTotalSentCountAsync();
 }

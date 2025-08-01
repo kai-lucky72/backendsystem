@@ -8,42 +8,50 @@ namespace backend.Models;
 public class User : IdentityUser<long>
 {
     [Required]
+    [StringLength(10)]
     [Column("first_name")]
     public string FirstName { get; set; } = string.Empty;
     
     [Required]
+    [StringLength(10)]
     [Column("last_name")]
     public string LastName { get; set; } = string.Empty;
     
     [Column("phone_number")]
+    [StringLength(15)]
     public new string? PhoneNumber { get; set; }
     
     [Column("national_id")]
+    [StringLength(10)]
     public string? NationalId { get; set; }
 
     [Required]
+    [StringLength(50)]
     [EmailAddress]
     public new string Email { get; set; } = string.Empty;
 
     [JsonIgnore]
+    [StringLength(10)]
     [Column("password_hash")]
     public new string? PasswordHash { get; set; }
 
     [Required]
+    [StringLength(8)]
     [Column("work_id")]
-    public string WorkId { get; set; } = string.Empty;
+    public string? WorkId { get; set; } = string.Empty;
 
     [Required]
     public Role Role { get; set; }
 
     [Column("profile_image_url")]
+    [StringLength(10)]
     public string? ProfileImageUrl { get; set; }
     
     [Column("last_login")]
     public DateTime? LastLogin { get; set; }
 
     [Column("created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
 
     [Required]
     public bool Active { get; set; } = true;
@@ -57,7 +65,7 @@ public class User : IdentityUser<long>
     public virtual ICollection<Manager> CreatedManagers { get; set; } = new List<Manager>();
 
     // Override UserName to use WorkId
-    public override string UserName
+    public override string? UserName
     {
         get => WorkId;
         set => WorkId = value;

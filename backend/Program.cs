@@ -109,8 +109,8 @@ builder.Services.AddAutoMapper(typeof(Program));
 
 // Add HealthChecks for DB and Redis
 builder.Services.AddHealthChecks()
-    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-    .AddRedis(builder.Configuration.GetConnectionString("Redis"));
+    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException())
+    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException());
 
 // For Prometheus, ensure the prometheus-net.AspNetCore package is installed and add the correct using if needed.
 // builder.Services.AddHostedService<Prometheus.MetricPusher>(); // Commented out: add package if needed

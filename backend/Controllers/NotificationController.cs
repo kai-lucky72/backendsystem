@@ -29,7 +29,7 @@ public class NotificationController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<NotificationMessage>>> GetMyNotifications()
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var user = await _userService.GetUserByIdAsync(userId);
         var notifications = await _notificationService.GetNotificationsByRecipientAsync(user);
         var result = notifications.Select(MapToMessage).ToList();
@@ -48,7 +48,7 @@ public class NotificationController : ControllerBase
     [Authorize(Roles = "Admin,Manager")]
     public async Task<ActionResult<NotificationMessage>> SendToAgent(long agentId, [FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
-        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var sender = await _userService.GetUserByIdAsync(senderId);
         var agent = await _agentService.GetAgentByIdAsync(agentId);
         if (sender.Role == Role.Manager && agent.Manager.UserId != sender.Id)
@@ -68,7 +68,7 @@ public class NotificationController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<NotificationMessage>> SendToManager(long managerId, [FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
-        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var sender = await _userService.GetUserByIdAsync(senderId);
         var manager = await _managerService.GetManagerByIdAsync(managerId);
         var title = "Notification";
@@ -86,7 +86,7 @@ public class NotificationController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<NotificationMessage>> SendBroadcast([FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
-        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException(message:"null value on sendid in notifictioncontroller"));
         var sender = await _userService.GetUserByIdAsync(senderId);
         var title = "Notification";
         var category = Category.System;
@@ -103,7 +103,7 @@ public class NotificationController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<IEnumerable<NotificationMessage>>> SendToAllManagers([FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
-        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var sender = await _userService.GetUserByIdAsync(senderId);
         var managers = await _managerService.GetAllManagersAsync();
         var title = "Notification";

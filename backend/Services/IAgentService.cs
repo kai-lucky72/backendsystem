@@ -22,6 +22,9 @@ public interface IAgentService
     
     Task<Agent> UpdateAgentTypeAsync(long id, Agent.AgentTypeEnum agentType);
     
+    Task<IEnumerable<Agent>> GetAgentsByGroupIdAsync(long groupId);
+
+    
     Task DeactivateAgentAsync(long id);
     
     Task<Dictionary<string, object>> GetGroupPerformanceAsync(Group group, DateTime startDateTime, DateTime endDateTime);

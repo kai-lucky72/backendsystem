@@ -29,7 +29,7 @@ public class AuditLog
     public virtual User? User { get; set; }
 
     [Required]
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime? Timestamp { get; set; } = DateTime.UtcNow;
 
     public string? Details { get; set; }
 }

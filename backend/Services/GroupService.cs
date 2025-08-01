@@ -247,6 +247,21 @@ public class GroupService : IGroupService
         }
     }
 
+    
+    public async Task<IEnumerable<Group>> GetAllGroupsAsync()
+    {
+        var groups = await _groupRepository.GetAllAsync();
+
+        foreach (var group in groups)
+        {
+            var agents = await _agentService.GetAgentsByGroupIdAsync(group.Id); // You'll need this method
+            group.Agents = agents.ToList();
+        }
+
+        return groups;
+    }
+
+    
     public async Task<IEnumerable<Agent>> GetGroupAgentsAsync(long groupId)
     {
         var group = await GetGroupByIdAsync(groupId);
