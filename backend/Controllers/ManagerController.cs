@@ -123,7 +123,7 @@ public class ManagerController(
                 Email = agent.User.Email,
                 WorkId = agent.User.WorkId,
                 Role = agent.User.Role,
-                    CreatedAt = agent.User.CreatedAt?.ToString("yyyy-MM-dd") ?? "",
+                CreatedAt = agent.User.CreatedAt?.ToString("yyyy-MM-dd") ?? "",
                 Active = agent.User.Active,
                 Type = agent.AgentType.ToString().ToLower(),
                 Sector = agent.Sector,
@@ -292,12 +292,12 @@ public class ManagerController(
         {
             ["id"] = $"group-{group.Id:000}",
             ["name"] = group.Name,
-            ["teamLeader"] = (group.Leader != null ? new Dictionary<string, object?>
+            ["teamLeader"] = group.Leader != null ? new Dictionary<string, object?>
             {
                 ["id"] = $"agt-{group.Leader.UserId:000}",
                 ["name"] = $"{group.Leader.User.FirstName} {group.Leader.User.LastName}",
                 ["workId"] = group.Leader.User.WorkId
-            } : null) ?? throw new InvalidOperationException(),
+            } : null,
             ["agents"] = group.Agents.Select(agent => new Dictionary<string, object?>
             {
                 ["id"] = $"agt-{agent.UserId:000}",
@@ -431,13 +431,13 @@ public class ManagerController(
         {
             ["id"] = updated.Id,
             ["name"] = updated.Name,
-            ["teamLeader"] = (updated.Leader == null ? null : new Dictionary<string, object?>
+            ["teamLeader"] = updated.Leader == null ? null : new Dictionary<string, object?>
             {
                 ["id"] = updated.Leader.UserId,
                 ["firstName"] = updated.Leader.User.FirstName,
                 ["lastName"] = updated.Leader.User.LastName,
                 ["workId"] = updated.Leader.User.WorkId
-            }) ?? throw new InvalidOperationException(),
+            },
             ["agents"] = updated.Agents.Select(agent => new Dictionary<string, object?>
             {
                 ["id"] = agent.UserId,
@@ -496,13 +496,13 @@ public class ManagerController(
         {
             ["id"] = updatedGroup.Id,
             ["name"] = updatedGroup.Name,
-            ["teamLeader"] = (updatedGroup.Leader == null ? null : new Dictionary<string, object?>
+            ["teamLeader"] = updatedGroup.Leader == null ? null : new Dictionary<string, object?>
             {
                 ["id"] = updatedGroup.Leader.UserId,
                 ["firstName"] = updatedGroup.Leader.User.FirstName,
                 ["lastName"] = updatedGroup.Leader.User.LastName,
                 ["workId"] = updatedGroup.Leader.User.WorkId
-            }) ?? throw new InvalidOperationException(),
+            },
             ["agents"] = updatedGroup.Agents.Select(a => new Dictionary<string, object?>
             {
                 ["id"] = a.UserId,
@@ -596,7 +596,6 @@ public class ManagerController(
         if (group.Manager.UserId != manager.UserId)
         {
             return StatusCode(403, new { error = "Forbidden: Group does not belong to manager" });
-
         }
 
         try
@@ -607,13 +606,13 @@ public class ManagerController(
             {
                 ["id"] = updatedGroup.Id,
                 ["name"] = updatedGroup.Name,
-                ["teamLeader"] = (updatedGroup.Leader == null ? null : new Dictionary<string, object?>
+                ["teamLeader"] = updatedGroup.Leader == null ? null : new Dictionary<string, object?>
                 {
                     ["id"] = updatedGroup.Leader.UserId,
                     ["firstName"] = updatedGroup.Leader.User.FirstName,
                     ["lastName"] = updatedGroup.Leader.User.LastName,
                     ["workId"] = updatedGroup.Leader.User.WorkId
-                }) ?? throw new InvalidOperationException(),
+                },
                 ["agents"] = updatedGroup.Agents.Select(agent => new Dictionary<string, object?>
                 {
                     ["id"] = agent.UserId,
@@ -658,13 +657,13 @@ public class ManagerController(
         {
             ["id"] = group.Id,
             ["name"] = group.Name,
-            ["teamLeader"] = (group.Leader == null ? null : new Dictionary<string, object?>
+            ["teamLeader"] = group.Leader == null ? null : new Dictionary<string, object?>
             {
                 ["id"] = group.Leader.UserId,
                 ["firstName"] = group.Leader.User.FirstName,
                 ["lastName"] = group.Leader.User.LastName,
                 ["workId"] = group.Leader.User.WorkId
-            }) ?? throw new InvalidOperationException(),
+            },
             ["agents"] = group.Agents.Select(agent => new Dictionary<string, object?>
             {
                 ["id"] = agent.UserId,
@@ -1006,10 +1005,10 @@ public class ManagerController(
                         ["agentName"] = $"{agent.User.FirstName} {agent.User.LastName}",
                         ["workId"] = agent.User.WorkId,
                         ["date"] = queryDate.ToString("yyyy-MM-dd"),
-                        ["timeIn"] = timeIn ?? throw new InvalidOperationException(),
+                        ["timeIn"] = timeIn,
                         ["location"] = first?.Location ?? "",
                         ["status"] = isLate ? "late" : "present",
-                        ["sector"] = first?.Sector ?? throw new InvalidOperationException()
+                        ["sector"] = first?.Sector
                     };
                     allRecords.Add(record);
                 }
@@ -1080,7 +1079,7 @@ public class ManagerController(
                     if (att.Any())
                     {
                         var first = att.OrderBy(a => a.Timestamp).FirstOrDefault();
-if (first != null && first.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
+                        if (first != null && first.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
                         {
                             dayLate++;
                         }
@@ -1241,16 +1240,16 @@ if (first != null && first.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
             ["message"] = n.Message.Contains(": ") ? n.Message.Split(": ", 2)[1] : n.Message,
             ["recipient"] = n.Recipient?.Email ?? "All Users",
             ["status"] = n.Status,
-            ["sentAt"] = n.SentAt?.ToString() ?? throw new InvalidOperationException(message:"null value for sendat in managercontroller"),
+            ["sentAt"] = n.SentAt?.ToString() ?? throw new InvalidOperationException("null value for sendat in managercontroller"),
             ["readBy"] = n.ReadBy,
             ["totalRecipients"] = n.TotalRecipients,
             ["priority"] = n.Priority.ToString().ToLower(),
-            ["sender"] = (n.Sender != null ? new Dictionary<string, object>
+            ["sender"] = n.Sender != null ? new Dictionary<string, object>
             {
                 ["role"] = n.Sender.Role.ToString().ToLower(),
-                ["workId"] = n.Sender.WorkId ?? throw new InvalidOperationException(message:"null value for workid in managercontroller"),
+                ["workId"] = n.Sender.WorkId ?? throw new InvalidOperationException("null value for workid in managercontroller"),
                 ["name"] = $"{n.Sender.FirstName} {n.Sender.LastName}"
-            } : null) ?? throw new InvalidOperationException(message:"null value for name in managercontroller")
+            } : throw new InvalidOperationException("null value for sender in managercontroller")
         }).ToList();
 
         var stats = new Dictionary<string, object>
@@ -1280,125 +1279,121 @@ if (first != null && first.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
     /// <summary>
     /// Send a notification (manager) - Sends a notification to all agents, a group, or a specific user.
     /// </summary>
-    ///
-    /// 
-
     [HttpPost("notifications")]
-[ProducesResponseType(201)]
-public async Task<ActionResult> SendManagerNotification([FromBody] NotificationRequestDTO body)
-{
-    var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-    var sender = await userService.GetUserByIdAsync(userId);
+    [ProducesResponseType(201)]
+    public async Task<ActionResult> SendManagerNotification([FromBody] NotificationRequestDTO body)
+    {
+        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
+        var sender = await userService.GetUserByIdAsync(userId);
 
-    if (!string.IsNullOrEmpty(body.SenderRole) && !body.SenderRole.Equals(sender.Role.ToString(), StringComparison.OrdinalIgnoreCase))
-    {
-        return StatusCode(403, new { error = "Sender role mismatch" });
-    }
-
-    if (!string.IsNullOrEmpty(body.SenderWorkId) && !body.SenderWorkId.Equals(sender.WorkId))
-    {
-        return StatusCode(403, new { error = "Sender workId mismatch" });
-    }
-
-    var recipients = new List<User>();
-    var resolvedRecipient = body.Recipient;
-
-    // Recipient resolution
-    if (body.Recipient.Equals("All Users", StringComparison.OrdinalIgnoreCase))
-    {
-        recipients = (await userService.GetAllUsersAsync()).ToList();
-    }
-    else if (body.Recipient.Equals("All Agents", StringComparison.OrdinalIgnoreCase))
-    {
-        recipients = (await userService.GetUsersByRoleAsync(Role.Agent)).Select(dto => new User 
-        { 
-            Id = long.Parse(dto.Id.ToString()), 
-            Email = dto.Email,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            Role = dto.Role,
-            WorkId = dto.WorkId
-        }).ToList();
-    }
-    else if (body.Recipient.Equals("All Managers", StringComparison.OrdinalIgnoreCase))
-    {
-        recipients = (await userService.GetUsersByRoleAsync(Role.Manager)).Select(dto => new User 
-        { 
-            Id = long.Parse(dto.Id.ToString()), 
-            Email = dto.Email,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            Role = dto.Role,
-            WorkId = dto.WorkId
-        }).ToList();
-    }
-    else if (body.Recipient.Contains("@"))
-    {
-        var user = await userService.GetUserByEmailAsync(body.Recipient);
-        if (user != null) recipients.Add(user);
-    }
-    else
-    {
-        var groups = await groupService.GetAllGroupsAsync();
-        var group = groups.FirstOrDefault(g => g.Name.Equals(body.Recipient, StringComparison.OrdinalIgnoreCase));
-        if (group != null)
+        if (!string.IsNullOrEmpty(body.SenderRole) && !body.SenderRole.Equals(sender.Role.ToString(), StringComparison.OrdinalIgnoreCase))
         {
-            recipients.AddRange(group.Agents.Select(a => a.User));
+            return StatusCode(403, new { error = "Sender role mismatch" });
         }
-        else if (long.TryParse(body.Recipient, out var idTarget))
+
+        if (!string.IsNullOrEmpty(body.SenderWorkId) && !body.SenderWorkId.Equals(sender.WorkId))
         {
-            var user = await userService.GetUserByIdAsync(idTarget);
+            return StatusCode(403, new { error = "Sender workId mismatch" });
+        }
+
+        var recipients = new List<User>();
+        var resolvedRecipient = body.Recipient;
+
+        // Recipient resolution
+        if (body.Recipient.Equals("All Users", StringComparison.OrdinalIgnoreCase))
+        {
+            recipients = (await userService.GetAllUsersAsync()).ToList();
+        }
+        else if (body.Recipient.Equals("All Agents", StringComparison.OrdinalIgnoreCase))
+        {
+            recipients = (await userService.GetUsersByRoleAsync(Role.Agent)).Select(dto => new User 
+            { 
+                Id = long.Parse(dto.Id.ToString()), 
+                Email = dto.Email,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Role = dto.Role,
+                WorkId = dto.WorkId
+            }).ToList();
+        }
+        else if (body.Recipient.Equals("All Managers", StringComparison.OrdinalIgnoreCase))
+        {
+            recipients = (await userService.GetUsersByRoleAsync(Role.Manager)).Select(dto => new User 
+            { 
+                Id = long.Parse(dto.Id.ToString()), 
+                Email = dto.Email,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                Role = dto.Role,
+                WorkId = dto.WorkId
+            }).ToList();
+        }
+        else if (body.Recipient.Contains("@"))
+        {
+            var user = await userService.GetUserByEmailAsync(body.Recipient);
             if (user != null) recipients.Add(user);
         }
-    }
-
-    // Notification sending
-    Notification? lastNotification = null;
-    var category = Category.System;
-    var priorityEnum = Enum.TryParse<Priority>(body.Priority, true, out var parsedPriority)
-        ? parsedPriority
-        : Priority.Medium;
-
-    if (body.Recipient.Equals("All Users", StringComparison.OrdinalIgnoreCase))
-    {
-        lastNotification = await notificationService.SendCompleteNotificationToAllAsync(
-            sender, body.Title, $"{body.Title}: {body.Message}", false, category, priorityEnum
-        );
-    }
-    else
-    {
-        foreach (var user in recipients)
+        else
         {
-            lastNotification = await notificationService.SendCompleteNotificationAsync(
-                sender, user, body.Title, $"{body.Title}: {body.Message}", false, category, priorityEnum
+            var groups = await groupService.GetAllGroupsAsync();
+            var group = groups.FirstOrDefault(g => g.Name.Equals(body.Recipient, StringComparison.OrdinalIgnoreCase));
+            if (group != null)
+            {
+                recipients.AddRange(group.Agents.Select(a => a.User));
+            }
+            else if (long.TryParse(body.Recipient, out var idTarget))
+            {
+                var user = await userService.GetUserByIdAsync(idTarget);
+                if (user != null) recipients.Add(user);
+            }
+        }
+
+        // Notification sending
+        Notification? lastNotification = null;
+        var category = Category.System;
+        var priorityEnum = Enum.TryParse<Priority>(body.Priority, true, out var parsedPriority)
+            ? parsedPriority
+            : Priority.Medium;
+
+        if (body.Recipient.Equals("All Users", StringComparison.OrdinalIgnoreCase))
+        {
+            lastNotification = await notificationService.SendCompleteNotificationToAllAsync(
+                sender, body.Title, $"{body.Title}: {body.Message}", false, category, priorityEnum
             );
         }
+        else
+        {
+            foreach (var user in recipients)
+            {
+                lastNotification = await notificationService.SendCompleteNotificationAsync(
+                    sender, user, body.Title, $"{body.Title}: {body.Message}", false, category, priorityEnum
+                );
+            }
+        }
+
+        // Build response
+        var response = new Dictionary<string, object>
+        {
+            ["id"] = lastNotification?.Id.ToString() ?? throw new InvalidOperationException(),
+            ["title"] = body.Title,
+            ["message"] = body.Message,
+            ["recipient"] = resolvedRecipient,
+            ["priority"] = body.Priority,
+            ["status"] = "sent",
+            ["sentAt"] = lastNotification?.SentAt?.ToString("o") ?? throw new InvalidOperationException(),
+            ["readBy"] = 0,
+            ["totalRecipients"] = recipients.Count(),
+            ["sender"] = new Dictionary<string, object>
+            {
+                ["role"] = sender.Role.ToString().ToLower(),
+                ["workId"] = sender.WorkId ?? throw new InvalidOperationException("null value for workid in managercontroller"),
+                ["name"] = $"{sender.FirstName} {sender.LastName}"
+            }
+        };
+
+        return StatusCode(201, response);
     }
 
-    // Build response
-    var response = new Dictionary<string, object>
-    {
-        ["id"] = lastNotification?.Id.ToString() ?? throw new InvalidOperationException(),
-        ["title"] = body.Title,
-        ["message"] = body.Message,
-        ["recipient"] = resolvedRecipient,
-        ["priority"] = body.Priority,
-        ["status"] = "sent",
-        ["sentAt"] = lastNotification?.SentAt?.ToString("o") ?? throw new InvalidOperationException(),
-        ["readBy"] = 0,
-        ["totalRecipients"] = recipients.Count(),
-        ["sender"] = new Dictionary<string, object>
-        {
-            ["role"] = sender.Role.ToString().ToLower(),
-            ["workId"] = sender.WorkId ?? throw new InvalidOperationException(message:"null vlue for workid in managercontroller"),
-            ["name"] = $"{sender.FirstName} {sender.LastName}"
-        }
-    };
-
-    return StatusCode(201, response);
-}
-
-    
     /// <summary>
     /// Helper method to map Group to GroupDetailDTO
     /// </summary>
@@ -1437,7 +1432,7 @@ public async Task<ActionResult> SendManagerNotification([FromBody] NotificationR
         {
             Id = groupId,
             Name = group.Name,
-            Description = group.Description ?? throw new InvalidOperationException(message:"null value for description in managercontroller"),
+            Description = group.Description ?? "",
             Agents = agents,
             TeamLeader = teamLeader,
             Performance = performance,

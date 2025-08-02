@@ -14,11 +14,13 @@ public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;
     private readonly IAgentService _agentService;
+    private readonly IUserService _userService;
 
-    public ClientController(IClientService clientService, IAgentService agentService)
+    public ClientController(IClientService clientService, IAgentService agentService, IUserService userService)
     {
         _clientService = clientService;
         _agentService = agentService;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -36,7 +38,9 @@ public class ClientController : ControllerBase
     {
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var agent = await _agentService.GetAgentByIdAsync(userId);
-        var client = await _clientService.CreateClientAsync(request, agent, agent.User);
+        var currentUser = await _userService.GetUserByIdAsync(userId);
+        
+        var client = await _clientService.CreateClientAsync(request, agent, currentUser);
         var clientDTO = _clientService.MapToDTO(client);
         return CreatedAtAction(nameof(CreateClient), clientDTO);
     }

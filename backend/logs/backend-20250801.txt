@@ -69,3 +69,4 @@ SELECT @result
 2025-08-01 08:32:40.871 +02:00 [INF] Application started. Press Ctrl+C to shut down.
 2025-08-01 08:32:40.873 +02:00 [INF] Hosting environment: Development
 2025-08-01 08:32:40.875 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-08-01 09:12:13.956 +02:00 [INF] Application is shutting down...
