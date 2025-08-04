@@ -33,14 +33,6 @@ public class Notification
     [Required]
     public string Status { get; set; } = "sent";
 
-    [Required]
-    [Column("read_by")]
-    public int ReadBy { get; set; } = 0;
-
-    [Required]
-    [Column("total_recipients")]
-    public int TotalRecipients { get; set; } = 0;
-
     [Column("sent_at")]
     public DateTime? SentAt { get; set; } = DateTime.UtcNow;
 
