@@ -18,6 +18,8 @@ public interface IUserService
     
     Task<IEnumerable<User>> GetAllUsersAsync();
     
+    Task<IEnumerable<UserDTO>> GetAllUsersDTOAsync();
+    
     Task<IEnumerable<User>> GetActiveUsersAsync();
     
     /// <summary>Count users in a given role by name (e.g. "Agent", "Manager").</summary>

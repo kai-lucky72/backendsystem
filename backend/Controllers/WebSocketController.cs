@@ -36,7 +36,7 @@ public class WebSocketController : ControllerBase
         try
         {
             var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
-            var sender = await _userService.GetUserByIdAsync(senderId);
+        var sender = await _userService.GetUserByIdAsync(senderId);
             if (sender == null)
             {
                 return BadRequest("User not found or account is inactive/deleted.");
@@ -52,13 +52,13 @@ public class WebSocketController : ControllerBase
                 {
                     return BadRequest("Recipient not found or account is inactive/deleted.");
                 }
-                var title = "Notification";
+        var title = "Notification";
                 
-                await _notificationService.SendCompleteNotificationAsync(
-                    sender,
-                    recipient,
-                    title,
-                    message.Message,
+        await _notificationService.SendCompleteNotificationAsync(
+            sender,
+            recipient,
+            title,
+            message.Message,
                     false, // Do not send an email, just WebSocket and database
                     Category.SYSTEM,
                     Priority.MEDIUM
@@ -82,7 +82,7 @@ public class WebSocketController : ControllerBase
     /// Matches Java's @MessageMapping("/ws.notification.broadcast") functionality
     /// </summary>
     [HttpPost("notification/broadcast")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> SendBroadcastNotification([FromBody] NotificationMessage message)
     {
         try
@@ -205,7 +205,7 @@ public class WebSocketMessageHandler : Hub
                 return;
             }
 
-            var sender = await _userService.GetUserByIdAsync(senderId);
+        var sender = await _userService.GetUserByIdAsync(senderId);
             
             // Check if user is Admin (matching Java's @PreAuthorize("hasRole('ADMIN')"))
             if (sender.Role != Role.ADMIN)
@@ -214,12 +214,12 @@ public class WebSocketMessageHandler : Hub
                 return;
             }
             
-            var title = "Notification";
+        var title = "Notification";
             
-            await _notificationService.SendCompleteNotificationToAllAsync(
-                sender,
-                title,
-                message.Message,
+        await _notificationService.SendCompleteNotificationToAllAsync(
+            sender,
+            title,
+            message.Message,
                 false, // Do not send emails, just WebSocket and database
                 Category.SYSTEM,
                 Priority.MEDIUM

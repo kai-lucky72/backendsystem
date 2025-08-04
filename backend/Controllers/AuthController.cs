@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using backend.DTOs;
 
 namespace backend.Controllers;
 
@@ -15,14 +17,14 @@ namespace backend.Controllers;
 /// 1. First, call the `/api/auth/login` endpoint with your credentials
 /// 2. Copy the `token` from the response
 /// 3. Click the 🔒 **Authorize** button at the top of Swagger UI
-/// 4. In the popup, enter: `Bearer YOUR_TOKEN_HERE` (replace YOUR_TOKEN_HERE with the actual token)
+/// 4. In the popup, enter ONLY the token (without "Bearer" prefix)
 /// 5. Click **Authorize** to save
 /// 6. Now you can access all protected endpoints!
 /// 
-/// ## Example Token Format:
-/// ```
-/// Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-/// ```
+/// ## Example:
+/// - Token from login: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+/// - Enter in Swagger: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (no "Bearer")
+/// - Swagger automatically adds "Bearer " prefix
 /// </summary>
 [ApiController]
 [Route("api/auth")]
@@ -88,23 +90,23 @@ public class AuthController : ControllerBase
             {
                 _logger.LogError("Role mismatch for user {WorkId}: provided={ProvidedRole}, actual={ActualRole}", 
                     user.WorkId, request.Role, user.Role.ToString());
-                return Unauthorized();
-            }
+            return Unauthorized();
+        }
             
             _logger.LogInformation("Authentication successful for user: {WorkId}", user.WorkId);
             
             // Generate JWT token using existing service
-            var token = _jwtService.GenerateToken(user);
+        var token = _jwtService.GenerateToken(user);
             
             // Create the response according to frontend requirements - matches Java exactly
-            var userInfo = new AuthResponse.UserInfo
-            {
+        var userInfo = new AuthResponse.UserInfo
+        {
                 Id = string.Format("usr-{0:D3}", user.Id), // Matches Java formatting exactly
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Name = user.FirstName + " " + user.LastName,
-                Email = user.Email,
-                WorkId = user.WorkId,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Name = user.FirstName + " " + user.LastName,
+            Email = user.Email,
+            WorkId = user.WorkId,
                 Role = user.Role.ToString().ToLower()
             };
             
@@ -130,14 +132,14 @@ public class AuthController : ControllerBase
                 }
             }
             
-            var response = new AuthResponse
-            {
-                Token = token,
-                User = userInfo
-            };
+        var response = new AuthResponse
+        {
+            Token = token,
+            User = userInfo
+        };
             
             _logger.LogInformation("Login successful for user: {WorkId}, returning token", user.WorkId);
-            return Ok(response);
+        return Ok(response);
         }
         catch (Exception ex)
         {
@@ -231,6 +233,75 @@ public class AuthController : ControllerBase
                 error = ex.Message,
                 timestamp = DateTime.UtcNow
             });
+        }
+    }
+
+    /// <summary>
+    /// Refresh JWT token for persistent login
+    /// </summary>
+    [HttpPost("refresh-token")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        try
+        {
+            // Validate the current token
+            var principal = _jwtService.GetPrincipalFromToken(request.Token);
+            if (principal == null)
+            {
+                return Unauthorized(new { message = "Invalid token" });
+            }
+
+            // Check if token is expired
+            if (_jwtService.IsTokenExpired(request.Token))
+            {
+                return Unauthorized(new { message = "Token has expired" });
+            }
+
+            // Get user ID from token
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !long.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized(new { message = "Invalid token claims" });
+            }
+
+            // Get user from database
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "User not found or account is inactive/deleted." });
+            }
+
+            // Check if user is still active
+            if (!user.Active)
+            {
+                return Unauthorized(new { message = "User account is inactive/deleted." });
+            }
+
+            // Generate new token
+            var newToken = _jwtService.GenerateToken(user);
+
+            return Ok(new AuthResponseDto
+            {
+                Success = true,
+                Token = newToken,
+                Message = "Token refreshed successfully",
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    WorkId = user.WorkId,
+                    Role = user.Role,
+                    Active = user.Active
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refreshing token");
+            return StatusCode(500, new { message = "Internal server error during token refresh" });
         }
     }
 }

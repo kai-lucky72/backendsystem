@@ -9,7 +9,7 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/clients")]
-[Authorize(Roles = "Admin,Manager,Agent")]
+[Authorize(Roles = "admin,manager,agent")]
 public class ClientController : ControllerBase
 {
     private readonly IClientService _clientService;

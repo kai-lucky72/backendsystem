@@ -149,6 +149,15 @@ public class UserService : IUserService
         
         return allUsers;
     }
+    
+    public async Task<IEnumerable<UserDTO>> GetAllUsersDTOAsync()
+    {
+        _logger.LogDebug("Retrieving all users as DTOs from database");
+        var allUsers = await _userRepository.GetAllAsync();
+        var userDtos = allUsers.Select(MapToDTO).ToList();
+        _logger.LogDebug("Mapped {UserCount} users to DTOs", userDtos.Count);
+        return userDtos;
+    }
 
     public async Task<IEnumerable<User>> GetActiveUsersAsync()
     {

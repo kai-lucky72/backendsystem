@@ -57,11 +57,17 @@ public class User
     public bool Active { get; set; } = true;
 
     // Navigation properties
+    [JsonIgnore]
     public virtual Agent? Agent { get; set; }
+    [JsonIgnore]
     public virtual Manager? Manager { get; set; }
+    [JsonIgnore]
     public virtual ICollection<Notification> SentNotifications { get; set; } = new List<Notification>();
+    [JsonIgnore]
     public virtual ICollection<Notification> ReceivedNotifications { get; set; } = new List<Notification>();
+    [JsonIgnore]
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+    [JsonIgnore]
     public virtual ICollection<Manager> CreatedManagers { get; set; } = new List<Manager>();
 
     // Computed property for UserName (to maintain compatibility)

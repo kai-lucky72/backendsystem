@@ -42,8 +42,19 @@ public class SwaggerController : ControllerBase
                 
                 // Add helpful tooltip to authorize button
                 if (authorizeBtn) {
-                    authorizeBtn.title = 'Click here to add your JWT token for authentication';
+                    authorizeBtn.title = 'Click here to add your JWT token (without Bearer prefix)';
                 }
+                
+                // Update the authorize modal description
+                setTimeout(function() {
+                    const authModal = document.querySelector('.auth-wrapper');
+                    if (authModal) {
+                        const description = authModal.querySelector('.auth-container .auth-description');
+                        if (description) {
+                            description.innerHTML = 'Enter your JWT token below (without Bearer prefix):';
+                        }
+                    }
+                }, 1000);
             });
             
             // Add success message when token is set
@@ -52,6 +63,12 @@ public class SwaggerController : ControllerBase
                 originalAuthorize(payload);
                 if (payload.Bearer) {
                     console.log('JWT Token set successfully!');
+                    // Show a success message
+                    const successMsg = document.createElement('div');
+                    successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 10px; border-radius: 5px; z-index: 9999;';
+                    successMsg.textContent = '✅ JWT Token set successfully!';
+                    document.body.appendChild(successMsg);
+                    setTimeout(() => successMsg.remove(), 3000);
                 }
             };
         ";

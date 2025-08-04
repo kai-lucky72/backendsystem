@@ -61,7 +61,7 @@ public class NotificationController : ControllerBase
     }
 
     [HttpPost("agent/{agentId}")]
-    [Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "admin,manager")]
     public async Task<ActionResult<object>> SendToAgent(long agentId, [FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
         try
@@ -103,7 +103,7 @@ public class NotificationController : ControllerBase
     }
 
     [HttpPost("manager/{managerId}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<ActionResult<object>> SendToManager(long managerId, [FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
         try
@@ -135,7 +135,7 @@ public class NotificationController : ControllerBase
     }
 
     [HttpPost("broadcast")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<ActionResult<object>> SendBroadcast([FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
         try
@@ -166,7 +166,7 @@ public class NotificationController : ControllerBase
     }
 
     [HttpPost("broadcast/managers")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<ActionResult<IEnumerable<object>>> SendToAllManagers([FromQuery] string message, [FromQuery] bool viaEmail = false, [FromQuery] bool viaWebSocket = true)
     {
         try

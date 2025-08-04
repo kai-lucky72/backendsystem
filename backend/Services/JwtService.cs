@@ -30,14 +30,14 @@ public class JwtService : IJwtService
             new("FirstName", user.FirstName),
             new("LastName", user.LastName),
             new("WorkId", user.WorkId ?? throw new InvalidOperationException()),
-            new(ClaimTypes.Role, user.Role.ToString()),
+            new(ClaimTypes.Role, user.Role.ToString().ToLowerInvariant()),
             new("Active", user.Active.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes),
+            Expires = DateTime.UtcNow.AddDays(30), // Extended to 30 days for persistent login
             Issuer = _jwtSettings.Issuer,
             Audience = _jwtSettings.Audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
@@ -63,7 +63,7 @@ public class JwtService : IJwtService
                 ValidateAudience = true,
                 ValidAudience = _jwtSettings.Audience,
                 ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.FromMinutes(5) // Allow 5 minutes clock skew for better compatibility
             }, out SecurityToken validatedToken);
 
             return true;
@@ -71,6 +71,48 @@ public class JwtService : IJwtService
         catch
         {
             return false;
+        }
+    }
+
+    public ClaimsPrincipal? GetPrincipalFromToken(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.UTF8.GetBytes(_jwtSettings.SecretKey);
+
+        try
+        {
+            var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = _jwtSettings.Issuer,
+                ValidateAudience = true,
+                ValidAudience = _jwtSettings.Audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(5)
+            }, out SecurityToken validatedToken);
+
+            return principal;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public bool IsTokenExpired(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        
+        try
+        {
+            var jwtToken = tokenHandler.ReadJwtToken(token);
+            return jwtToken.ValidTo < DateTime.UtcNow;
+        }
+        catch
+        {
+            return true;
         }
     }
 }

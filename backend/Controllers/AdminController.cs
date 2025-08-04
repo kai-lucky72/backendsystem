@@ -11,7 +11,7 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "admin")]
 public class AdminController(
         IUserService userService,
         IManagerService managerService,
@@ -26,7 +26,7 @@ public class AdminController(
     [HttpGet("users")]
     public async Task<ActionResult<IEnumerable<UserDTO>>> GetAllUsers()
     {
-        var users = await userService.GetAllUsersAsync();
+        var users = await userService.GetAllUsersDTOAsync();
         return Ok(users);
     }
 

@@ -18,7 +18,7 @@ namespace backend.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/manager")]
-[Authorize(Roles = "Admin,Manager")]
+[Authorize(Roles = "admin,manager")]
 public class ManagerController(
     IManagerService managerService,
     IAgentService agentService,

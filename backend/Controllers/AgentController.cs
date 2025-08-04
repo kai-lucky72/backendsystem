@@ -19,7 +19,7 @@ public static class DateTimeExtensions
 
 [ApiController]
 [Route("api/agent")]
-[Authorize(Roles = "Admin,Manager,Agent")]
+[Authorize(Roles = "admin,manager,agent")]
 public class AgentController(
         IAgentService agentService,
         IAttendanceService attendanceService,

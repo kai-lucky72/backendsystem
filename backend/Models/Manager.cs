@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace backend.Models;
 
@@ -11,6 +12,7 @@ public class Manager
     public long UserId { get; set; }
 
     [ForeignKey("UserId")]
+    [JsonIgnore]
     public virtual User User { get; set; } = null!;
 
     [Required]
@@ -19,14 +21,18 @@ public class Manager
     public long CreatedById { get; set; }
     
     [ForeignKey("CreatedById")]
+    [JsonIgnore]
     public virtual User CreatedBy { get; set; } = null!;
     
     [Column("department")]
     public string? Department { get; set; }
 
     // Navigation properties
+    [JsonIgnore]
     public virtual ICollection<Agent> Agents { get; set; } = new List<Agent>();
+    [JsonIgnore]
     public virtual ICollection<Group> Groups { get; set; } = new List<Group>();
+    [JsonIgnore]
     public virtual ICollection<AttendanceTimeframe> AttendanceTimeframes { get; set; } = new List<AttendanceTimeframe>();
     
     // Utility method to set up the entity correctly
