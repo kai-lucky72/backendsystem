@@ -1,0 +1,2 @@
+-- No changes needed to audit_log table
+-- The audit_log table already matches the entity class 

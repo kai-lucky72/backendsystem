@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="prime_db@LAMELOS" uuid="d0d231e8-3ede-4692-b85e-aae1290474fc">
+      <driver-ref>sqlserver.jb</driver-ref>
+      <synchronize>true</synchronize>
+      <configured-by-url>true</configured-by-url>
+      <jdbc-driver>com.jetbrains.jdbc.sqlserver.SqlServerDriver</jdbc-driver>
+      <jdbc-url>Server=LAMELOS\MSSQLSERVER01,49682;Database=prime_db;User Id=lucky;Password=lucky;TrustServerCertificate=True;</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="prime_db@LAMELOS [2]" uuid="eff9c817-a485-43c1-ab07-327f3346a1d3">
+      <driver-ref>sqlserver.jb</driver-ref>
+      <synchronize>true</synchronize>
+      <configured-by-url>true</configured-by-url>
+      <jdbc-driver>com.jetbrains.jdbc.sqlserver.SqlServerDriver</jdbc-driver>
+      <jdbc-url>Server=LAMELOS\MSSQLSERVER01,49682;Database=prime_db;User Id=lucky;Password=lucky;TrustServerCertificate=True;</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+  </component>
+</project>
