@@ -2,7 +2,7 @@ namespace backend.Models;
 
 public enum Role
 {
-    Admin,
-    Manager,
-    Agent
+    ADMIN,
+    MANAGER,
+    AGENT
 }

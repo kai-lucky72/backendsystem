@@ -104,7 +104,7 @@ public class AuthController : ControllerBase
             };
             
             // Add agent-specific info if the user is an agent - matches Java logic exactly
-            if (user.Role == Role.Agent)
+            if (user.Role == Role.AGENT)
             {
                 try
                 {
@@ -140,7 +140,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
     }
-
+ 
     /// <summary>
     /// Alternative route matching Java's dual mapping
     /// </summary>

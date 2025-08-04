@@ -41,7 +41,6 @@ public class Notification
     [Column("total_recipients")]
     public int TotalRecipients { get; set; } = 0;
 
-    [Required]
     [Column("sent_at")]
     public DateTime? SentAt { get; set; } = DateTime.UtcNow;
 
@@ -53,16 +52,15 @@ public class Notification
     [Column("read_status")]
     public bool ReadStatus { get; set; } = false;
     
-    // Remove duplicate Priority and Category properties
     [Required]
-    public Priority Priority { get; set; } = Priority.Medium;
+    public Priority Priority { get; set; } = Priority.MEDIUM;
     
     [Required]
-    public Category Category { get; set; } = Category.System;
-    
-    // Add Type property for the DTO mapping
-    [Required]
-    public string Type { get; set; } = "general";
-    
-    // Remove the enum definitions from here
+    public Category Category { get; set; } = Category.SYSTEM;
+
+    // Utility method to get priority string
+    public string GetPriorityString()
+    {
+        return Priority.ToString().ToLower();
+    }
 }

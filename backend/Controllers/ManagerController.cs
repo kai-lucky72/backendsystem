@@ -123,7 +123,7 @@ public class ManagerController(
                 Email = agent.User.Email,
                 WorkId = agent.User.WorkId,
                 Role = agent.User.Role,
-                CreatedAt = agent.User.CreatedAt?.ToString("yyyy-MM-dd") ?? "",
+                CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd"),
                 Active = agent.User.Active,
                 Type = agent.AgentType.ToString().ToLower(),
                 Sector = agent.Sector,
@@ -190,7 +190,7 @@ public class ManagerController(
                 Status = status,
                 ClientsCollected = clientsCollected,
                 AttendanceRate = attendanceRate,
-                CreatedAt = agent.User.CreatedAt?.ToString("yyyy-MM-dd") ?? ""
+                CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd") ?? ""
             });
         }
 
@@ -242,7 +242,7 @@ public class ManagerController(
             NationalId = updatedAgent.User.NationalId ?? throw new InvalidOperationException(),
             WorkId = updatedAgent.User.WorkId,
             Role = updatedAgent.User.Role,
-            CreatedAt = updatedAgent.User.CreatedAt?.ToString("yyyy-MM-dd") ?? "",
+            CreatedAt = updatedAgent.User.CreatedAt.ToString("yyyy-MM-dd") ?? "",
             Active = updatedAgent.User.Active,
             Type = updatedAgent.AgentType.ToString().ToLower(),
             Sector = updatedAgent.Sector,
@@ -411,7 +411,7 @@ public class ManagerController(
             var agentId = long.Parse(System.Text.RegularExpressions.Regex.Replace(agentIdStr, @"[^0-9]", ""));
             var agent = await agentService.GetAgentByIdAsync(agentId);
 
-            if ((int)agent.AgentType != (int)AgentType.Sales)
+            if ((int)agent.AgentType != (int)AgentType.SALES)
             {
                 errors.Add($"Agent {agent.User.WorkId} is not a SALES agent");
                 continue;
@@ -480,7 +480,7 @@ public class ManagerController(
 
         var agent = await agentService.GetAgentByIdAsync(agentId);
 
-        if ((int)agent.AgentType != (int)AgentType.Sales)
+        if ((int)agent.AgentType != (int)AgentType.SALES)
         {
             return BadRequest(new { error = "Only SALES agents can be assigned as group leader" });
         }
@@ -566,7 +566,7 @@ public class ManagerController(
                     Email = agent.User.Email,
                     WorkId = agent.User.WorkId,
                     Role = agent.User.Role,
-                    CreatedAt = agent.User.CreatedAt?.ToString("yyyy-MM-dd") ?? "",
+                    CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd") ?? "",
                     Active = agent.User.Active,
                     Type = agent.AgentType.ToString().ToLower(),
                     Sector = agent.Sector,
@@ -714,7 +714,7 @@ public class ManagerController(
         var endDateTime = end.Date.AddDays(1).AddSeconds(-1);
 
         // If agent is SALES type, return group performance
-        if ((int)agent.AgentType == (int)AgentType.Sales && agent.Group != null)
+        if ((int)agent.AgentType == (int)AgentType.SALES && agent.Group != null)
         {
             var groupPerformance = await agentService.GetGroupPerformanceAsync(agent.Group, startDateTime, endDateTime);
             return Ok(groupPerformance);
@@ -972,7 +972,7 @@ public class ManagerController(
 
             foreach (var agent in agents)
             {
-                var agentCreated = agent.User.CreatedAt?.Date ?? DateTime.MinValue;
+                var agentCreated = agent.User.CreatedAt.Date;
                 if (queryDate < agentCreated)
                 {
                     continue;
@@ -1072,7 +1072,7 @@ public class ManagerController(
 
                 foreach (var agent in agents)
                 {
-                    var agentCreated = agent.User.CreatedAt?.Date ?? DateTime.MinValue;
+                    var agentCreated = agent.User.CreatedAt.Date;
                     if (d < agentCreated) continue;
 
                     var att = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, s, e);
@@ -1306,7 +1306,7 @@ public class ManagerController(
         }
         else if (body.Recipient.Equals("All Agents", StringComparison.OrdinalIgnoreCase))
         {
-            recipients = (await userService.GetUsersByRoleAsync(Role.Agent)).Select(dto => new User 
+            recipients = (await userService.GetUsersByRoleAsync(Role.AGENT)).Select(dto => new User 
             { 
                 Id = long.Parse(dto.Id.ToString()), 
                 Email = dto.Email,
@@ -1318,7 +1318,7 @@ public class ManagerController(
         }
         else if (body.Recipient.Equals("All Managers", StringComparison.OrdinalIgnoreCase))
         {
-            recipients = (await userService.GetUsersByRoleAsync(Role.Manager)).Select(dto => new User 
+            recipients = (await userService.GetUsersByRoleAsync(Role.MANAGER)).Select(dto => new User 
             { 
                 Id = long.Parse(dto.Id.ToString()), 
                 Email = dto.Email,
@@ -1350,10 +1350,10 @@ public class ManagerController(
 
         // Notification sending
         Notification? lastNotification = null;
-        var category = Category.System;
+        var category = Category.SYSTEM;
         var priorityEnum = Enum.TryParse<Priority>(body.Priority, true, out var parsedPriority)
             ? parsedPriority
-            : Priority.Medium;
+            : Priority.MEDIUM;
 
         if (body.Recipient.Equals("All Users", StringComparison.OrdinalIgnoreCase))
         {

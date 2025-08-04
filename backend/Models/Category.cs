@@ -2,9 +2,9 @@ namespace backend.Models;
 
 public enum Category
 {
-    System,
-    Attendance,
-    Performance,
-    Task,
-    Other
+    SYSTEM,
+    ATTENDANCE,
+    PERFORMANCE,
+    TASK,
+    OTHER
 }

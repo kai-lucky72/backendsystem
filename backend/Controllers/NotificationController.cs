@@ -67,7 +67,7 @@ public class NotificationController : ControllerBase
             var agent = await _agentService.GetAgentByIdAsync(agentId);
             
             // Authorization check - matches Java logic exactly
-            if (sender.Role == Role.Manager)
+            if (sender.Role == Role.MANAGER)
             {
                 // For managers, check if the agent belongs to them
                 if (agent.Manager.UserId != sender.Id)
@@ -77,8 +77,8 @@ public class NotificationController : ControllerBase
             }
             
             var title = "Notification";
-            var category = Category.System;
-            var priority = Priority.Medium;
+            var category = Category.SYSTEM;
+            var priority = Priority.MEDIUM;
             
             Notification notification;
             if (viaWebSocket)
@@ -105,8 +105,8 @@ public class NotificationController : ControllerBase
             var manager = await _managerService.GetManagerByIdAsync(managerId);
             
             var title = "Notification";
-            var category = Category.System;
-            var priority = Priority.Medium;
+            var category = Category.SYSTEM;
+            var priority = Priority.MEDIUM;
             
             Notification notification;
             if (viaWebSocket)
@@ -132,8 +132,8 @@ public class NotificationController : ControllerBase
             var sender = await _userService.GetUserByIdAsync(userId);
             
             var title = "Notification";
-            var category = Category.System;
-            var priority = Priority.Medium;
+            var category = Category.SYSTEM;
+            var priority = Priority.MEDIUM;
             
             Notification notification;
             if (viaWebSocket)
@@ -160,8 +160,8 @@ public class NotificationController : ControllerBase
             var managers = await _managerService.GetAllManagersAsync();
             
             var title = "Notification";
-            var category = Category.System;
-            var priority = Priority.Medium;
+            var category = Category.SYSTEM;
+            var priority = Priority.MEDIUM;
             var result = new List<object>();
             
             foreach (var manager in managers)
@@ -272,8 +272,8 @@ public class NotificationHub : Hub
             var sender = await _userService.GetUserByIdAsync(userId);
             var recipient = await _userService.GetUserByIdAsync(message.SenderId);
             
-            var category = Category.System;
-            var priority = Priority.Medium;
+            var category = Category.SYSTEM;
+            var priority = Priority.MEDIUM;
             
             await _notificationService.SendCompleteNotificationAsync(sender, recipient, "Notification", message.Message, false, category, priority);
         }
@@ -298,14 +298,14 @@ public class NotificationHub : Hub
             var sender = await _userService.GetUserByIdAsync(userId);
             
             // Check if user is Admin (matching Java's @PreAuthorize("hasRole('ADMIN')"))
-            if (sender.Role != Role.Admin)
+            if (sender.Role != Role.ADMIN)
             {
                 await Clients.Caller.SendAsync("Error", "Insufficient permissions for broadcast");
                 return;
             }
             
-            var category = Category.System;
-            var priority = Priority.Medium;
+            var category = Category.SYSTEM;
+            var priority = Priority.MEDIUM;
             
             await _notificationService.SendCompleteNotificationToAllAsync(sender, "Notification", message.Message, false, category, priority);
         }

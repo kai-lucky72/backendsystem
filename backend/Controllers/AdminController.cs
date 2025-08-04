@@ -13,11 +13,11 @@ namespace backend.Controllers;
 [Route("api/admin")]
 [Authorize(Roles = "Admin")]
 public class AdminController(
-    IUserService userService,
-    IManagerService managerService,
-    IAuditLogService auditLogService,
-    INotificationService notificationService,
-    IAgentService agentService)
+        IUserService userService,
+        IManagerService managerService,
+        IAuditLogService auditLogService,
+        INotificationService notificationService,
+        IAgentService agentService)
     : ControllerBase
 {
     /// <summary>
@@ -64,7 +64,7 @@ public class AdminController(
             Status = user.Active ? "active" : "inactive",
             AgentsCount = 0,
             LastLogin = user.LastLogin?.ToString(),
-            CreatedAt = user.CreatedAt?.ToString("yyyy-MM-dd") ?? ""
+            CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd")
         };
         
         // Return 201 CREATED status to match Java version
@@ -106,7 +106,7 @@ public class AdminController(
     }
 
     // --- AUDIT LOG ENDPOINTS ---
-    [HttpGet("audit-logs")]        
+    [HttpGet("audit-logs")]
     public async Task<ActionResult<IEnumerable<AuditLogDTO>>> GetAuditLogs([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
         var start = startDate ?? DateTime.Today;
@@ -261,7 +261,7 @@ public class AdminController(
                 Status = user.Active ? "active" : "inactive",
                 AgentsCount = agentsCount,
                 LastLogin = user.LastLogin?.ToString(),
-                CreatedAt = user.CreatedAt?.ToString("yyyy-MM-dd") ?? ""
+                CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd")
             });
         }
         return Ok(managerDtOs);

@@ -21,13 +21,13 @@ public static class DateTimeExtensions
 [Route("api/agent")]
 [Authorize(Roles = "Admin,Manager,Agent")]
 public class AgentController(
-    IAgentService agentService,
-    IAttendanceService attendanceService,
-    IClientsCollectedService clientsCollectedService,
-    IClientService clientService,
-    IAttendanceTimeframeService attendanceTimeframeService,
-    IGroupService groupService,
-    INotificationService notificationService)
+        IAgentService agentService,
+        IAttendanceService attendanceService,
+        IClientsCollectedService clientsCollectedService,
+        IClientService clientService,
+        IAttendanceTimeframeService attendanceTimeframeService,
+        IGroupService groupService,
+        INotificationService notificationService)
     : ControllerBase
 {
     [HttpPost("attendance")]
@@ -240,7 +240,7 @@ var attendanceDates = all
             PerformanceRate = performanceRate,
             RecentActivities = recentActivities
         };
-        if (agent is { AgentType: Agent.AgentTypeEnum.Sales, Group: not null })
+        if (agent is { AgentType: AgentType.SALES, Group: not null })
         {
             dto.GroupName = agent.Group.Name;
             if (agent.Group.Leader != null)
@@ -258,7 +258,7 @@ var attendanceDates = all
     {
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var agent = await agentService.GetAgentByIdAsync(userId);
-        if (agent.AgentType != Agent.AgentTypeEnum.Sales || agent.Group == null)
+        if (agent.AgentType != AgentType.SALES || agent.Group == null)
             return StatusCode(403);
         var group = agent.Group;
         var dto = await BuildGroupPerformanceDto(group);
@@ -524,7 +524,7 @@ var attendanceDates = all
         }
         return activities;
     }
-    
+
     private string MapPriorityToType(object priority)
     {
         if (priority == null) return "info";

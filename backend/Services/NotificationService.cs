@@ -211,8 +211,8 @@ public class NotificationService : INotificationService
             Id = notification.Id,
             Title = notification.Title,
             Message = notification.Message,
-            Timestamp = notification.SentAt ?? DateTime.UtcNow, // Fixed: Handle nullable DateTime
-            SentAt = notification.SentAt ?? DateTime.UtcNow, // Fixed: Handle nullable DateTime
+            Timestamp = notification.SentAt ?? DateTime.UtcNow,
+            SentAt = notification.SentAt ?? DateTime.UtcNow,
             Category = notification.Category.ToString(),
             Priority = notification.Priority.ToString(),
             Status = notification.Status,
@@ -251,10 +251,10 @@ public class NotificationService : INotificationService
         // Fixed: Use existing Category enum values
         return notification.Category switch
         {
-            Category.Performance => "AGENT",
-            Category.Attendance => "AGENT", 
-            Category.Task => "TASK", // Fixed: Changed from Group to Task
-            Category.System => "SYSTEM",
+            Category.PERFORMANCE => "AGENT",
+            Category.ATTENDANCE => "AGENT", 
+            Category.TASK => "TASK", // Fixed: Changed from Group to Task
+            Category.SYSTEM => "SYSTEM",
             _ => "GENERAL"
         };
     }
@@ -269,7 +269,7 @@ public class NotificationService : INotificationService
     private string? DetermineActionRequired(Notification notification)
     {
         // Logic to determine if action is required
-        return notification.Priority == Priority.Urgent ? "true" : "false";
+        return notification.Priority == Priority.URGENT ? "true" : "false";
     }
     
     private string? GenerateActionUrl(Notification notification)
@@ -277,9 +277,9 @@ public class NotificationService : INotificationService
         // Fixed: Use existing Category enum values
         return notification.Category switch
         {
-            Category.Performance => $"/agent/{notification.Recipient?.Id}/performance",
-            Category.Attendance => $"/agent/{notification.Recipient?.Id}/attendance",
-            Category.Task => $"/task/{DetermineContextId(notification)}", // Fixed: Changed from Group to Task
+            Category.PERFORMANCE => $"/agent/{notification.Recipient?.Id}/performance",
+            Category.ATTENDANCE => $"/agent/{notification.Recipient?.Id}/attendance",
+            Category.TASK => $"/task/{DetermineContextId(notification)}", // Fixed: Changed from Group to Task
             _ => null
         };
     }

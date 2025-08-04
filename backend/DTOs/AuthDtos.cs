@@ -9,7 +9,7 @@ public class RegisterDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string WorkId { get; set; } = string.Empty;
-    public Role Role { get; set; } = Role.Agent;
+    public Role Role { get; set; } = Role.AGENT;
 }
 
 public class LoginDto

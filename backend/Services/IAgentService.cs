@@ -6,7 +6,7 @@ public interface IAgentService
 {
     Task<Agent> CreateAgentAsync(string firstName, string lastName, string phoneNumber, string nationalId,
                                 string email, string workId, string? password, Manager manager, 
-                                Agent.AgentTypeEnum agentType, string sector);
+                                AgentType agentType, string sector);
     
     Task<Agent> GetAgentByIdAsync(long id);
     
@@ -14,13 +14,13 @@ public interface IAgentService
     
     Task<IEnumerable<Agent>> GetAgentsByManagerAsync(Manager manager);
     
-    Task<IEnumerable<Agent>> GetAgentsByTypeAsync(Agent.AgentTypeEnum agentType);
+    Task<IEnumerable<Agent>> GetAgentsByTypeAsync(AgentType agentType);
     
-    Task<IEnumerable<Agent>> GetAgentsByManagerAndTypeAsync(Manager manager, Agent.AgentTypeEnum agentType);
+    Task<IEnumerable<Agent>> GetAgentsByManagerAndTypeAsync(Manager manager, AgentType agentType);
     
     Task<Agent> UpdateAgentSectorAsync(long id, string sector);
     
-    Task<Agent> UpdateAgentTypeAsync(long id, Agent.AgentTypeEnum agentType);
+    Task<Agent> UpdateAgentTypeAsync(long id, AgentType agentType);
     
     Task<IEnumerable<Agent>> GetAgentsByGroupIdAsync(long groupId);
 

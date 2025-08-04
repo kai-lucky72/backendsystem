@@ -1,10 +1,9 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using backend.Models;
 
 namespace backend.Data;
 
-public class ApplicationDbContext : IdentityDbContext<User, Microsoft.AspNetCore.Identity.IdentityRole<long>, long>
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
@@ -12,6 +11,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Microsoft.AspNetCore
     }
 
     // User-related entities
+    public DbSet<User> Users { get; set; }
     public DbSet<Manager> Managers { get; set; }
     public DbSet<Agent> Agents { get; set; }
     

@@ -35,18 +35,18 @@ public class CreateAgentRequest
     // Optional field
     public string? Sector { get; set; }
     
-    // Helper method to convert type string to Agent.AgentTypeEnum enum
-    public backend.Models.Agent.AgentTypeEnum GetAgentType()
+    // Helper method to convert type string to Agent.AgentType enum
+    public AgentType GetAgentType()
     {
         if (string.IsNullOrWhiteSpace(Type))
         {
-            return backend.Models.Agent.AgentTypeEnum.Individual; // Default type
+            return AgentType.INDIVIDUAL; // Default type
         }
         
         try
         {
             // Try direct enum conversion first
-            return Enum.Parse<backend.Models.Agent.AgentTypeEnum>(Type, true);
+            return Enum.Parse<AgentType>(Type, true);
         }
         catch (ArgumentException)
         {
@@ -54,22 +54,22 @@ public class CreateAgentRequest
             string normalizedType = Type.Trim().ToLower();
             if (normalizedType == "individual")
             {
-                return backend.Models.Agent.AgentTypeEnum.Individual;
+                return AgentType.INDIVIDUAL;
             }
             else if (normalizedType == "sales")
             {
-                return backend.Models.Agent.AgentTypeEnum.Sales;
+                return AgentType.SALES;
             }
             else if (normalizedType.Contains("individual"))
             {
-                return backend.Models.Agent.AgentTypeEnum.Individual;
+                return AgentType.INDIVIDUAL;
             }
             else if (normalizedType.Contains("sale"))
             {
-                return backend.Models.Agent.AgentTypeEnum.Sales;
+                return AgentType.SALES;
             }
             
-            return backend.Models.Agent.AgentTypeEnum.Individual; // Default if not recognized
+            return AgentType.INDIVIDUAL; // Default if not recognized
         }
     }
     

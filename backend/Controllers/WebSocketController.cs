@@ -52,8 +52,8 @@ public class WebSocketController : ControllerBase
                     title,
                     message.Message,
                     false, // Do not send an email, just WebSocket and database
-                    Category.System,
-                    Priority.Medium
+                    Category.SYSTEM,
+                    Priority.MEDIUM
                 );
                 
                 return Ok(new { success = true, message = "Private notification sent successfully" });
@@ -89,8 +89,8 @@ public class WebSocketController : ControllerBase
                 title,
                 message.Message,
                 false, // Do not send emails, just WebSocket and database
-                Category.System,
-                Priority.Medium
+                Category.SYSTEM,
+                Priority.MEDIUM
             );
             
             return Ok(new { success = true, message = "Broadcast notification sent successfully" });
@@ -150,8 +150,8 @@ public class WebSocketMessageHandler : Hub
                     title,
                     message.Message,
                     false, // Do not send an email, just WebSocket and database
-                    Category.System,
-                    Priority.Medium
+                    Category.SYSTEM,
+                    Priority.MEDIUM
                 );
                 
                 await Clients.Caller.SendAsync("NotificationSent", new { success = true, message = "Private notification sent" });
@@ -186,7 +186,7 @@ public class WebSocketMessageHandler : Hub
             var sender = await _userService.GetUserByIdAsync(senderId);
             
             // Check if user is Admin (matching Java's @PreAuthorize("hasRole('ADMIN')"))
-            if (sender.Role != Role.Admin)
+            if (sender.Role != Role.ADMIN)
             {
                 await Clients.Caller.SendAsync("Error", "Insufficient permissions for broadcast");
                 return;
@@ -199,8 +199,8 @@ public class WebSocketMessageHandler : Hub
                 title,
                 message.Message,
                 false, // Do not send emails, just WebSocket and database
-                Category.System,
-                Priority.Medium
+                Category.SYSTEM,
+                Priority.MEDIUM
             );
             
             await Clients.Caller.SendAsync("NotificationSent", new { success = true, message = "Broadcast notification sent" });

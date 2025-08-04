@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -35,18 +34,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure Identity with custom User model
-builder.Services.AddIdentity<User, IdentityRole<long>>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
-    options.User.RequireUniqueEmail = true;
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+// Identity removed - using custom authentication
 
 // Configure JWT Settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
@@ -156,6 +144,24 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use CORS
+app.UseCors("AllowAll");
+
+// Use Rate Limiting Middleware before authentication
+app.UseMiddleware<RateLimitingMiddleware>();
+
+// Swagger should be configured before authentication for development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Prime Management App V3");
+        c.RoutePrefix = "swagger";
+    });
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -167,16 +173,8 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 }
 
-// Use CORS
-app.UseCors("AllowAll");
-
-// Use Rate Limiting Middleware before authentication
-app.UseMiddleware<RateLimitingMiddleware>();
-
 // Map health checks and metrics
 app.MapHealthChecks("/health");
-app.UseSwagger();
-app.UseSwaggerUI();
 app.MapHub<backend.Controllers.NotificationHub>("/ws");
 
 app.Run();

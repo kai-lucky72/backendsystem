@@ -145,8 +145,8 @@ public async Task<IEnumerable<User>> GetAllUsersAsync()
     public async Task<AdminDashboardDTO> GetAdminDashboardAsync()
     {
         var allUsers = await _userRepository.GetAllAsync();
-        var managers = allUsers.Where(u => u.Role == Role.Manager).ToList();
-        var agents = allUsers.Where(u => u.Role == Role.Agent).ToList();
+        var managers = allUsers.Where(u => u.Role == Role.MANAGER).ToList();
+        var agents = allUsers.Where(u => u.Role == Role.AGENT).ToList();
         
         var systemMetrics = new List<AdminDashboardDTO.SystemMetric>
         {
@@ -239,7 +239,7 @@ public async Task<IEnumerable<User>> GetAllUsersAsync()
         
         
         
-        if (user.Role == Role.Agent)
+        if (user.Role == Role.AGENT)
         {
             var agent = _agentRepository.GetByUserIdAsync(user.Id).Result;
             if (agent != null)

@@ -13,6 +13,6 @@ public interface IAgentRepository
     // Custom methods from Java repository
     Task<IEnumerable<Agent>> GetByManagerAsync(Manager manager);
     Task<IEnumerable<Agent>> GetByGroupAsync(Group group);
-    Task<IEnumerable<Agent>> GetByManagerAndAgentTypeAsync(Manager manager, Agent.AgentTypeEnum agentType);
+    Task<IEnumerable<Agent>> GetByManagerAndAgentTypeAsync(Manager manager, AgentType agentType);
     Task<Agent?> GetByUserIdAsync(long userId);
 }
