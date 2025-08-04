@@ -75,64 +75,95 @@ public class UserService : IUserService
         return savedUser;
     }
 
-    public async Task<User> GetUserByIdAsync(long id)
+    public async Task<User?> GetUserByIdAsync(long id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User not found with ID: {id}");
+            return null; // User not found
         }
+        
+        // Return null if user is inactive (don't throw error)
+        if (!user.Active)
+        {
+            return null; // User is inactive/deleted
+        }
+        
         return user;
     }
 
-    public async Task<User> GetUserByEmailAsync(string email)
+    public async Task<User?> GetUserByEmailAsync(string email)
     {
         var user = await _userRepository.GetByEmailAsync(email);
         if (user == null)
         {
-            throw new InvalidOperationException($"User not found with email: {email}");
+            return null; // User not found
         }
+        
+        // Return null if user is inactive (don't throw error)
+        if (!user.Active)
+        {
+            return null; // User is inactive/deleted
+        }
+        
         return user;
     }
 
-    public async Task<User> GetUserByWorkIdAsync(string workId)
+    public async Task<User?> GetUserByWorkIdAsync(string workId)
     {
         try
         {
             var user = await _userRepository.GetByWorkIdAsync(workId);
             if (user == null)
             {
-                throw new InvalidOperationException($"User not found with work ID: {workId}");
+                return null; // User not found
             }
+            
+            // Return null if user is inactive (don't throw error)
+            if (!user.Active)
+            {
+                return null; // User is inactive/deleted
+            }
+            
             return user;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving user with workId: {WorkId}", workId);
-            throw;
+            return null; // Return null instead of throwing
         }
     }
 
-public async Task<IEnumerable<User>> GetAllUsersAsync()
-{
-    _logger.LogDebug("Retrieving all users from database");
-    var allUsers = await _userRepository.GetAllAsync();
-    _logger.LogDebug("Found {UserCount} users in database", allUsers.Count());
-    
-    // Log details about each user for debugging
-    foreach (var user in allUsers)
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
-        _logger.LogDebug("User: id={UserId}, workId={WorkId}, email={Email}, role={Role}, active={Active}", 
-                 user.Id, user.WorkId, user.Email, user.Role, user.Active);
+        _logger.LogDebug("Retrieving all users from database");
+        var allUsers = await _userRepository.GetAllAsync();
+        _logger.LogDebug("Found {UserCount} users in database", allUsers.Count());
+        
+        // Log details about each user for debugging
+        foreach (var user in allUsers)
+        {
+            _logger.LogDebug("User: id={UserId}, workId={WorkId}, email={Email}, role={Role}, active={Active}", 
+                     user.Id, user.WorkId, user.Email, user.Role, user.Active);
+        }
+        
+        return allUsers;
     }
-    
-    return allUsers;
-}
+
+    public async Task<IEnumerable<User>> GetActiveUsersAsync()
+    {
+        _logger.LogDebug("Retrieving active users from database");
+        var allUsers = await _userRepository.GetAllAsync();
+        var activeUsers = allUsers.Where(u => u.Active).ToList();
+        _logger.LogDebug("Found {ActiveUserCount} active users in database", activeUsers.Count());
+        
+        return activeUsers;
+    }
 
     public async Task<int> CountUsersByRoleAsync(Role role)
     {
         var allUsers = await _userRepository.GetAllAsync();
-        return allUsers.Count(u => u.Role == role);
+        return allUsers.Count(u => u.Role == role && u.Active);
     }
     
     public async Task<bool> IsEmailTakenAsync(string email)
@@ -189,13 +220,19 @@ public async Task<IEnumerable<User>> GetAllUsersAsync()
     public async Task<IEnumerable<User>> GetUsersByRoleAsync(Role role)
     {
         var allUsers = await _userRepository.GetAllAsync();
-        return allUsers.Where(u => u.Role == role);
+        return allUsers.Where(u => u.Role == role && u.Active);
     }
 
 
-    public async Task<User> UpdateUserStatusAsync(long id, bool active)
+    public async Task<User?> UpdateUserStatusAsync(long id, bool active)
     {
-        var user = await GetUserByIdAsync(id);
+        // For status updates, we need to bypass the active validation
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+        {
+            return null; // User not found
+        }
+        
         user.Active = active;
         
         var savedUser = await _userRepository.UpdateAsync(user);
@@ -214,6 +251,11 @@ public async Task<IEnumerable<User>> GetAllUsersAsync()
     public async Task<bool> ResetPasswordAsync(long id, string newPassword)
     {
         var user = await GetUserByIdAsync(id);
+        if (user == null)
+        {
+            return false; // User not found or inactive
+        }
+        
         user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
         await _userRepository.UpdateAsync(user);
         
@@ -233,14 +275,14 @@ public async Task<IEnumerable<User>> GetAllUsersAsync()
         var builder = new UserDTO
         {
             Id = $"usr-{user.Id:D3}",
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber ?? throw new InvalidOperationException(message:"null value for phonenumber in userservice"),
-            NationalId = user.NationalId ?? throw new InvalidOperationException(message:"null value for nationalid in userservice"),
-            Email = user.Email,
-            WorkId = user.WorkId,
+            FirstName = user.FirstName ?? "",
+            LastName = user.LastName ?? "",
+            PhoneNumber = user.PhoneNumber ?? "",
+            NationalId = user.NationalId ?? "",
+            Email = user.Email ?? "",
+            WorkId = user.WorkId ?? "",
             Role = user.Role,
-            CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? throw new InvalidOperationException(message:"null value for createdat in userservice"),
+            CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? "",
             Active = user.Active,
             Status = user.Active ? "active" : "inactive"
         };

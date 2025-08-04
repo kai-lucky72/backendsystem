@@ -119,15 +119,53 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Update SwaggerGen registration
+// Update SwaggerGen registration with JWT Authentication
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Prime Management App V3",
         Version = "3.0",
-        Description = @"Enterprise-grade platform for:\n- Agent Management & Attendance Tracking\n- Group Performance Monitoring\n- Role-based Operations\n- Client Collection Tracking\n- Real-time Analytics"
+        Description = @"Enterprise-grade platform for:\n- Agent Management & Attendance Tracking\n- Group Performance Monitoring\n- Role-based Operations\n- Client Collection Tracking\n- Real-time Analytics",
+        Contact = new OpenApiContact
+        {
+            Name = "Prime Management Team",
+            Email = "support@primemanagement.com"
+        }
     });
+
+    // Add JWT Authentication to Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+
+    // Include XML comments if available
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
 });
 
 // Add SignalR
@@ -159,6 +197,17 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Prime Management App V3");
         c.RoutePrefix = "swagger";
+        c.DocumentTitle = "Prime Management API Documentation";
+        c.DefaultModelsExpandDepth(2);
+        c.DefaultModelExpandDepth(2);
+        c.DisplayRequestDuration();
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        
+        // Custom CSS for better styling
+        c.InjectStylesheet("/swagger-ui/custom.css");
+        
+        // Add custom JavaScript for better UX
+        c.InjectJavascript("/swagger-ui/custom.js");
     });
 }
 

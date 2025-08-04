@@ -30,7 +30,8 @@ public class JwtService : IJwtService
             new("FirstName", user.FirstName),
             new("LastName", user.LastName),
             new("WorkId", user.WorkId ?? throw new InvalidOperationException()),
-            new(ClaimTypes.Role, user.Role.ToString())
+            new(ClaimTypes.Role, user.Role.ToString()),
+            new("Active", user.Active.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

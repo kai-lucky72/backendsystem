@@ -10,6 +10,19 @@ namespace backend.Controllers;
 
 /// <summary>
 /// Authentication API for login with workId, email, and role
+/// 
+/// ## How to use JWT Authentication in Swagger:
+/// 1. First, call the `/api/auth/login` endpoint with your credentials
+/// 2. Copy the `token` from the response
+/// 3. Click the 🔒 **Authorize** button at the top of Swagger UI
+/// 4. In the popup, enter: `Bearer YOUR_TOKEN_HERE` (replace YOUR_TOKEN_HERE with the actual token)
+/// 5. Click **Authorize** to save
+/// 6. Now you can access all protected endpoints!
+/// 
+/// ## Example Token Format:
+/// ```
+/// Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+/// ```
 /// </summary>
 [ApiController]
 [Route("api/auth")]
@@ -53,21 +66,12 @@ public class AuthController : ControllerBase
         try
         {
             // Direct database lookup - matches Java logic exactly
-            User? user = null;
-            try 
-            {
-                user = await _userService.GetUserByWorkIdAsync(request.WorkId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Database error while looking up user with workId: {WorkId}", request.WorkId);
-                // User not found or database error - continue to return unauthorized
-            }
+            User? user = await _userService.GetUserByWorkIdAsync(request.WorkId);
             
             if (user == null)
             {
-                _logger.LogError("User not found with workId: {WorkId}", request.WorkId);
-                return Unauthorized();
+                _logger.LogWarning("Login attempt for non-existent or inactive user with workId: {WorkId}", request.WorkId);
+                return Unauthorized(new { message = "User not found or account is inactive/deleted." });
             }
             
             // Email validation - exact match like Java
@@ -163,10 +167,13 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var userCount = await _userService.GetAllUsersAsync();
+            var allUsers = await _userService.GetAllUsersAsync();
+            var activeUsers = await _userService.GetActiveUsersAsync();
             return Ok(new { 
                 status = "healthy", 
-                userCount = userCount.Count(),
+                totalUsers = allUsers.Count(),
+                activeUsers = activeUsers.Count(),
+                inactiveUsers = allUsers.Count() - activeUsers.Count(),
                 timestamp = DateTime.UtcNow
             });
         }
@@ -174,6 +181,53 @@ public class AuthController : ControllerBase
         {
             return StatusCode(500, new { 
                 status = "unhealthy", 
+                error = ex.Message,
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    /// <summary>
+    /// Test endpoint to verify active/inactive user validation
+    /// </summary>
+    [HttpGet("test-active-validation")]
+    [AllowAnonymous]
+    public async Task<ActionResult> TestActiveValidation()
+    {
+        try
+        {
+            var results = new List<object>();
+            
+            // Test with active user
+            try
+            {
+                var activeUser = await _userService.GetUserByWorkIdAsync("ADM001");
+                results.Add(new { 
+                    workId = "ADM001", 
+                    status = "active", 
+                    active = activeUser.Active,
+                    success = true 
+                });
+            }
+            catch (Exception ex)
+            {
+                results.Add(new { 
+                    workId = "ADM001", 
+                    status = "error", 
+                    error = ex.Message,
+                    success = false 
+                });
+            }
+            
+            return Ok(new { 
+                message = "Active user validation test completed",
+                results = results,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { 
                 error = ex.Message,
                 timestamp = DateTime.UtcNow
             });

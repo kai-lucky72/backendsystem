@@ -37,6 +37,10 @@ public class AdminController(
     public async Task<ActionResult<ManagerListItemDTO>> CreateManager([FromBody] CreateManagerRequest request)
     {
         var admin = await userService.GetUserByIdAsync(long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException()));
+        if (admin == null)
+        {
+            return BadRequest("User not found or account is inactive/deleted.");
+        }
         
         // Use provided password or default to "Temp@1234" to match Java version
         var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp@1234" : request.Password;
@@ -78,17 +82,22 @@ public class AdminController(
     public async Task<ActionResult<UserDTO>> UpdateUserStatus(long id, [FromQuery] bool active)
     {
         var updatedUser = await userService.UpdateUserStatusAsync(id, active);
+        if (updatedUser == null)
+        {
+            return BadRequest("User not found or account is inactive/deleted.");
+        }
+        
         var userDto = new UserDTO
         {
             Id = $"usr-{updatedUser.Id:D3}",
-            FirstName = updatedUser.FirstName,
-            LastName = updatedUser.LastName,
-            PhoneNumber = updatedUser.PhoneNumber ?? throw new InvalidOperationException(),
-            NationalId = updatedUser.NationalId ?? throw new InvalidOperationException(),
-            Email = updatedUser.Email,
-            WorkId = updatedUser.WorkId,
+            FirstName = updatedUser.FirstName ?? "",
+            LastName = updatedUser.LastName ?? "",
+            PhoneNumber = updatedUser.PhoneNumber ?? "",
+            NationalId = updatedUser.NationalId ?? "",
+            Email = updatedUser.Email ?? "",
+            WorkId = updatedUser.WorkId ?? "",
             Role = updatedUser.Role,
-            CreatedAt = UserDTO.FormatDate(updatedUser.CreatedAt) ?? throw new InvalidOperationException(),
+            CreatedAt = UserDTO.FormatDate(updatedUser.CreatedAt) ?? "",
             Active = updatedUser.Active,
             Status = updatedUser.Active ? "active" : "inactive"
         };
@@ -101,7 +110,11 @@ public class AdminController(
     [HttpPut("users/{id}/reset-password")]
     public async Task<IActionResult> ResetPassword(long id, [FromQuery] string newPassword)
     {
-        await userService.ResetPasswordAsync(id, newPassword);
+        var success = await userService.ResetPasswordAsync(id, newPassword);
+        if (!success)
+        {
+            return BadRequest("User not found or account is inactive/deleted.");
+        }
         return Ok();
     }
 
@@ -356,6 +369,10 @@ public class AdminController(
     {
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var sender = await userService.GetUserByIdAsync(userId);
+        if (sender == null)
+        {
+            return BadRequest("User not found or account is inactive/deleted.");
+        }
         
         var title = body.GetValueOrDefault("title", "");
         var message = body.GetValueOrDefault("message", "");

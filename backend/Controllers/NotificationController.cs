@@ -33,6 +33,10 @@ public class NotificationController : ControllerBase
         {
             var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
             var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return BadRequest("User not found or account is inactive/deleted.");
+            }
             var notifications = await _notificationService.GetNotificationsByRecipientAsync(user);
             return Ok(notifications);
         }
@@ -64,6 +68,10 @@ public class NotificationController : ControllerBase
         {
             var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
             var sender = await _userService.GetUserByIdAsync(userId);
+            if (sender == null)
+            {
+                return BadRequest("User not found or account is inactive/deleted.");
+            }
             var agent = await _agentService.GetAgentByIdAsync(agentId);
             
             // Authorization check - matches Java logic exactly
@@ -102,6 +110,10 @@ public class NotificationController : ControllerBase
         {
             var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
             var sender = await _userService.GetUserByIdAsync(userId);
+            if (sender == null)
+            {
+                return BadRequest("User not found or account is inactive/deleted.");
+            }
             var manager = await _managerService.GetManagerByIdAsync(managerId);
             
             var title = "Notification";
@@ -130,6 +142,10 @@ public class NotificationController : ControllerBase
         {
             var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
             var sender = await _userService.GetUserByIdAsync(userId);
+            if (sender == null)
+            {
+                return BadRequest("User not found or account is inactive/deleted.");
+            }
             
             var title = "Notification";
             var category = Category.SYSTEM;
@@ -157,6 +173,10 @@ public class NotificationController : ControllerBase
         {
             var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
             var sender = await _userService.GetUserByIdAsync(userId);
+            if (sender == null)
+            {
+                return BadRequest("User not found or account is inactive/deleted.");
+            }
             var managers = await _managerService.GetAllManagersAsync();
             
             var title = "Notification";
@@ -270,7 +290,18 @@ public class NotificationHub : Hub
             }
 
             var sender = await _userService.GetUserByIdAsync(userId);
+            if (sender == null)
+            {
+                await Clients.Caller.SendAsync("Error", "User not found or account is inactive/deleted.");
+                return;
+            }
+            
             var recipient = await _userService.GetUserByIdAsync(message.SenderId);
+            if (recipient == null)
+            {
+                await Clients.Caller.SendAsync("Error", "Recipient not found or account is inactive/deleted.");
+                return;
+            }
             
             var category = Category.SYSTEM;
             var priority = Priority.MEDIUM;
@@ -296,6 +327,11 @@ public class NotificationHub : Hub
             }
 
             var sender = await _userService.GetUserByIdAsync(userId);
+            if (sender == null)
+            {
+                await Clients.Caller.SendAsync("Error", "User not found or account is inactive/deleted.");
+                return;
+            }
             
             // Check if user is Admin (matching Java's @PreAuthorize("hasRole('ADMIN')"))
             if (sender.Role != Role.ADMIN)

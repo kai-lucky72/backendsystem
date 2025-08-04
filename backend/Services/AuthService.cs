@@ -71,7 +71,13 @@ public class AuthService : IAuthService
         
         if (user == null)
         {
-            return new AuthResponseDto { Success = false, Message = "Invalid credentials" };
+            return new AuthResponseDto { Success = false, Message = "User not found or account is inactive/deleted." };
+        }
+
+        // Check if user is active - critical security validation
+        if (!user.Active)
+        {
+            return new AuthResponseDto { Success = false, Message = "User not found or account is inactive/deleted." };
         }
 
         if (!VerifyPassword(loginDto.Password, user.PasswordHash))
@@ -94,7 +100,8 @@ public class AuthService : IAuthService
                 FirstName = user.FirstName, 
                 LastName = user.LastName,
                 WorkId = user.WorkId,
-                Role = user.Role
+                Role = user.Role,
+                Active = user.Active
             } 
         };
     }

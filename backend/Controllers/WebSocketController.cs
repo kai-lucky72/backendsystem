@@ -37,6 +37,10 @@ public class WebSocketController : ControllerBase
         {
             var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
             var sender = await _userService.GetUserByIdAsync(senderId);
+            if (sender == null)
+            {
+                return BadRequest("User not found or account is inactive/deleted.");
+            }
             
             // Extract target user from the message (matching Java logic exactly)
             var recipientId = message.SenderId; // Using sender field to hold recipient, same as Java
@@ -44,6 +48,10 @@ public class WebSocketController : ControllerBase
             if (recipientId > 0)
             {
                 var recipient = await _userService.GetUserByIdAsync(recipientId);
+                if (recipient == null)
+                {
+                    return BadRequest("Recipient not found or account is inactive/deleted.");
+                }
                 var title = "Notification";
                 
                 await _notificationService.SendCompleteNotificationAsync(
@@ -81,6 +89,10 @@ public class WebSocketController : ControllerBase
         {
             var senderId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
             var sender = await _userService.GetUserByIdAsync(senderId);
+            if (sender == null)
+            {
+                return BadRequest("User not found or account is inactive/deleted.");
+            }
             
             var title = "Notification";
             
@@ -135,6 +147,11 @@ public class WebSocketMessageHandler : Hub
             }
 
             var sender = await _userService.GetUserByIdAsync(senderId);
+            if (sender == null)
+            {
+                await Clients.Caller.SendAsync("Error", "User not found or account is inactive/deleted.");
+                return;
+            }
             
             // Extract target user from the message (matching Java logic exactly)
             var recipientId = message.SenderId; // Using sender field to hold recipient
@@ -142,6 +159,11 @@ public class WebSocketMessageHandler : Hub
             if (recipientId > 0)
             {
                 var recipient = await _userService.GetUserByIdAsync(recipientId);
+                if (recipient == null)
+                {
+                    await Clients.Caller.SendAsync("Error", "Recipient not found or account is inactive/deleted.");
+                    return;
+                }
                 var title = "Notification";
                 
                 await _notificationService.SendCompleteNotificationAsync(

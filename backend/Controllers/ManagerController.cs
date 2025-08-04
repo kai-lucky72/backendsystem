@@ -1226,6 +1226,10 @@ public class ManagerController(
     {
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var currentUser = await userService.GetUserByIdAsync(userId);
+        if (currentUser == null)
+        {
+            return BadRequest("User not found or account is inactive/deleted.");
+        }
         var allNotifications = await notificationService.GetNotificationsByRecipientAsync(currentUser);
 
         var total = allNotifications.Count();
@@ -1285,6 +1289,10 @@ public class ManagerController(
     {
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var sender = await userService.GetUserByIdAsync(userId);
+        if (sender == null)
+        {
+            return BadRequest("User not found or account is inactive/deleted.");
+        }
 
         if (!string.IsNullOrEmpty(body.SenderRole) && !body.SenderRole.Equals(sender.Role.ToString(), StringComparison.OrdinalIgnoreCase))
         {
@@ -1302,7 +1310,7 @@ public class ManagerController(
         // Recipient resolution
         if (body.Recipient.Equals("All Users", StringComparison.OrdinalIgnoreCase))
         {
-            recipients = (await userService.GetAllUsersAsync()).ToList();
+            recipients = (await userService.GetActiveUsersAsync()).ToList();
         }
         else if (body.Recipient.Equals("All Agents", StringComparison.OrdinalIgnoreCase))
         {

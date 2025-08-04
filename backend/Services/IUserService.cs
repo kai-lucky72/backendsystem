@@ -10,13 +10,15 @@ public interface IUserService
     Task<User> CreateUserAsync(string firstName, string lastName, string phoneNumber, string nationalId,
                               string email, string workId, string? password, Role role, User createdBy);
     
-    Task<User> GetUserByIdAsync(long id);
+    Task<User?> GetUserByIdAsync(long id);
     
-    Task<User> GetUserByEmailAsync(string email);
+    Task<User?> GetUserByEmailAsync(string email);
     
-    Task<User> GetUserByWorkIdAsync(string workId);
+    Task<User?> GetUserByWorkIdAsync(string workId);
     
     Task<IEnumerable<User>> GetAllUsersAsync();
+    
+    Task<IEnumerable<User>> GetActiveUsersAsync();
     
     /// <summary>Count users in a given role by name (e.g. "Agent", "Manager").</summary>
     Task<int> GetUserCountByRoleAsync(string roleName);
@@ -24,7 +26,7 @@ public interface IUserService
     Task<int> GetUserCountForMonthAsync(DateTime monthStart);
 
     
-    Task<User> UpdateUserStatusAsync(long id, bool active);
+    Task<User?> UpdateUserStatusAsync(long id, bool active);
     
     Task<bool> ResetPasswordAsync(long id, string newPassword);
 

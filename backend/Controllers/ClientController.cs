@@ -39,6 +39,10 @@ public class ClientController : ControllerBase
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var agent = await _agentService.GetAgentByIdAsync(userId);
         var currentUser = await _userService.GetUserByIdAsync(userId);
+        if (currentUser == null)
+        {
+            return BadRequest("User not found or account is inactive/deleted.");
+        }
         
         var client = await _clientService.CreateClientAsync(request, agent, currentUser);
         var clientDTO = _clientService.MapToDTO(client);

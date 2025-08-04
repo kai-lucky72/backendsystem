@@ -34,6 +34,7 @@ public class UserDto
     public string LastName { get; set; } = string.Empty;
     public string? WorkId { get; set; } = string.Empty;
     public Role Role { get; set; }
+    public bool Active { get; set; } = true;
 }
 
 public class ChangePasswordDto
