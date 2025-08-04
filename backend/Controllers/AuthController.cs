@@ -58,9 +58,10 @@ public class AuthController : ControllerBase
             {
                 user = await _userService.GetUserByWorkIdAsync(request.WorkId);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // User not found - continue to return unauthorized
+                _logger.LogError(ex, "Database error while looking up user with workId: {WorkId}", request.WorkId);
+                // User not found or database error - continue to return unauthorized
             }
             
             if (user == null)
@@ -151,5 +152,31 @@ public class AuthController : ControllerBase
     {
         // Delegate to main login method to avoid code duplication
         return await Login(request);
+    }
+
+    /// <summary>
+    /// Health check endpoint to test database connectivity
+    /// </summary>
+    [HttpGet("health")]
+    [AllowAnonymous]
+    public async Task<ActionResult> HealthCheck()
+    {
+        try
+        {
+            var userCount = await _userService.GetAllUsersAsync();
+            return Ok(new { 
+                status = "healthy", 
+                userCount = userCount.Count(),
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { 
+                status = "unhealthy", 
+                error = ex.Message,
+                timestamp = DateTime.UtcNow
+            });
+        }
     }
 }

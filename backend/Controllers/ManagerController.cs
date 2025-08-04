@@ -1240,7 +1240,7 @@ public class ManagerController(
             ["message"] = n.Message.Contains(": ") ? n.Message.Split(": ", 2)[1] : n.Message,
             ["recipient"] = n.Recipient?.Email ?? "All Users",
             ["status"] = n.Status,
-            ["sentAt"] = n.SentAt?.ToString() ?? throw new InvalidOperationException("null value for sendat in managercontroller"),
+            ["sentAt"] = n.SentAt.HasValue ? n.SentAt.Value.ToString("o") : DateTime.UtcNow.ToString("o"),
             ["readBy"] = n.ReadBy,
             ["totalRecipients"] = n.TotalRecipients,
             ["priority"] = n.Priority.ToString().ToLower(),
@@ -1374,19 +1374,19 @@ public class ManagerController(
         // Build response
         var response = new Dictionary<string, object>
         {
-            ["id"] = lastNotification?.Id.ToString() ?? throw new InvalidOperationException(),
+            ["id"] = lastNotification?.Id.ToString() ?? "0",
             ["title"] = body.Title,
             ["message"] = body.Message,
             ["recipient"] = resolvedRecipient,
             ["priority"] = body.Priority,
             ["status"] = "sent",
-            ["sentAt"] = lastNotification?.SentAt?.ToString("o") ?? throw new InvalidOperationException(),
+            ["sentAt"] = DateTime.UtcNow.ToString("o"),
             ["readBy"] = 0,
             ["totalRecipients"] = recipients.Count(),
             ["sender"] = new Dictionary<string, object>
             {
                 ["role"] = sender.Role.ToString().ToLower(),
-                ["workId"] = sender.WorkId ?? throw new InvalidOperationException("null value for workid in managercontroller"),
+                ["workId"] = sender.WorkId ?? "",
                 ["name"] = $"{sender.FirstName} {sender.LastName}"
             }
         };
@@ -1400,7 +1400,7 @@ public class ManagerController(
     private async Task<GroupDetailDTO> MapGroupToDetailDtoAsync(Group group)
     {
         var groupId = $"group-{group.Id:000}";
-        var createdAt = group.CreatedAt?.ToString("yyyy-MM-dd") ?? "";
+        var createdAt = group.CreatedAt.ToString("yyyy-MM-dd");
         var agents = new List<GroupDetailDTO.AgentDTO>();
         var collectedClients = 0;
 
@@ -1440,4 +1440,6 @@ public class ManagerController(
             CreatedAt = createdAt
         };
     }
+
+
 }

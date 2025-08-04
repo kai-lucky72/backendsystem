@@ -39,7 +39,18 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("users");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnType("bigint");
+            entity.Property(e => e.Email).HasColumnType("varchar(255)");
+            entity.Property(e => e.WorkId).HasColumnType("varchar(50)");
+            entity.Property(e => e.FirstName).HasColumnType("varchar(100)");
+            entity.Property(e => e.LastName).HasColumnType("varchar(100)");
+            entity.Property(e => e.PhoneNumber).HasColumnType("varchar(20)");
+            entity.Property(e => e.NationalId).HasColumnType("varchar(50)");
+            entity.Property(e => e.PasswordHash).HasColumnType("varchar(60)");
+            entity.Property(e => e.Role).HasColumnType("varchar(20)").HasConversion<string>();
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.LastLogin).HasColumnType("datetime");
+            entity.Property(e => e.Active).HasColumnType("boolean");
             entity.HasIndex(e => e.Email).IsUnique();
             entity.HasIndex(e => e.WorkId).IsUnique();
             entity.HasIndex(e => e.NationalId).IsUnique();
@@ -50,6 +61,9 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("managers");
             entity.HasKey(e => e.UserId);
+            entity.Property(e => e.UserId).HasColumnType("bigint");
+            entity.Property(e => e.CreatedById).HasColumnType("bigint");
+            entity.Property(e => e.Department).HasColumnType("varchar(100)");
             entity.HasOne(e => e.User)
                 .WithOne(e => e.Manager)
                 .HasForeignKey<Manager>(e => e.UserId)
@@ -65,6 +79,11 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("agents");
             entity.HasKey(e => e.UserId);
+            entity.Property(e => e.UserId).HasColumnType("bigint");
+            entity.Property(e => e.ManagerId).HasColumnType("bigint");
+            entity.Property(e => e.GroupId).HasColumnType("bigint");
+            entity.Property(e => e.AgentType).HasColumnType("varchar(20)").HasConversion<string>();
+            entity.Property(e => e.Sector).HasColumnType("varchar(100)");
             entity.HasOne(e => e.User)
                 .WithOne(e => e.Agent)
                 .HasForeignKey<Agent>(e => e.UserId)

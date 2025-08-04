@@ -97,12 +97,20 @@ public class UserService : IUserService
 
     public async Task<User> GetUserByWorkIdAsync(string workId)
     {
-        var user = await _userRepository.GetByWorkIdAsync(workId);
-        if (user == null)
+        try
         {
-            throw new InvalidOperationException($"User not found with work ID: {workId}");
+            var user = await _userRepository.GetByWorkIdAsync(workId);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User not found with work ID: {workId}");
+            }
+            return user;
         }
-        return user;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user with workId: {WorkId}", workId);
+            throw;
+        }
     }
 
 public async Task<IEnumerable<User>> GetAllUsersAsync()

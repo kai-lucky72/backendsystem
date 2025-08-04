@@ -15,10 +15,39 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Users
-            .Include(u => u.Agent)
-            .Include(u => u.Manager)
-            .ToListAsync();
+        try
+        {
+            var users = await _context.Users.ToListAsync();
+            
+            // Manually load related entities to avoid data type issues
+            foreach (var user in users)
+            {
+                try
+                {
+                    await _context.Entry(user).Reference(u => u.Agent).LoadAsync();
+                }
+                catch
+                {
+                    // Ignore agent loading errors
+                }
+                
+                try
+                {
+                    await _context.Entry(user).Reference(u => u.Manager).LoadAsync();
+                }
+                catch
+                {
+                    // Ignore manager loading errors
+                }
+            }
+            
+            return users;
+        }
+        catch (Exception ex)
+        {
+            // Fallback to simple query without related entities
+            return await _context.Users.ToListAsync();
+        }
     }
 
     public async Task<User?> GetByIdAsync(long id)
@@ -63,10 +92,52 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByWorkIdAsync(string workId)
     {
-        return await _context.Users
-            .Include(u => u.Agent)
-            .Include(u => u.Manager)
-            .FirstOrDefaultAsync(u => u.WorkId == workId);
+        try
+        {
+            // First try a simple query without joins
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.WorkId == workId);
+            
+            if (user != null)
+            {
+                // Manually load related entities to avoid data type issues
+                try
+                {
+                    await _context.Entry(user).Reference(u => u.Agent).LoadAsync();
+                }
+                catch
+                {
+                    // Ignore agent loading errors
+                }
+                
+                try
+                {
+                    await _context.Entry(user).Reference(u => u.Manager).LoadAsync();
+                }
+                catch
+                {
+                    // Ignore manager loading errors
+                }
+            }
+            
+            return user;
+        }
+        catch (Exception ex)
+        {
+            // Final fallback - use raw SQL
+            try
+            {
+                var user = await _context.Users
+                    .FromSqlRaw("SELECT * FROM users WHERE work_id = {0}", workId)
+                    .FirstOrDefaultAsync();
+                
+                return user;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 
     public async Task<bool> ExistsByEmailAsync(string email)
