@@ -11,16 +11,12 @@ public class Agent
     [Column("user_id")]
     public long UserId { get; set; }
 
-    [ForeignKey("UserId")]
-    public virtual User User { get; set; } = null!;
-
     [Required]
-    [ForeignKey("Manager")]
     [Column("manager_id")]
     public long ManagerId { get; set; }
-    
-    [ForeignKey("ManagerId")]
-    public virtual Manager Manager { get; set; } = null!;
+
+    [Column("group_id")]
+    public long? GroupId { get; set; }
 
     [Required]
     [Column("agent_type")]
@@ -29,29 +25,26 @@ public class Agent
     [Required]
     public string Sector { get; set; } = string.Empty;
 
-    [ForeignKey("Group")]
-    [Column("group_id")]
-    public long? GroupId { get; set; }
-    
-    [ForeignKey("GroupId")]
+    // Navigation properties
+    [JsonIgnore]
+    public virtual User User { get; set; } = null!;
+    [JsonIgnore]
+    public virtual Manager Manager { get; set; } = null!;
     [JsonIgnore]
     public virtual Group? Group { get; set; }
+    [JsonIgnore]
+    public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
+    [JsonIgnore]
+    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+    [JsonIgnore]
+    public virtual ICollection<ClientsCollected> ClientsCollectedRecords { get; set; } = new List<ClientsCollected>();
+    [JsonIgnore]
+    public virtual ICollection<Group> LedGroups { get; set; } = new List<Group>();
 
+    // Computed properties
     [NotMapped]
     public int ClientsCollected { get; set; }
 
-    public enum AgentType
-    {
-        Sales,
-        Individual
-    }
-
-    // Navigation properties
-    public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
-    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
-    public virtual ICollection<ClientsCollected> ClientsCollectedRecords { get; set; } = new List<ClientsCollected>();
-    public virtual ICollection<Group> LedGroups { get; set; } = new List<Group>();
-    
     // Utility method to set up the entity correctly
     public static Agent Create(User agentUser, Manager manager, AgentType agentType, string sector)
     {
@@ -69,16 +62,5 @@ public class Agent
             AgentType = agentType,
             Sector = !string.IsNullOrWhiteSpace(sector) ? sector : "General"
         };
-    }
-
-    public override bool Equals(object? obj)
-    {
-        if (obj is not Agent agent) return false;
-        return UserId == agent.UserId;
-    }
-
-    public override int GetHashCode()
-    {
-        return UserId.GetHashCode();
     }
 }

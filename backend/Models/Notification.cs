@@ -33,17 +33,8 @@ public class Notification
     [Required]
     public string Status { get; set; } = "sent";
 
-    [Required]
-    [Column("read_by")]
-    public int ReadBy { get; set; } = 0;
-
-    [Required]
-    [Column("total_recipients")]
-    public int TotalRecipients { get; set; } = 0;
-
-    [Required]
     [Column("sent_at")]
-    public DateTime SentAt { get; set; } = DateTime.UtcNow;
+    public DateTime? SentAt { get; set; } = DateTime.UtcNow;
 
     [Required]
     [Column("via_email")]
@@ -54,27 +45,10 @@ public class Notification
     public bool ReadStatus { get; set; } = false;
     
     [Required]
-    public Priority Priority { get; set; } = Priority.Medium;
+    public Priority Priority { get; set; } = Priority.MEDIUM;
     
     [Required]
-    public Category Category { get; set; } = Category.System;
-    
-    public enum Priority
-    {
-        Low,
-        Medium,
-        High,
-        Urgent
-    }
-    
-    public enum Category
-    {
-        System,
-        Attendance,
-        Performance,
-        Task,
-        Other
-    }
+    public Category Category { get; set; } = Category.SYSTEM;
 
     // Utility method to get priority string
     public string GetPriorityString()

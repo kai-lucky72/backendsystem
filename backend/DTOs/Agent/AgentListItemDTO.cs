@@ -10,7 +10,7 @@ public class AgentListItemDTO
     public string Email { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string NationalId { get; set; } = string.Empty;
-    public string WorkId { get; set; } = string.Empty;
+    public string? WorkId { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Group { get; set; } = string.Empty;
     public bool IsTeamLeader { get; set; }

@@ -11,8 +11,8 @@ public class UserDTO
     public string PhoneNumber { get; set; } = string.Empty;
     public string NationalId { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string WorkId { get; set; } = string.Empty;
-    public User.Role Role { get; set; }
+    public string? WorkId { get; set; } = string.Empty;
+    public Role Role { get; set; }
     public string CreatedAt { get; set; } = string.Empty;
     public bool Active { get; set; }
     

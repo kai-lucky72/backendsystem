@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using backend.Models;
-
 namespace backend.DTOs.Agent;
 
 public class CreateAgentRequest
@@ -37,17 +36,17 @@ public class CreateAgentRequest
     public string? Sector { get; set; }
     
     // Helper method to convert type string to Agent.AgentType enum
-    public Agent.AgentType GetAgentType()
+    public AgentType GetAgentType()
     {
         if (string.IsNullOrWhiteSpace(Type))
         {
-            return Agent.AgentType.Individual; // Default type
+            return AgentType.INDIVIDUAL; // Default type
         }
         
         try
         {
             // Try direct enum conversion first
-            return Enum.Parse<Agent.AgentType>(Type, true);
+            return Enum.Parse<AgentType>(Type, true);
         }
         catch (ArgumentException)
         {
@@ -55,22 +54,22 @@ public class CreateAgentRequest
             string normalizedType = Type.Trim().ToLower();
             if (normalizedType == "individual")
             {
-                return Agent.AgentType.Individual;
+                return AgentType.INDIVIDUAL;
             }
             else if (normalizedType == "sales")
             {
-                return Agent.AgentType.Sales;
+                return AgentType.SALES;
             }
             else if (normalizedType.Contains("individual"))
             {
-                return Agent.AgentType.Individual;
+                return AgentType.INDIVIDUAL;
             }
             else if (normalizedType.Contains("sale"))
             {
-                return Agent.AgentType.Sales;
+                return AgentType.SALES;
             }
             
-            return Agent.AgentType.Individual; // Default if not recognized
+            return AgentType.INDIVIDUAL; // Default if not recognized
         }
     }
     

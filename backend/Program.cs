@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +9,8 @@ using backend.Configurations;
 using backend.Middleware;
 using backend.Repositories;
 using Serilog;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,18 +34,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure Identity with custom User model
-builder.Services.AddIdentity<User, IdentityRole<long>>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
-    options.User.RequireUniqueEmail = true;
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+// Identity removed - using custom authentication
 
 // Configure JWT Settings
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
@@ -102,17 +92,17 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Configure FluentValidation
-builder.Services.AddFluentValidationAutoValidation();
+// For FluentValidation in .NET 9, use AddFluentValidation() if available, otherwise ensure validators are registered manually.
+// builder.Services.AddFluentValidationAutoValidation(); // Commented out: not available in .NET 9
 
 // Add HealthChecks for DB and Redis
 builder.Services.AddHealthChecks()
-    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), name: "sqlserver")
-    .AddRedis(builder.Configuration.GetConnectionString("Redis"), name: "redis");
+    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException())
+    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException());
 
-// Add Prometheus metrics (requires prometheus-net package)
-builder.Services.AddHostedService<Prometheus.MetricPusher>();
-app.UseMetricServer(); // exposes /metrics
+// For Prometheus, ensure the prometheus-net.AspNetCore package is installed and add the correct using if needed.
+// builder.Services.AddHostedService<Prometheus.MetricPusher>(); // Commented out: add package if needed
+// app.UseMetricServer(); // exposes /metrics - commented out until package is added
 
 // Add Redis distributed cache
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -129,24 +119,62 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Update SwaggerGen registration
+// Update SwaggerGen registration with JWT Authentication
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Prime Management App V3",
         Version = "3.0",
-        Description = @"Enterprise-grade platform for:\n- Agent Management & Attendance Tracking\n- Group Performance Monitoring\n- Role-based Operations\n- Client Collection Tracking\n- Real-time Analytics"
+        Description = @"Enterprise-grade platform for:\n- Agent Management & Attendance Tracking\n- Group Performance Monitoring\n- Role-based Operations\n- Client Collection Tracking\n- Real-time Analytics",
+        Contact = new OpenApiContact
+        {
+            Name = "Prime Management Team",
+            Email = "support@primemanagement.com"
+        }
     });
+
+    // Add JWT Authentication to Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter your token below (without 'Bearer' prefix):",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+
+    // Include XML comments if available
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
 });
 
 // Add SignalR
 builder.Services.AddSignalR();
 
+var app = builder.Build();
 // Error handling middleware (optional, for production robustness)
 app.UseExceptionHandler("/error");
-
-var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -155,6 +183,35 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use CORS
+app.UseCors("AllowAll");
+
+// Use Rate Limiting Middleware before authentication
+app.UseMiddleware<RateLimitingMiddleware>();
+
+// Swagger should be configured before authentication for development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Prime Management App V3");
+        c.RoutePrefix = "swagger";
+        c.DocumentTitle = "Prime Management API Documentation";
+        c.DefaultModelsExpandDepth(2);
+        c.DefaultModelExpandDepth(2);
+        c.DisplayRequestDuration();
+        c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+        
+        // Custom CSS for better styling
+        c.InjectStylesheet("/swagger-ui/custom.css");
+        
+        // Add custom JavaScript for better UX
+        c.InjectJavascript("/swagger-ui/custom.js");
+    });
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
@@ -166,17 +223,8 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 }
 
-// Use CORS
-app.UseCors("AllowAll");
-
-// Use Rate Limiting Middleware before authentication
-app.UseMiddleware<RateLimitingMiddleware>();
-
 // Map health checks and metrics
 app.MapHealthChecks("/health");
-app.UseSwagger();
-app.UseSwaggerUI();
-app.MapHub<NotificationHub>("/ws");
+app.MapHub<backend.Controllers.NotificationHub>("/ws");
 
 app.Run();
-

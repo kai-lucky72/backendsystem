@@ -17,7 +17,7 @@ public class ClientDTO
     public int ContractYears { get; set; }
     public string? AgentId { get; set; }
     public string? AgentName { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
     public bool Active { get; set; }
     
     /// <summary>

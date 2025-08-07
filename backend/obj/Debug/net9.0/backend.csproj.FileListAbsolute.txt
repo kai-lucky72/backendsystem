@@ -6,3 +6,4 @@ C:\Users\Lamelo\RiderProject\backend\backend\obj\Debug\net9.0\backend.AssemblyIn
 C:\Users\Lamelo\RiderProject\backend\backend\obj\Debug\net9.0\backend.csproj.CoreCompileInputs.cache
 C:\Users\Lamelo\RiderProject\backend\backend\obj\Debug\net9.0\backend.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\Lamelo\RiderProject\backend\backend\obj\Debug\net9.0\backend.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Lamelo\RiderProject\backend\backend\obj\Debug\net9.0\backend.sourcelink.json

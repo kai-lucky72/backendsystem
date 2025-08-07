@@ -1,12 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Identity;
 
 namespace backend.Models;
 
-public class User : IdentityUser<long>
+[Table("users")]
+public class User
 {
+    [Key]
+    public long Id { get; set; }
+
     [Required]
     [Column("first_name")]
     public string FirstName { get; set; } = string.Empty;
@@ -16,24 +19,27 @@ public class User : IdentityUser<long>
     public string LastName { get; set; } = string.Empty;
     
     [Column("phone_number")]
-    public new string? PhoneNumber { get; set; }
+    public string? PhoneNumber { get; set; }
     
     [Column("national_id")]
     public string? NationalId { get; set; }
 
     [Required]
     [EmailAddress]
-    public new string Email { get; set; } = string.Empty;
+    [Column("email")]
+    public string Email { get; set; } = string.Empty;
 
     [JsonIgnore]
+    [Required]
     [Column("password_hash")]
-    public new string? PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = string.Empty;
 
     [Required]
     [Column("work_id")]
     public string WorkId { get; set; } = string.Empty;
 
     [Required]
+    [Column("role")]
     public Role Role { get; set; }
 
     [Column("profile_image_url")]
@@ -42,31 +48,29 @@ public class User : IdentityUser<long>
     [Column("last_login")]
     public DateTime? LastLogin { get; set; }
 
+    [Required]
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [Required]
+    [Column("active")]
     public bool Active { get; set; } = true;
 
-    public enum Role
-    {
-        Admin,
-        Manager,
-        Agent
-    }
-
     // Navigation properties
+    [JsonIgnore]
     public virtual Agent? Agent { get; set; }
+    [JsonIgnore]
     public virtual Manager? Manager { get; set; }
+    [JsonIgnore]
     public virtual ICollection<Notification> SentNotifications { get; set; } = new List<Notification>();
+    [JsonIgnore]
     public virtual ICollection<Notification> ReceivedNotifications { get; set; } = new List<Notification>();
+    [JsonIgnore]
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
+    [JsonIgnore]
     public virtual ICollection<Manager> CreatedManagers { get; set; } = new List<Manager>();
 
-    // Override UserName to use WorkId
-    public override string UserName
-    {
-        get => WorkId;
-        set => WorkId = value;
-    }
+    // Computed property for UserName (to maintain compatibility)
+    [NotMapped]
+    public string UserName => WorkId;
 }

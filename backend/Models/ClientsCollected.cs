@@ -18,7 +18,7 @@ public class ClientsCollected
 
     [Required]
     [Column("collected_at")]
-    public DateTime CollectedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? CollectedAt { get; set; } = DateTime.UtcNow;
 
     [Required]
     [Column(TypeName = "nvarchar(max)")]

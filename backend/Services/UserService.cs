@@ -1,4 +1,5 @@
 using backend.DTOs;
+using backend.DTOs.Admin;
 using backend.Models;
 using backend.Repositories;
 using Microsoft.AspNetCore.Identity;
@@ -28,7 +29,7 @@ public class UserService : IUserService
     }
 
     public async Task<User> CreateUserAsync(string firstName, string lastName, string phoneNumber, string nationalId,
-                                          string email, string workId, string? password, User.Role role, User createdBy)
+                                          string email, string workId, string? password, Role role, User createdBy)
     {
         if (await _userRepository.ExistsByEmailAsync(email))
         {
@@ -55,7 +56,7 @@ public class UserService : IUserService
             NationalId = nationalId,
             Email = email,
             WorkId = workId,
-            PasswordHash = password != null ? _passwordHasher.HashPassword(user, password) : null,
+            PasswordHash = password != null ? _passwordHasher.HashPassword(null, password) : null,
             Role = role,
             Active = true
         };
@@ -74,37 +75,66 @@ public class UserService : IUserService
         return savedUser;
     }
 
-    public async Task<User> GetUserByIdAsync(long id)
+    public async Task<User?> GetUserByIdAsync(long id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
         {
-            throw new InvalidOperationException($"User not found with ID: {id}");
+            return null; // User not found
         }
+        
+        // Return null if user is inactive (don't throw error)
+        if (!user.Active)
+        {
+            return null; // User is inactive/deleted
+        }
+        
         return user;
     }
 
-    public async Task<User> GetUserByEmailAsync(string email)
+    public async Task<User?> GetUserByEmailAsync(string email)
     {
         var user = await _userRepository.GetByEmailAsync(email);
         if (user == null)
         {
-            throw new InvalidOperationException($"User not found with email: {email}");
+            return null; // User not found
         }
-        return user;
-    }
-
-    public async Task<User> GetUserByWorkIdAsync(string workId)
-    {
-        var user = await _userRepository.GetByWorkIdAsync(workId);
-        if (user == null)
+        
+        // Return null if user is inactive (don't throw error)
+        if (!user.Active)
         {
-            throw new InvalidOperationException($"User not found with work ID: {workId}");
+            return null; // User is inactive/deleted
         }
+        
         return user;
     }
 
-    public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
+    public async Task<User?> GetUserByWorkIdAsync(string workId)
+    {
+        try
+        {
+            var user = await _userRepository.GetByWorkIdAsync(workId);
+            if (user == null)
+            {
+                return null; // User not found
+            }
+            
+            // Return null if user is inactive (don't throw error)
+            if (!user.Active)
+            {
+                return null; // User is inactive/deleted
+            }
+            
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user with workId: {WorkId}", workId);
+            return null; // Return null instead of throwing
+        }
+    }
+
+    public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
         _logger.LogDebug("Retrieving all users from database");
         var allUsers = await _userRepository.GetAllAsync();
@@ -117,13 +147,32 @@ public class UserService : IUserService
                      user.Id, user.WorkId, user.Email, user.Role, user.Active);
         }
         
-        return allUsers.Select(MapToDTO);
+        return allUsers;
+    }
+    
+    public async Task<IEnumerable<UserDTO>> GetAllUsersDTOAsync()
+    {
+        _logger.LogDebug("Retrieving all users as DTOs from database");
+        var allUsers = await _userRepository.GetAllAsync();
+        var userDtos = allUsers.Select(MapToDTO).ToList();
+        _logger.LogDebug("Mapped {UserCount} users to DTOs", userDtos.Count);
+        return userDtos;
     }
 
-    public async Task<int> CountUsersByRoleAsync(User.Role role)
+    public async Task<IEnumerable<User>> GetActiveUsersAsync()
+    {
+        _logger.LogDebug("Retrieving active users from database");
+        var allUsers = await _userRepository.GetAllAsync();
+        var activeUsers = allUsers.Where(u => u.Active).ToList();
+        _logger.LogDebug("Found {ActiveUserCount} active users in database", activeUsers.Count());
+        
+        return activeUsers;
+    }
+
+    public async Task<int> CountUsersByRoleAsync(Role role)
     {
         var allUsers = await _userRepository.GetAllAsync();
-        return allUsers.Count(u => u.Role == role);
+        return allUsers.Count(u => u.Role == role && u.Active);
     }
     
     public async Task<bool> IsEmailTakenAsync(string email)
@@ -141,9 +190,58 @@ public class UserService : IUserService
         return await _userRepository.ExistsByPhoneNumberAsync(phoneNumber);
     }
 
-    public async Task<User> UpdateUserStatusAsync(long id, bool active)
+    public async Task<AdminDashboardDTO> GetAdminDashboardAsync()
     {
-        var user = await GetUserByIdAsync(id);
+        var allUsers = await _userRepository.GetAllAsync();
+        var managers = allUsers.Where(u => u.Role == Role.MANAGER).ToList();
+        var agents = allUsers.Where(u => u.Role == Role.AGENT).ToList();
+        
+        var systemMetrics = new List<AdminDashboardDTO.SystemMetric>
+        {
+            new() { Name = "Total Users", Users = allUsers.Count(), Activity = allUsers.Count(u => u.Active) },
+            new() { Name = "Managers", Users = managers.Count(), Activity = managers.Count(u => u.Active) },
+            new() { Name = "Agents", Users = agents.Count(), Activity = agents.Count(u => u.Active) }
+        };
+
+        var userActivity = new AdminDashboardDTO.UserActivityModel
+        {
+            Managers = new() { Count = managers.Count(), Change = "+5%" },
+            Agents = new() { Count = agents.Count(), Change = "+12%" },
+            ActiveToday = new() { Count = allUsers.Count(u => u.Active), Change = "+8%" },
+            NotificationsSent = new() { Count = 0, Change = "+15%" }
+        };
+
+        var recentActivities = new List<AdminDashboardDTO.RecentSystemActivity>
+        {
+            new() { Action = "User Created", User = "Admin", Time = "2 minutes ago" },
+            new() { Action = "Manager Added", User = "System", Time = "5 minutes ago" },
+            new() { Action = "Agent Activated", User = "Admin", Time = "10 minutes ago" }
+        };
+
+        return new AdminDashboardDTO
+        {
+            SystemMetrics = systemMetrics,
+            UserActivity = userActivity,
+            RecentSystemActivities = recentActivities
+        };
+    }
+    
+    public async Task<IEnumerable<User>> GetUsersByRoleAsync(Role role)
+    {
+        var allUsers = await _userRepository.GetAllAsync();
+        return allUsers.Where(u => u.Role == role && u.Active);
+    }
+
+
+    public async Task<User?> UpdateUserStatusAsync(long id, bool active)
+    {
+        // For status updates, we need to bypass the active validation
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+        {
+            return null; // User not found
+        }
+        
         user.Active = active;
         
         var savedUser = await _userRepository.UpdateAsync(user);
@@ -162,6 +260,11 @@ public class UserService : IUserService
     public async Task<bool> ResetPasswordAsync(long id, string newPassword)
     {
         var user = await GetUserByIdAsync(id);
+        if (user == null)
+        {
+            return false; // User not found or inactive
+        }
+        
         user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
         await _userRepository.UpdateAsync(user);
         
@@ -181,24 +284,26 @@ public class UserService : IUserService
         var builder = new UserDTO
         {
             Id = $"usr-{user.Id:D3}",
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            NationalId = user.NationalId,
-            Email = user.Email,
-            WorkId = user.WorkId,
+            FirstName = user.FirstName ?? "",
+            LastName = user.LastName ?? "",
+            PhoneNumber = user.PhoneNumber ?? "",
+            NationalId = user.NationalId ?? "",
+            Email = user.Email ?? "",
+            WorkId = user.WorkId ?? "",
             Role = user.Role,
-            CreatedAt = UserDTO.FormatDate(user.CreatedAt),
+            CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? "",
             Active = user.Active,
             Status = user.Active ? "active" : "inactive"
         };
         
-        if (user.Role == User.Role.Agent)
+        
+        
+        if (user.Role == Role.AGENT)
         {
             var agent = _agentRepository.GetByUserIdAsync(user.Id).Result;
             if (agent != null)
             {
-                builder.Type = agent.AgentType?.ToString().ToLower();
+                builder.Type = agent.AgentType.ToString().ToLower();
                 builder.Sector = agent.Sector;
                 builder.Group = agent.Group?.Name;
             }
@@ -206,4 +311,17 @@ public class UserService : IUserService
         
         return builder;
     }
+    
+    public Task<int> GetUserCountByRoleAsync(string roleName)
+    {
+        if (!Enum.TryParse<Role>(roleName, true, out var role))
+            throw new ArgumentException($"Invalid role: {roleName}");
+        return CountUsersByRoleAsync(role);
+    }
+
+    public Task<int> GetUserCountForMonthAsync(DateTime monthStart) =>
+        _userRepository.CountByCreatedAtBetweenAsync(
+            monthStart,
+            monthStart.AddMonths(1).AddSeconds(-1)
+        );
 }

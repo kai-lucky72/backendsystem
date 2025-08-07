@@ -75,7 +75,7 @@ public class AgentRepository : IAgentRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Agent>> GetByManagerAndAgentTypeAsync(Manager manager, Agent.AgentType agentType)
+    public async Task<IEnumerable<Agent>> GetByManagerAndAgentTypeAsync(Manager manager, AgentType agentType)
     {
         return await _context.Agents
             .Include(a => a.User)

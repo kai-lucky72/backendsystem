@@ -1,0 +1,4 @@
+-- Add audit columns to attendance_timeframes table
+ALTER TABLE attendance_timeframes
+ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP; 

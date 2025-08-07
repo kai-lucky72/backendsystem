@@ -1,3 +1,4 @@
+using System.Linq;
 using backend.Models;
 using backend.Repositories;
 using Microsoft.Extensions.Logging;
@@ -61,8 +62,7 @@ public class AttendanceTimeframeService : IAttendanceTimeframeService
 
     public async Task<AttendanceTimeframe?> GetTimeframeByManagerAsync(Manager manager)
     {
-        var timeframes = await _attendanceTimeframeRepository.GetByManagerAsync(manager);
-        return timeframes.FirstOrDefault();
+        return await _attendanceTimeframeRepository.GetByManagerAsync(manager);
     }
 
     public async Task<AttendanceTimeframe> UpdateTimeframeAsync(Manager manager, TimeOnly startTime, TimeOnly endTime)

@@ -131,7 +131,7 @@ public class GroupService : IGroupService
         }
         
         // Verify agent is a SALES agent
-        if (agent.AgentType != Agent.AgentType.Sales)
+        if (agent.AgentType != AgentType.SALES)
         {
             throw new InvalidOperationException("Only sales agents can be assigned as group leaders");
         }
@@ -156,13 +156,13 @@ public class GroupService : IGroupService
         var agent = await _agentService.GetAgentByIdAsync(agentId);
         
         // Verify agent belongs to the same manager as the group
-        if (agent.Manager.Id != group.Manager.Id)
+        if (agent.Manager.UserId != group.Manager.UserId)
         {
             throw new InvalidOperationException("Agent and group must belong to the same manager");
         }
         
         // Verify agent is a SALES agent
-        if (agent.AgentType != Agent.AgentType.Sales)
+        if (agent.AgentType != AgentType.SALES)
         {
             throw new InvalidOperationException("Only sales agents can be added to groups");
         }
@@ -247,6 +247,21 @@ public class GroupService : IGroupService
         }
     }
 
+    
+    public async Task<IEnumerable<Group>> GetAllGroupsAsync()
+    {
+        var groups = await _groupRepository.GetAllAsync();
+
+        foreach (var group in groups)
+        {
+            var agents = await _agentService.GetAgentsByGroupIdAsync(group.Id); // You'll need this method
+            group.Agents = agents.ToList();
+        }
+
+        return groups;
+    }
+
+    
     public async Task<IEnumerable<Agent>> GetGroupAgentsAsync(long groupId)
     {
         var group = await GetGroupByIdAsync(groupId);

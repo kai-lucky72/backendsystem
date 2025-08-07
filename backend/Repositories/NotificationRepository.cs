@@ -82,4 +82,10 @@ public class NotificationRepository : INotificationRepository
             .OrderByDescending(n => n.SentAt)
             .ToListAsync();
     }
+
+    // Add the missing CountAllAsync method
+    public async Task<int> CountAllAsync()
+    {
+        return await _context.Notifications.CountAsync();
+    }
 }
