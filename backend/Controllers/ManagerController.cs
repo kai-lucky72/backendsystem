@@ -988,7 +988,8 @@ public class ManagerController(
                     if (first != null)
                     {
                         timeIn = first.Timestamp?.ToString("HH:mm") ?? "--:--";
-                        if (first.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
+                        var status = await CalculateAttendanceStatusAsync(agent, first.Timestamp);
+                        if (status == "late")
                         {
                             lateCount++;
                             isLate = true;
@@ -1079,7 +1080,8 @@ public class ManagerController(
                     if (att.Any())
                     {
                         var first = att.OrderBy(a => a.Timestamp).FirstOrDefault();
-                        if (first != null && first.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
+                        var status = await CalculateAttendanceStatusAsync(agent, first.Timestamp);
+                        if (status == "late")
                         {
                             dayLate++;
                         }
@@ -1162,7 +1164,8 @@ public class ManagerController(
             {
                 present++;
                 var first = attendances.OrderBy(a => a.Timestamp).FirstOrDefault();
-                if (first != null && first.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
+                var status = await CalculateAttendanceStatusAsync(agent, first.Timestamp);
+                if (status == "late")
                 {
                     late++;
                 }
@@ -1399,6 +1402,38 @@ public class ManagerController(
         };
 
         return StatusCode(201, response);
+    }
+
+    /// <summary>
+    /// Calculate attendance status based on timeframe and 5-minute rule
+    /// </summary>
+    private async Task<string> CalculateAttendanceStatusAsync(Agent agent, DateTime? timestamp)
+    {
+        if (!timestamp.HasValue)
+            return "present";
+            
+        // Get the attendance timeframe for the manager
+        var timeframe = await attendanceTimeframeService.GetTimeframeByManagerAsync(agent.Manager);
+        
+        var startTime = timeframe?.StartTime ?? new TimeOnly(6, 0); // Default 6:00 AM
+        var endTime = timeframe?.EndTime ?? new TimeOnly(9, 0); // Default 9:00 AM
+        
+        var attendanceTime = TimeOnly.FromDateTime(timestamp.Value);
+        
+        // Check if attendance is within the timeframe
+        if (attendanceTime < startTime || attendanceTime > endTime)
+        {
+            return "late"; // Outside timeframe is always late
+        }
+        
+        // Check if there are 5 minutes or less remaining in the timeframe
+        var timeRemaining = endTime - attendanceTime;
+        if (timeRemaining.TotalMinutes <= 5)
+        {
+            return "late"; // 5 minutes or less remaining = late
+        }
+        
+        return "present"; // Within timeframe with more than 5 minutes remaining
     }
 
     /// <summary>

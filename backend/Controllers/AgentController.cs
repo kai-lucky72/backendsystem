@@ -40,11 +40,15 @@ public class AgentController(
         var attendance = await attendanceService.MarkAttendanceAsync(agent, location, sector);
         var time = attendance.Timestamp?.ToString("HH:mm") ?? "--:--";
         var date = attendance.Timestamp?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd");
+        
+        // Calculate status based on timeframe and 5-minute rule
+        var status = await CalculateAttendanceStatusAsync(agent, attendance.Timestamp);
+        
         var attendanceInfo = new Dictionary<string, object>
         {
             ["date"] = date,
             ["time"] = time,
-            ["status"] = "Present"
+            ["status"] = status
         };
         var response = new Dictionary<string, object>
         {
@@ -66,7 +70,7 @@ public class AgentController(
     
         foreach (var att in all)
         {
-            var status = att.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0) ? "late" : "present";
+            var status = await CalculateAttendanceStatusAsync(agent, att.Timestamp);
             if (status == "present") present++; else late++;
         
             records.Add(new Dictionary<string, object>
@@ -379,6 +383,35 @@ var attendanceDates = all
     }
 
     // --- PRIVATE HELPERS ---
+    private async Task<string> CalculateAttendanceStatusAsync(Agent agent, DateTime? timestamp)
+    {
+        if (!timestamp.HasValue)
+            return "present";
+            
+        // Get the attendance timeframe for the manager
+        var timeframe = await attendanceTimeframeService.GetTimeframeByManagerAsync(agent.Manager);
+        
+        var startTime = timeframe?.StartTime ?? new TimeOnly(6, 0); // Default 6:00 AM
+        var endTime = timeframe?.EndTime ?? new TimeOnly(9, 0); // Default 9:00 AM
+        
+        var attendanceTime = TimeOnly.FromDateTime(timestamp.Value);
+        
+        // Check if attendance is within the timeframe
+        if (attendanceTime < startTime || attendanceTime > endTime)
+        {
+            return "late"; // Outside timeframe is always late
+        }
+        
+        // Check if there are 5 minutes or less remaining in the timeframe
+        var timeRemaining = endTime - attendanceTime;
+        if (timeRemaining.TotalMinutes <= 5)
+        {
+            return "late"; // 5 minutes or less remaining = late
+        }
+        
+        return "present"; // Within timeframe with more than 5 minutes remaining
+    }
+    
     private async Task<List<DTOs.Agent.AgentPerformanceDTO.ChartDataPoint>> GenerateChartData(Agent agent, DateTime start, DateTime end, List<Attendance> attendances)
     {
         var chartData = new List<DTOs.Agent.AgentPerformanceDTO.ChartDataPoint>();
@@ -391,7 +424,8 @@ var attendanceDates = all
             int present = 0, late = 0, absent = hasAttendance ? 0 : 1;
             foreach (var att in dayAttendances)
             {
-                if (att.Timestamp?.TimeOfDay > new TimeSpan(8, 0, 0))
+                var status = await CalculateAttendanceStatusAsync(agent, att.Timestamp);
+                if (status == "late")
                     late++;
                 else
                     present++;
