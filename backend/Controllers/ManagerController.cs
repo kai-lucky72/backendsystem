@@ -122,7 +122,7 @@ public class ManagerController(
                 NationalId = agent.User.NationalId ?? throw new InvalidOperationException(),
                 Email = agent.User.Email,
                 WorkId = agent.User.WorkId,
-                Role = agent.User.Role,
+                Role = agent.User.Role.ToString().ToLower(),
                 CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd"),
                 Active = agent.User.Active,
                 Type = agent.AgentType.ToString().ToLower(),
@@ -241,7 +241,7 @@ public class ManagerController(
             PhoneNumber = updatedAgent.User.PhoneNumber ?? throw new InvalidOperationException(),
             NationalId = updatedAgent.User.NationalId ?? throw new InvalidOperationException(),
             WorkId = updatedAgent.User.WorkId,
-            Role = updatedAgent.User.Role,
+            Role = updatedAgent.User.Role.ToString().ToLower(),
             CreatedAt = updatedAgent.User.CreatedAt.ToString("yyyy-MM-dd") ?? "",
             Active = updatedAgent.User.Active,
             Type = updatedAgent.AgentType.ToString().ToLower(),
@@ -565,7 +565,7 @@ public class ManagerController(
                     NationalId = agent.User.NationalId ?? throw new InvalidOperationException(),
                     Email = agent.User.Email,
                     WorkId = agent.User.WorkId,
-                    Role = agent.User.Role,
+                    Role = agent.User.Role.ToString().ToLower(),
                     CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd") ?? "",
                     Active = agent.User.Active,
                     Type = agent.AgentType.ToString().ToLower(),
@@ -737,7 +737,7 @@ public class ManagerController(
                     WorkId = agent.User.WorkId,
                     FirstName = agent.User.FirstName,
                     LastName = agent.User.LastName,
-                    Role = agent.User.Role,
+                    Role = agent.User.Role.ToString().ToLower(),
                     Type = agent.AgentType.ToString().ToLower(),
                     Status = agent.User.Active ? "active" : "inactive"
                 },
@@ -1245,8 +1245,7 @@ public class ManagerController(
             ["recipient"] = n.Recipient?.Email ?? "All Users",
             ["status"] = n.Status,
             ["sentAt"] = n.SentAt.HasValue ? n.SentAt.Value.ToString("o") : DateTime.UtcNow.ToString("o"),
-            ["readBy"] = n.ReadBy,
-            ["totalRecipients"] = n.TotalRecipients,
+            ["read"] = n.ReadStatus,
             ["priority"] = n.Priority.ToString().ToLower(),
             ["sender"] = n.Sender != null ? new Dictionary<string, object>
             {
@@ -1390,7 +1389,7 @@ public class ManagerController(
             ["status"] = "sent",
             ["sentAt"] = DateTime.UtcNow.ToString("o"),
             ["readBy"] = 0,
-            ["totalRecipients"] = recipients.Count(),
+            ["totalRecipients"] = recipients.Count(), // This is fine - it's counting the actual recipients
             ["sender"] = new Dictionary<string, object>
             {
                 ["role"] = sender.Role.ToString().ToLower(),

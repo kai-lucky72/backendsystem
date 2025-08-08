@@ -149,9 +149,11 @@ public class NotificationService : INotificationService
         var recipientId = body.GetValueOrDefault("recipientId", "");
         var viaEmail = bool.Parse(body.GetValueOrDefault("viaEmail", "false"));
         
-        if (!Enum.TryParse(body.GetValueOrDefault("category", "System"), out Category category))
+        if (!Enum.TryParse(body.GetValueOrDefault("category", "System").ToUpper(), out Category category))
             throw new ArgumentException("Invalid category");
-        if (!Enum.TryParse(body.GetValueOrDefault("priority", "Medium"), out Priority priority))
+        var priorityString = body.GetValueOrDefault("priority", "Medium").ToLower();
+        if (priorityString == "normal") priorityString = "medium";
+        if (!Enum.TryParse(priorityString.ToUpper(), out Priority priority))
             throw new ArgumentException("Invalid Priority");
             
         if (string.IsNullOrEmpty(recipientId))
@@ -172,6 +174,8 @@ public class NotificationService : INotificationService
         var allNotifications = (await _notificationRepository.GetAllAsync()).OrderByDescending(n => n.SentAt).ToList();
         var totalCount = allNotifications.Count;
         var thisWeekCount = allNotifications.Count(n => n.SentAt > DateTime.UtcNow.AddDays(-7));
+        var readCount = allNotifications.Count(n => n.ReadStatus);
+        var readRate = totalCount > 0 ? (double)readCount / totalCount : 0.0;
         var pageItems = allNotifications.Skip((page - 1) * limit).Take(limit).ToList();
 
         return new PagedNotificationsResponseDTO
@@ -179,7 +183,7 @@ public class NotificationService : INotificationService
             Notifications = pageItems.Select(MapToResponseDto).ToList(),
             TotalCount = totalCount,
             ThisWeekCount = thisWeekCount,
-            ReadRate = totalCount == 0 ? 0 : pageItems.Count(n => n.ReadBy > 0) / (double)totalCount * 100,
+            ReadRate = readRate,
             Page = page,
             Limit = limit,
             TotalPages = (int)Math.Ceiling((double)totalCount / limit)
@@ -217,7 +221,6 @@ public class NotificationService : INotificationService
             Priority = notification.Priority.ToString(),
             Status = notification.Status,
             ViaEmail = notification.ViaEmail,
-            ReadBy = notification.ReadBy, // Fixed: Remove ?? operator for int
             
             // Sender information
             SenderId = notification.Sender?.Id ?? 0,
@@ -233,7 +236,7 @@ public class NotificationService : INotificationService
             RecipientWorkId = notification.Recipient?.WorkId,
             
             // Status information
-            Read = notification.ReadBy > 0, // Assuming ReadBy > 0 means it's been read
+            Read = notification.ReadStatus, // Use ReadStatus from model
             ReadAt = null, // Fixed: Set to null since property doesn't exist in model
             Archived = false, // Fixed: Set to false since property doesn't exist in model
             ArchivedAt = null, // Fixed: Set to null since property doesn't exist in model

@@ -62,4 +62,6 @@ public interface IUserService
     /// Get admin dashboard data
     /// </summary>
     Task<AdminDashboardDTO> GetAdminDashboardAsync();
+
+    Task UpdateUserAsync(User user);
 }

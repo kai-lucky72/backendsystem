@@ -225,8 +225,8 @@ public class NotificationController : ControllerBase
             sentAt = notification.SentAt?.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
             sender = senderObj,
             status = notification.Status ?? "sent",
-            readBy = notification.ReadBy,
-            totalRecipients = notification.TotalRecipients
+            // Removed: readBy, totalRecipients
+            read = notification.ReadStatus
         };
     }
 

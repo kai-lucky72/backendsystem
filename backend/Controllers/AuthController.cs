@@ -94,6 +94,10 @@ public class AuthController : ControllerBase
         }
             
             _logger.LogInformation("Authentication successful for user: {WorkId}", user.WorkId);
+
+            // Update last login timestamp
+            user.LastLogin = DateTime.UtcNow;
+            await _userService.UpdateUserAsync(user);
             
             // Generate JWT token using existing service
         var token = _jwtService.GenerateToken(user);

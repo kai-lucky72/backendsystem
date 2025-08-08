@@ -67,7 +67,7 @@ public class AdminController(
             WorkId = user.WorkId,
             Status = user.Active ? "active" : "inactive",
             AgentsCount = 0,
-            LastLogin = user.LastLogin?.ToString(),
+            LastLogin = user.LastLogin.HasValue ? user.LastLogin.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : "",
             CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd")
         };
         
@@ -96,7 +96,7 @@ public class AdminController(
             NationalId = updatedUser.NationalId ?? "",
             Email = updatedUser.Email ?? "",
             WorkId = updatedUser.WorkId ?? "",
-            Role = updatedUser.Role,
+            Role = updatedUser.Role.ToString().ToLower(),
             CreatedAt = UserDTO.FormatDate(updatedUser.CreatedAt) ?? "",
             Active = updatedUser.Active,
             Status = updatedUser.Active ? "active" : "inactive"
@@ -273,7 +273,7 @@ public class AdminController(
                 WorkId = user.WorkId,
                 Status = user.Active ? "active" : "inactive",
                 AgentsCount = agentsCount,
-                LastLogin = user.LastLogin?.ToString(),
+                LastLogin = user.LastLogin.HasValue ? user.LastLogin.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : "",
                 CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd")
             });
         }
@@ -285,18 +285,26 @@ public class AdminController(
     {
         var updatedManager = await managerService.UpdateManagerAsync(id, updateRequest);
         var user = updatedManager.User;
+        var agent = user.Agent;
         var updatedManagerDto = new UserDTO
         {
             Id = $"mgr-{user.Id:D3}",
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber ?? throw new InvalidOperationException(),
-            NationalId = user.NationalId ?? throw new InvalidOperationException(),
-            WorkId = user.WorkId,
-            Role = user.Role,
-            CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? throw new InvalidOperationException(),
-            Active = user.Active
+            FirstName = user.FirstName ?? "",
+            LastName = user.LastName ?? "",
+            Email = user.Email ?? "",
+            PhoneNumber = user.PhoneNumber ?? "",
+            NationalId = user.NationalId ?? "",
+            WorkId = user.WorkId ?? "",
+            Role = user.Role.ToString().ToLower(),
+            CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? "",
+            Active = user.Active,
+            Type = agent?.AgentType.ToString().ToLower() ?? "",
+            Sector = agent?.Sector ?? "",
+            Group = agent?.Group?.Name ?? "",
+            IsTeamLeader = agent?.Group?.Leader?.UserId == user.Id,
+            Status = user.Active ? "active" : "inactive",
+            ClientsCollected = agent?.ClientsCollected ?? 0,
+            AttendanceRate = 0
         };
         return Ok(updatedManagerDto);
     }
@@ -382,7 +390,7 @@ public class AdminController(
         var senderWorkId = body.GetValueOrDefault("senderWorkId", "");
         
         // Validate sender role and workId
-        if (!string.IsNullOrEmpty(senderRole) && !string.Equals(senderRole, sender.Role.ToString(), StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(senderRole) && !string.Equals(senderRole, sender.Role.ToString().ToLower(), StringComparison.OrdinalIgnoreCase))
         {
             return StatusCode(403, new { error = "Sender role mismatch" });
         }
@@ -403,10 +411,11 @@ public class AdminController(
             message = message,
             recipient = recipient,
             priority = priority,
+            category = body.GetValueOrDefault("category", "system"),
             status = "sent",
             sentAt = result.SentAt?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
             readBy = 0,
-            totalRecipients = result.TotalRecipients,
+            totalRecipients = 1, // Fixed: Use default value since TotalRecipients doesn't exist
             sender = new
             {
                 role = sender.Role.ToString().ToLower(),
@@ -432,8 +441,8 @@ public class AdminController(
             recipient = n.RecipientName ?? "All Users",
             status = n.Status ?? "sent",
             sentAt = n.SentAt.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-            readBy = n.ReadBy,
-            totalRecipients = n.TotalRecipients,
+            readBy = n.Read ?? false ? 1 : 0, // Fixed: Handle nullable bool
+            totalRecipients = 1, // Fixed: Use default value since TotalRecipients doesn't exist
             priority = n.Priority ?? "normal",
             sender = new
             {

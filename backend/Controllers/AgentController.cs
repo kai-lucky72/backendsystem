@@ -559,8 +559,13 @@ var attendanceDates = all
 
     private async Task<DTOs.Agent.GroupPerformanceDTO> BuildGroupPerformanceDto(Group group)
     {
-        var groupName = group.Name;
-        var teamMembers = group.Agents.ToList();
+        if (group == null)
+        {
+            throw new ArgumentNullException(nameof(group));
+        }
+
+        var groupName = group.Name ?? "Unknown Group";
+        var teamMembers = group.Agents?.ToList() ?? new List<Agent>();
         var leader = group.Leader;
         int totalGroupClients = 0;
         foreach (var member in teamMembers)
@@ -571,7 +576,7 @@ var attendanceDates = all
         foreach (var g in allGroups)
         {
             int groupClients = 0;
-            foreach (var m in g.Agents)
+            foreach (var m in g.Agents ?? new List<Agent>())
                 groupClients += (int)await clientService.CountClientsByAgentAsync(m);
             groupClientCounts.Add(groupClients);
         }
@@ -602,7 +607,7 @@ var attendanceDates = all
         }
         // Team leader info
         DTOs.Agent.GroupPerformanceDTO.TeamMember teamLeaderDto = null;
-        if (leader != null)
+        if (leader != null && leader.User != null)
         {
             var leaderUser = leader.User;
             int leaderClients = (int)await clientService.CountClientsByAgentAsync(leader);
@@ -621,6 +626,8 @@ var attendanceDates = all
         foreach (var member in teamMembers)
         {
             if (leader != null && member.UserId == leader.UserId) continue;
+            if (member.User == null) continue; // Skip members without user data
+            
             var memberUser = member.User;
             int memberClients = (int)await clientService.CountClientsByAgentAsync(member);
             int memberRate = (int)await CalculatePerformanceRate(member);
@@ -656,11 +663,16 @@ var attendanceDates = all
             GroupName = groupName,
             Kpis = kpis,
             PerformanceTrends = trends,
-            TeamLeader = teamLeaderDto ?? throw new InvalidOperationException(),
+            TeamLeader = teamLeaderDto ?? new DTOs.Agent.GroupPerformanceDTO.TeamMember
+            {
+                Id = "",
+                Name = "No Team Leader",
+                Clients = 0,
+                Rate = 0,
+                IsTeamLeader = true
+            },
             TeamMembers = teamMemberDtOs,
             RecentActivities = recentActivities
         };
-        
-        
     }
 }

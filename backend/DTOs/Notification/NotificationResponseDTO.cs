@@ -35,8 +35,6 @@ public class NotificationResponseDTO
     // Status and metadata information
     public string Status { get; set; } = string.Empty;
     public bool ViaEmail { get; set; }
-    public int ReadBy { get; set; } // Non-nullable to fix the ?? operator error
-    public int TotalRecipients { get; set; } // Added this property that was missing
     public DateTime? ReadAt { get; set; }
     public bool? Archived { get; set; }
     public DateTime? ArchivedAt { get; set; }

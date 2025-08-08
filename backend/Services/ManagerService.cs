@@ -189,8 +189,13 @@ public class ManagerService : IManagerService
         {
             user.Email = (string)updateFields["email"];
         }
+        if (updateFields.ContainsKey("active"))
+        {
+            user.Active = (bool)updateFields["active"];
+        }
         
         // Save the manager
+        _context.Entry(user).State = EntityState.Modified;
         var updatedManager = await _managerRepository.UpdateAsync(manager);
         
         // Log the action
@@ -296,7 +301,7 @@ public class ManagerService : IManagerService
             var groupMap = new Dictionary<string, object>
             {
                 ["name"] = group.Name,
-                ["teamLeader"] = (leader != null ? $"{leader.User.FirstName} {leader.User.LastName}" : null) ?? throw new InvalidOperationException(),
+                ["teamLeader"] = leader != null ? $"{leader.User.FirstName} {leader.User.LastName}" : "",
                 ["members"] = groupAgents.Count,
                 ["clients"] = groupClients,
                 ["membersList"] = membersList
@@ -324,8 +329,8 @@ public class ManagerService : IManagerService
             ["payingAmount"] = client.PayingAmount,
             ["payingMethod"] = client.PayingMethod,
             ["contractYears"] = client.ContractYears,
-            ["agentName"] = (client.Agent?.User != null ? $"{client.Agent.User.FirstName} {client.Agent.User.LastName}" : null) ?? throw new InvalidOperationException(),
-            ["agentWorkLocation"] = client.Agent?.Sector ?? throw new InvalidOperationException()
+            ["agentName"] = client.Agent?.User != null ? $"{client.Agent.User.FirstName} {client.Agent.User.LastName}" : "",
+            ["agentWorkLocation"] = client.Agent?.Sector ?? ""
         }).ToList();
 
         var response = new Dictionary<string, object>
@@ -371,7 +376,7 @@ public class ManagerService : IManagerService
             ["nationalId"] = client.NationalId,
             ["phoneNumber"] = client.PhoneNumber,
             ["location"] = client.Location,
-            ["agentName"] = $"{client.Agent.User.FirstName} {client.Agent.User.LastName}"
+            ["agentName"] = client.Agent?.User != null ? $"{client.Agent.User.FirstName} {client.Agent.User.LastName}" : ""
         }).ToList();
         
         return (pageContent, total);

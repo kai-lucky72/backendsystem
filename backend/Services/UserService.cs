@@ -279,6 +279,11 @@ public class UserService : IUserService
         return true;
     }
 
+    public async Task UpdateUserAsync(User user)
+    {
+        await _userRepository.UpdateAsync(user);
+    }
+
     private UserDTO MapToDTO(User user)
     {
         var builder = new UserDTO
@@ -290,7 +295,7 @@ public class UserService : IUserService
             NationalId = user.NationalId ?? "",
             Email = user.Email ?? "",
             WorkId = user.WorkId ?? "",
-            Role = user.Role,
+            Role = user.Role.ToString().ToLower(),
             CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? "",
             Active = user.Active,
             Status = user.Active ? "active" : "inactive"

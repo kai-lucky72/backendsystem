@@ -16,7 +16,7 @@ public class AttendanceTimeframe
     public virtual Manager? Manager { get; set; }
     
     [Column("day_of_week")]
-    public byte DayOfWeek { get; set; }
+    public short DayOfWeek { get; set; }
     
     [Required]
     [Column("start_time")]

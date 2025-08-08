@@ -36,7 +36,7 @@ public class Client
     public string InsuranceType { get; set; } = string.Empty;
 
     [Required]
-    [Column(TypeName = "decimal(18,2)")]
+    [Column("paying_amount", TypeName = "decimal(18,2)")]
     public decimal PayingAmount { get; set; }
 
     [Required]

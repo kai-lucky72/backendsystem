@@ -46,7 +46,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.LastName).HasColumnType("varchar(100)");
             entity.Property(e => e.PhoneNumber).HasColumnType("varchar(20)");
             entity.Property(e => e.NationalId).HasColumnType("varchar(50)");
-            entity.Property(e => e.PasswordHash).HasColumnType("varchar(60)");
+            entity.Property(e => e.PasswordHash).HasColumnType("varchar(255)");
             entity.Property(e => e.Role).HasColumnType("varchar(20)").HasConversion<string>();
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
@@ -120,6 +120,18 @@ public class ApplicationDbContext : DbContext
             entity.ToTable("clients");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.FullName).HasColumnName("full_name");
+            entity.Property(e => e.NationalId).HasColumnName("national_id");
+            entity.Property(e => e.PhoneNumber).HasColumnName("phone_number");
+            entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth");
+            entity.Property(e => e.InsuranceType).HasColumnName("insurance_type");
+            entity.Property(e => e.PayingAmount).HasColumnName("paying_amount");
+            entity.Property(e => e.PayingMethod).HasColumnName("paying_method");
+            entity.Property(e => e.ContractYears).HasColumnName("contract_years");
+            entity.Property(e => e.CollectedByName).HasColumnName("collected_by_name");
+            entity.Property(e => e.CollectedAt).HasColumnName("collected_at");
+            entity.Property(e => e.AgentId).HasColumnName("agent_id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.HasIndex(e => e.NationalId).IsUnique();
             entity.HasIndex(e => e.PhoneNumber).IsUnique();
             entity.HasOne(e => e.Agent)
@@ -166,6 +178,19 @@ public class ApplicationDbContext : DbContext
                 .WithMany(e => e.ReceivedNotifications)
                 .HasForeignKey(e => e.RecipientId)
                 .OnDelete(DeleteBehavior.SetNull);
+            // Add value converters for enums to string
+            entity.Property(e => e.Priority)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (backend.Models.Priority)Enum.Parse(typeof(backend.Models.Priority), v)
+                )
+                .HasColumnType("varchar(20)");
+            entity.Property(e => e.Category)
+                .HasConversion(
+                    v => v.ToString(),
+                    v => (backend.Models.Category)Enum.Parse(typeof(backend.Models.Category), v)
+                )
+                .HasColumnType("varchar(20)");
         });
 
         // Configure AuditLog entity
@@ -186,6 +211,9 @@ public class ApplicationDbContext : DbContext
             entity.ToTable("clients_collected");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.AgentId).HasColumnName("agent_id");
+            entity.Property(e => e.CollectedAt).HasColumnName("collected_at");
+            entity.Property(e => e.ClientData).HasColumnName("client_data");
             entity.HasOne(e => e.Agent)
                 .WithMany(e => e.ClientsCollectedRecords)
                 .HasForeignKey(e => e.AgentId)
