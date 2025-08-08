@@ -174,7 +174,26 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 // Error handling middleware (optional, for production robustness)
-app.UseExceptionHandler("/error");
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        
+        var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        if (error != null)
+        {
+            var ex = error.Error;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                error = "Internal Server Error",
+                message = ex.Message,
+                details = app.Environment.IsDevelopment() ? ex.StackTrace : null
+            });
+        }
+    });
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

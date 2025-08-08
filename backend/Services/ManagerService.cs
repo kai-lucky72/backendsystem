@@ -169,34 +169,78 @@ public class ManagerService : IManagerService
     
     public async Task<Manager> UpdateManagerAsync(long id, Dictionary<string, object> updateFields)
     {
-        var manager = await GetManagerByIdAsync(id);
-        var user = manager.User;
+        try
+        {
+            _logger.LogInformation("Updating manager with ID: {ManagerId}, Update fields: {@UpdateFields}", id, updateFields);
+            
+            var manager = await GetManagerByIdAsync(id);
+            var user = manager.User;
+            
+            _logger.LogInformation("Found manager: User ID {UserId}, Current Active status: {CurrentActive}", user.Id, user.Active);
+        
+        // Helper method to safely extract string values
+        string SafeGetString(Dictionary<string, object> dict, string key)
+        {
+            if (!dict.ContainsKey(key)) return string.Empty;
+            var value = dict[key];
+            return value?.ToString() ?? string.Empty;
+        }
         
         // Update user fields if provided
         if (updateFields.ContainsKey("firstName"))
         {
-            user.FirstName = (string)updateFields["firstName"];
+            user.FirstName = SafeGetString(updateFields, "firstName");
         }
         if (updateFields.ContainsKey("lastName"))
         {
-            user.LastName = (string)updateFields["lastName"];
+            user.LastName = SafeGetString(updateFields, "lastName");
         }
         if (updateFields.ContainsKey("phoneNumber"))
         {
-            user.PhoneNumber = (string)updateFields["phoneNumber"];
+            user.PhoneNumber = SafeGetString(updateFields, "phoneNumber");
         }
         if (updateFields.ContainsKey("email"))
         {
-            user.Email = (string)updateFields["email"];
+            user.Email = SafeGetString(updateFields, "email");
         }
-        if (updateFields.ContainsKey("active"))
+        
+        // Handle status update from frontend (status: "active"/"inactive")
+        if (updateFields.ContainsKey("status"))
         {
-            user.Active = (bool)updateFields["active"];
+            var statusValue = SafeGetString(updateFields, "status").ToLower();
+            var newActiveStatus = statusValue == "active";
+            _logger.LogInformation("Updating status from '{StatusValue}' to Active: {NewActiveStatus}", statusValue, newActiveStatus);
+            user.Active = newActiveStatus;
         }
+        // Also handle direct active field for backward compatibility
+        else if (updateFields.ContainsKey("active"))
+        {
+            var activeValue = updateFields["active"];
+            if (activeValue is bool boolValue)
+            {
+                user.Active = boolValue;
+            }
+            else if (activeValue is string stringValue)
+            {
+                user.Active = stringValue.ToLower() == "true";
+            }
+            else
+            {
+                user.Active = Convert.ToBoolean(activeValue);
+            }
+            _logger.LogInformation("Updating active field directly to: {ActiveStatus}", user.Active);
+        }
+        
+        _logger.LogInformation("User Active status after update: {ActiveStatus}", user.Active);
         
         // Save the manager
         _context.Entry(user).State = EntityState.Modified;
         var updatedManager = await _managerRepository.UpdateAsync(manager);
+        
+        // Ensure changes are saved to database
+        await _context.SaveChangesAsync();
+        
+        _logger.LogInformation("Manager updated successfully. Final Active status: {ActiveStatus}", updatedManager.User.Active);
         
         // Log the action
         await _auditLogService.LogEventAsync(
@@ -208,6 +252,12 @@ public class ManagerService : IManagerService
         );
         
         return updatedManager;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating manager with ID {ManagerId}: {Message}", id, ex.Message);
+            throw;
+        }
     }
 
     public async Task<Dictionary<string, object>> GetPerformanceOverviewAsync(Manager manager, string period)

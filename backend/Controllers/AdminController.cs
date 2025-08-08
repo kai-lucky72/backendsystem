@@ -303,7 +303,7 @@ public class AdminController(
             Group = agent?.Group?.Name ?? "",
             IsTeamLeader = agent?.Group?.Leader?.UserId == user.Id,
             Status = user.Active ? "active" : "inactive",
-            ClientsCollected = agent?.ClientsCollected ?? 0,
+            ClientsCollected = 0, // Managers don't have clients collected
             AttendanceRate = 0
         };
         return Ok(updatedManagerDto);
