@@ -14,7 +14,7 @@ public class ManagerService : IManagerService
     private readonly IAuditLogService _auditLogService;
     private readonly IAgentService _agentService;
     private readonly IGroupService _groupService;
-    private readonly IClientService _clientService;
+    
     private readonly IAttendanceService _attendanceService;
     private readonly ApplicationDbContext _context;
 
@@ -25,7 +25,6 @@ public class ManagerService : IManagerService
         IAuditLogService auditLogService,
         IAgentService agentService,
         IGroupService groupService,
-        IClientService clientService,
         IAttendanceService attendanceService,
         ApplicationDbContext context)
     {
@@ -35,7 +34,6 @@ public class ManagerService : IManagerService
         _auditLogService = auditLogService;
         _agentService = agentService;
         _groupService = groupService;
-        _clientService = clientService;
         _attendanceService = attendanceService;
         _context = context;
     }
@@ -173,8 +171,8 @@ public class ManagerService : IManagerService
         {
             _logger.LogInformation("Updating manager with ID: {ManagerId}, Update fields: {@UpdateFields}", id, updateFields);
             
-            var manager = await GetManagerByIdAsync(id);
-            var user = manager.User;
+        var manager = await GetManagerByIdAsync(id);
+        var user = manager.User;
             
             _logger.LogInformation("Found manager: User ID {UserId}, Current Active status: {CurrentActive}", user.Id, user.Active);
         
@@ -283,21 +281,8 @@ public class ManagerService : IManagerService
         var agents = await _agentService.GetAgentsByManagerAsync(manager);
         var groups = await _groupService.GetGroupsByManagerAsync(manager);
 
-        // Aggregate all clients for all agents
-        var allClients = new List<Client>();
-        foreach (var agent in agents)
-        {
-            var agentClients = await _clientService.GetClientsByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
-            allClients.AddRange(agentClients);
-        }
-
-        _logger.LogDebug("Found {ClientCount} clients in date range {StartDate} to {EndDate}", allClients.Count, startDate, endDate);
-
-        // Stats
-        var stats = new Dictionary<string, object>
-        {
-            ["totalClients"] = allClients.Count
-        };
+        // Clients removed; stats are attendance-only
+        var stats = new Dictionary<string, object>();
 
         // Calculate most active location based on attendance records
         var allAttendances = new List<Attendance>();
@@ -333,19 +318,17 @@ public class ManagerService : IManagerService
         
         stats["mostActiveLocation"] = mostActiveLocation;
 
-        // Group Performance
+        // Group Performance (attendance-only)
         var groupPerformance = new List<Dictionary<string, object>>();
         foreach (var group in groups)
         {
             var groupAgents = group.Agents.ToList();
             var leader = group.Leader;
-            var groupClients = groupAgents.Sum(agent => 
-                allClients.Count(c => c.Agent.UserId == agent.UserId));
-            
+            var groupAttendanceDays = allAttendances.Count(a => groupAgents.Any(g => g.UserId == a.AgentId));
             var membersList = groupAgents.Select(agent => new Dictionary<string, object>
             {
                 ["name"] = $"{agent.User.FirstName} {agent.User.LastName}",
-                ["clients"] = allClients.Count(c => c.Agent.UserId == agent.UserId)
+                ["attendanceDays"] = allAttendances.Count(a => a.AgentId == agent.UserId)
             }).ToList();
             
             var groupMap = new Dictionary<string, object>
@@ -353,82 +336,28 @@ public class ManagerService : IManagerService
                 ["name"] = group.Name,
                 ["teamLeader"] = leader != null ? $"{leader.User.FirstName} {leader.User.LastName}" : "",
                 ["members"] = groupAgents.Count,
-                ["clients"] = groupClients,
+                ["attendanceDays"] = groupAttendanceDays,
                 ["membersList"] = membersList
             };
             
             groupPerformance.Add(groupMap);
         }
 
-        // Individual Performance
+        // Individual Performance (attendance-only)
         var individualPerformance = agents.Select(agent => new Dictionary<string, object>
         {
             ["name"] = $"{agent.User.FirstName} {agent.User.LastName}",
-            ["clients"] = allClients.Count(c => c.Agent.UserId == agent.UserId)
-        }).ToList();
-
-        // Clients Collected
-        var clientsCollected = allClients.Select(client => new Dictionary<string, object>
-        {
-            ["fullName"] = client.FullName,
-            ["nationalId"] = client.NationalId,
-            ["phoneNumber"] = client.PhoneNumber,
-            ["location"] = client.Location,
-            ["dateOfBirth"] = client.DateOfBirth.ToString("yyyy-MM-dd"),
-            ["insuranceType"] = client.InsuranceType,
-            ["payingAmount"] = client.PayingAmount,
-            ["payingMethod"] = client.PayingMethod,
-            ["contractYears"] = client.ContractYears,
-            ["agentName"] = client.Agent?.User != null ? $"{client.Agent.User.FirstName} {client.Agent.User.LastName}" : "",
-            ["agentWorkLocation"] = client.Agent?.Sector ?? ""
+            ["attendanceDays"] = allAttendances.Count(a => a.AgentId == agent.UserId)
         }).ToList();
 
         var response = new Dictionary<string, object>
         {
             ["stats"] = stats,
             ["groupPerformance"] = groupPerformance,
-            ["individualPerformance"] = individualPerformance,
-            ["clientsCollected"] = clientsCollected
+            ["individualPerformance"] = individualPerformance
         };
         
         return response;
     }
 
-    public async Task<(IEnumerable<Dictionary<string, object>> Clients, int TotalCount)> GetClientsCollectedAsync(Manager manager, string? search, int page, int pageSize)
-    {
-        // Get all agents for this manager
-        var agents = await _agentService.GetAgentsByManagerAsync(manager);
-        var allClients = new List<Client>();
-        
-        foreach (var agent in agents)
-        {
-            var agentClients = await _clientService.GetClientsByAgentAsync(agent);
-            allClients.AddRange(agentClients);
-        }
-        
-        // Filter by search if provided
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var lowerSearch = search.ToLower();
-            allClients = allClients.Where(c =>
-                (c.FullName != null && c.FullName.ToLower().Contains(lowerSearch)) ||
-                (c.NationalId != null && c.NationalId.ToLower().Contains(lowerSearch))
-            ).ToList();
-        }
-        
-        var total = allClients.Count;
-        var start = Math.Min((page - 1) * pageSize, total);
-        var end = Math.Min(start + pageSize, total);
-        
-        var pageContent = allClients.Skip(start).Take(end - start).Select(client => new Dictionary<string, object>
-        {
-            ["fullName"] = client.FullName,
-            ["nationalId"] = client.NationalId,
-            ["phoneNumber"] = client.PhoneNumber,
-            ["location"] = client.Location,
-            ["agentName"] = client.Agent?.User != null ? $"{client.Agent.User.FirstName} {client.Agent.User.LastName}" : ""
-        }).ToList();
-        
-        return (pageContent, total);
-    }
 }

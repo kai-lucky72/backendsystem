@@ -18,7 +18,6 @@ public class AgentPerformanceDTO
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string? WorkId { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
     }
@@ -29,9 +28,9 @@ public class AgentPerformanceDTO
         public int PresentCount { get; set; }
         public int LateCount { get; set; }
         public int AbsentCount { get; set; }
-        public long TotalClients { get; set; }
+        public long TotalClients { get; set; } = 0;
         public double AttendanceRate { get; set; }
-        public double ClientCollectionRate { get; set; }
+        public double ClientCollectionRate { get; set; } = 0;
     }
     
     public class ChartDataPoint
@@ -57,8 +56,8 @@ public class AgentPerformanceDTO
         public int Present { get; set; }
         public int Late { get; set; }
         public int Absent { get; set; }
-        public long TotalClients { get; set; }
+        public long TotalClients { get; set; } = 0;
         public double AttendanceRate { get; set; }
-        public double ClientCollectionRate { get; set; }
+        public double ClientCollectionRate { get; set; } = 0;
     }
 }

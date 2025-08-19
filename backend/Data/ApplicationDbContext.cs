@@ -18,9 +18,7 @@ public class ApplicationDbContext : DbContext
     // Group and organization
     public DbSet<Group> Groups { get; set; }
     
-    // Client management
-    public DbSet<Client> Clients { get; set; }
-    public DbSet<ClientsCollected> ClientsCollected { get; set; }
+    // Client management removed
     
     // Attendance tracking
     public DbSet<Attendance> Attendances { get; set; }
@@ -41,7 +39,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedOnAdd().HasColumnType("bigint");
             entity.Property(e => e.Email).HasColumnType("varchar(255)");
-            entity.Property(e => e.WorkId).HasColumnType("varchar(50)");
+            // WorkId removed from model
             entity.Property(e => e.FirstName).HasColumnType("varchar(100)");
             entity.Property(e => e.LastName).HasColumnType("varchar(100)");
             entity.Property(e => e.PhoneNumber).HasColumnType("varchar(20)");
@@ -52,8 +50,11 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.LastLogin).HasColumnType("datetime");
             entity.Property(e => e.Active).HasColumnType("boolean");
             entity.HasIndex(e => e.Email).IsUnique();
-            entity.HasIndex(e => e.WorkId).IsUnique();
-            entity.HasIndex(e => e.NationalId).IsUnique();
+            // WorkId unique index removed
+            // Make phone number unique (used as user identifier)
+            entity.HasIndex(e => e.PhoneNumber).IsUnique();
+            // Allow many NULL national IDs; enforce uniqueness only when provided
+            entity.HasIndex(e => e.NationalId).IsUnique().HasFilter("[national_id] IS NOT NULL");
         });
 
         // Configure Manager entity
@@ -91,7 +92,7 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Manager)
                 .WithMany(e => e.Agents)
                 .HasForeignKey(e => e.ManagerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull);
             entity.HasOne(e => e.Group)
                 .WithMany(e => e.Agents)
                 .HasForeignKey(e => e.GroupId)
@@ -114,31 +115,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // Configure Client entity
-        builder.Entity<Client>(entity =>
-        {
-            entity.ToTable("clients");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.FullName).HasColumnName("full_name");
-            entity.Property(e => e.NationalId).HasColumnName("national_id");
-            entity.Property(e => e.PhoneNumber).HasColumnName("phone_number");
-            entity.Property(e => e.DateOfBirth).HasColumnName("date_of_birth");
-            entity.Property(e => e.InsuranceType).HasColumnName("insurance_type");
-            entity.Property(e => e.PayingAmount).HasColumnName("paying_amount");
-            entity.Property(e => e.PayingMethod).HasColumnName("paying_method");
-            entity.Property(e => e.ContractYears).HasColumnName("contract_years");
-            entity.Property(e => e.CollectedByName).HasColumnName("collected_by_name");
-            entity.Property(e => e.CollectedAt).HasColumnName("collected_at");
-            entity.Property(e => e.AgentId).HasColumnName("agent_id");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.HasIndex(e => e.NationalId).IsUnique();
-            entity.HasIndex(e => e.PhoneNumber).IsUnique();
-            entity.HasOne(e => e.Agent)
-                .WithMany(e => e.Clients)
-                .HasForeignKey(e => e.AgentId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+        // Client entity removed
 
         // Configure Attendance entity
         builder.Entity<Attendance>(entity =>
@@ -205,19 +182,6 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // Configure ClientsCollected entity
-        builder.Entity<ClientsCollected>(entity =>
-        {
-            entity.ToTable("clients_collected");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
-            entity.Property(e => e.AgentId).HasColumnName("agent_id");
-            entity.Property(e => e.CollectedAt).HasColumnName("collected_at");
-            entity.Property(e => e.ClientData).HasColumnName("client_data");
-            entity.HasOne(e => e.Agent)
-                .WithMany(e => e.ClientsCollectedRecords)
-                .HasForeignKey(e => e.AgentId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+        // ClientsCollected entity removed
     }
 }

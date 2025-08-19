@@ -90,55 +90,7 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
-    public async Task<User?> GetByWorkIdAsync(string workId)
-    {
-        try
-        {
-            // First try a simple query without joins
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.WorkId == workId);
-            
-            if (user != null)
-            {
-                // Manually load related entities to avoid data type issues
-                try
-                {
-                    await _context.Entry(user).Reference(u => u.Agent).LoadAsync();
-                }
-                catch
-                {
-                    // Ignore agent loading errors
-                }
-                
-                try
-                {
-                    await _context.Entry(user).Reference(u => u.Manager).LoadAsync();
-                }
-                catch
-                {
-                    // Ignore manager loading errors
-                }
-            }
-            
-            return user;
-        }
-        catch (Exception ex)
-        {
-            // Final fallback - use raw SQL
-            try
-            {
-                var user = await _context.Users
-                    .FromSqlRaw("SELECT * FROM users WHERE work_id = {0}", workId)
-                    .FirstOrDefaultAsync();
-                
-                return user;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-    }
+    // WorkId deprecated
 
     public async Task<bool> ExistsByEmailAsync(string email)
     {
@@ -146,11 +98,7 @@ public class UserRepository : IUserRepository
             .AnyAsync(u => u.Email == email);
     }
 
-    public async Task<bool> ExistsByWorkIdAsync(string workId)
-    {
-        return await _context.Users
-            .AnyAsync(u => u.WorkId == workId);
-    }
+    // WorkId deprecated
 
     public async Task<bool> ExistsByPhoneNumberAsync(string phoneNumber)
     {

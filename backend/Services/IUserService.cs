@@ -14,7 +14,7 @@ public interface IUserService
     
     Task<User?> GetUserByEmailAsync(string email);
     
-    Task<User?> GetUserByWorkIdAsync(string workId);
+    // WorkId deprecated
     
     Task<IEnumerable<User>> GetAllUsersAsync();
     
@@ -49,7 +49,7 @@ public interface IUserService
     /// </summary>
     /// <param name="workId">The work ID to check</param>
     /// <returns>true if the work ID is already in use, false otherwise</returns>
-    Task<bool> IsWorkIdTakenAsync(string workId);
+    // WorkId deprecated
 
     /// <summary>
     /// Checks if a phone number is already taken by another user
@@ -57,6 +57,11 @@ public interface IUserService
     /// <param name="phoneNumber">The phone number to check</param>
     /// <returns>true if the phone number is already in use, false otherwise</returns>
     Task<bool> IsPhoneNumberTakenAsync(string phoneNumber);
+
+    /// <summary>
+    /// Creates a minimal local user record from external auth data (no password), if not existing.
+    /// </summary>
+    Task<User> CreateShadowUserAsync(string firstName, string lastName, string email, string phoneNumber, Role role, string? workId = null);
 
     /// <summary>
     /// Get admin dashboard data

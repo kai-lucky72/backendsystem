@@ -29,7 +29,7 @@ public class JwtService : IJwtService
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
             new("FirstName", user.FirstName),
             new("LastName", user.LastName),
-            new("WorkId", user.WorkId ?? throw new InvalidOperationException()),
+            new(ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
             new(ClaimTypes.Role, user.Role.ToString().ToLowerInvariant()),
             new("Active", user.Active.ToString())
         };
@@ -37,7 +37,7 @@ public class JwtService : IJwtService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddDays(30), // Extended to 30 days for persistent login
+            Expires = DateTime.UtcNow.AddDays(30),
             Issuer = _jwtSettings.Issuer,
             Audience = _jwtSettings.Audience,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)

@@ -30,13 +30,12 @@ public class User
     public string Email { get; set; } = string.Empty;
 
     [JsonIgnore]
-    [Required]
     [Column("password_hash")]
-    public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; }
 
-    [Required]
-    [Column("work_id")]
-    public string WorkId { get; set; } = string.Empty;
+    // Deprecated: removed from system
+    [NotMapped]
+    public string? WorkId { get; set; }
 
     [Required]
     [Column("role")]
@@ -72,5 +71,5 @@ public class User
 
     // Computed property for UserName (to maintain compatibility)
     [NotMapped]
-    public string UserName => WorkId;
+    public string UserName => Email;
 }

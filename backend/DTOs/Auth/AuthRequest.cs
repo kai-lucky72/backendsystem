@@ -4,11 +4,9 @@ namespace backend.DTOs.Auth;
 
 public class AuthRequest
 {
-    [Required(ErrorMessage = "Work ID is required")]
-    public string WorkId { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Phone number is required")]
+    public string PhoneNumber { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Email is required")]
-    public string Email { get; set; } = string.Empty;
-    
-    public string? Role { get; set; }
+    [Required(ErrorMessage = "Password is required")]
+    public string Password { get; set; } = string.Empty;
 }

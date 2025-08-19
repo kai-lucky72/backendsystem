@@ -25,128 +25,20 @@ public class ManagerController(
     IGroupService groupService,
     IAttendanceTimeframeService attendanceTimeframeService,
     IUserService userService,
-    IClientService clientService,
     INotificationService notificationService)
     : ControllerBase
 {
     /// <summary>
-    /// Create agent - Creates a new agent under the manager's supervision according to frontend requirements. The 'type' field accepts 'individual' or 'sales' values.
+    /// Create agent - Disabled (users are provisioned via external login)
     /// </summary>
     [HttpPost("agents")]
-    [ProducesResponseType(typeof(UserDTO), 200)]
-    [ProducesResponseType(typeof(ApiErrorResponse), 400)]
-    [ProducesResponseType(typeof(ApiErrorResponse), 409)]
-    [ProducesResponseType(typeof(ApiErrorResponse), 500)]
-    public async Task<ActionResult> CreateAgent([FromBody] CreateAgentRequest request)
-    {
-        try
+    public Task<ActionResult> CreateAgent([FromBody] CreateAgentRequest _)
+        => Task.FromResult<ActionResult>(StatusCode(403, new ApiErrorResponse
         {
-            var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-            var manager = await managerService.GetManagerByIdAsync(userId);
-
-            // Validate workId format to avoid common issues
-            if (!string.IsNullOrEmpty(request.WorkId) && !System.Text.RegularExpressions.Regex.IsMatch(request.WorkId, @"^[A-Z0-9]{5,10}$"))
-            {
-                return BadRequest(new ApiErrorResponse
-                {
-                    Status = 400,
-                    Message = "Invalid workId format",
-                    Timestamp = DateTime.UtcNow,
-                    Details = "workId must be 5-10 uppercase letters and numbers"
-                });
-            }
-
-            // Check if email is unique
-            if (await userService.IsEmailTakenAsync(request.Email))
-            {
-                return Conflict(new ApiErrorResponse
-                {
-                    Status = 409,
-                    Message = "Email already in use",
-                    Timestamp = DateTime.UtcNow,
-                    Details = "Another user is already registered with this email"
-                });
-            }
-
-            // Check if workId is unique
-            if (await userService.IsWorkIdTakenAsync(request.WorkId))
-            {
-                return Conflict(new ApiErrorResponse
-                {
-                    Status = 409,
-                    Message = "Work ID already in use",
-                    Timestamp = DateTime.UtcNow,
-                    Details = "Another user is already registered with this work ID"
-                });
-            }
-
-            // Check if the phone number is unique
-            if (await userService.IsPhoneNumberTakenAsync(request.PhoneNumber))
-            {
-                return Conflict(new ApiErrorResponse
-                {
-                    Status = 409,
-                    Message = "Phone number already in use",
-                    Timestamp = DateTime.UtcNow,
-                    Details = "Another user is already registered with this phone number"
-                });
-            }
-
-            // Use the default password if not provided
-            var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp@1234" : request.Password;
-
-            var agent = await agentService.CreateAgentAsync(
-                request.FirstName,
-                request.LastName,
-                request.PhoneNumber,
-                request.NationalId,
-                request.Email,
-                request.WorkId,
-                password,
-                manager,
-                request.GetAgentType(),
-                request.GetSectorOrDefault()
-            );
-
-            // Format ID and determine if agent is a team leader
-            var formattedId = $"agt-{agent.UserId:000}";
-            var isTeamLeader = agent.Group?.Leader?.UserId == agent.UserId;
-            var groupName = agent.Group?.Name ?? "";
-
-            var agentDto = new UserDTO
-            {
-                Id = formattedId,
-                FirstName = agent.User.FirstName,
-                LastName = agent.User.LastName,
-                PhoneNumber = agent.User.PhoneNumber ?? throw new InvalidOperationException(),
-                NationalId = agent.User.NationalId ?? throw new InvalidOperationException(),
-                Email = agent.User.Email,
-                WorkId = agent.User.WorkId,
-                Role = agent.User.Role.ToString().ToLower(),
-                CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd"),
-                Active = agent.User.Active,
-                Type = agent.AgentType.ToString().ToLower(),
-                Sector = agent.Sector,
-                Group = groupName,
-                IsTeamLeader = isTeamLeader,
-                Status = agent.User.Active ? "active" : "inactive",
-                ClientsCollected = 0,
-                AttendanceRate = 0
-            };
-
-            return Ok(agentDto);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new ApiErrorResponse
-            {
-                Status = 500,
-                Message = "Failed to create agent",
-                Timestamp = DateTime.UtcNow,
-                Details = ex.Message
-            });
-        }
-    }
+            Status = 403,
+            Message = "Agent creation is disabled. Users are provisioned via external login.",
+            Timestamp = DateTime.UtcNow
+        }));
 
     /// <summary>
     /// Get all agents - Retrieves all agents under the manager's supervision with their detailed information
@@ -171,7 +63,6 @@ public class ManagerController(
             var isTeamLeader = agent.Group?.Leader?.UserId == agent.UserId;
             var status = agent.User.Active ? "active" : "inactive";
             
-            int clientsCollected = (int)await agentService.CountClientsByAgentAndDateRangeAsync(agent, thirtyDaysAgo, today);
             var attendances = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, thirtyDaysAgo, today);
             var attendanceRate = (int)Math.Round((attendances.Count() / 30.0) * 100);
 
@@ -182,13 +73,12 @@ public class ManagerController(
                 LastName = agent.User.LastName,
                 Email = agent.User.Email,
                 PhoneNumber = agent.User.PhoneNumber ?? throw new InvalidOperationException(),
-                NationalId = agent.User.NationalId ?? throw new InvalidOperationException(),
-                WorkId = agent.User.WorkId,
+                NationalId = agent.User.NationalId ?? "",
                 Type = agent.AgentType.ToString().ToLower(),
                 Group = groupName,
                 IsTeamLeader = isTeamLeader,
                 Status = status,
-                ClientsCollected = clientsCollected,
+                ClientsCollected = 0,
                 AttendanceRate = attendanceRate,
                 CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd") ?? ""
             });
@@ -228,7 +118,6 @@ public class ManagerController(
         var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
         var today = DateTime.UtcNow;
 
-        var clientsCollected = await agentService.CountClientsByAgentAndDateRangeAsync(updatedAgent, thirtyDaysAgo, today);
         var attendances = await agentService.GetAttendanceByAgentAndDateRangeAsync(updatedAgent, thirtyDaysAgo, today);
         var attendanceRate = (int)Math.Round((attendances.Count() / 30.0) * 100);
 
@@ -239,8 +128,7 @@ public class ManagerController(
             LastName = updatedAgent.User.LastName,
             Email = updatedAgent.User.Email,
             PhoneNumber = updatedAgent.User.PhoneNumber ?? throw new InvalidOperationException(),
-            NationalId = updatedAgent.User.NationalId ?? throw new InvalidOperationException(),
-            WorkId = updatedAgent.User.WorkId,
+            NationalId = updatedAgent.User.NationalId ?? "",
             Role = updatedAgent.User.Role.ToString().ToLower(),
             CreatedAt = updatedAgent.User.CreatedAt.ToString("yyyy-MM-dd") ?? "",
             Active = updatedAgent.User.Active,
@@ -249,7 +137,7 @@ public class ManagerController(
             Group = groupName,
             IsTeamLeader = isTeamLeader,
             Status = updatedAgent.User.Active ? "active" : "inactive",
-            ClientsCollected = (int)clientsCollected,
+            ClientsCollected = 0,
             AttendanceRate = attendanceRate
         };
 
@@ -296,13 +184,13 @@ public class ManagerController(
             {
                 ["id"] = $"agt-{group.Leader.UserId:000}",
                 ["name"] = $"{group.Leader.User.FirstName} {group.Leader.User.LastName}",
-                ["workId"] = group.Leader.User.WorkId
+                
             } : null,
             ["agents"] = group.Agents.Select(agent => new Dictionary<string, object?>
             {
                 ["id"] = $"agt-{agent.UserId:000}",
                 ["name"] = $"{agent.User.FirstName} {agent.User.LastName}",
-                ["workId"] = agent.User.WorkId
+                
             }).ToList()
         }).ToList();
 
@@ -334,7 +222,7 @@ public class ManagerController(
         }
 
         var group = await groupService.CreateGroupAsync(name, manager);
-        return StatusCode(201, await MapGroupToDetailDtoAsync(group));
+        return StatusCode(201, MapGroupToDetailDtoAsync(group));
     }
 
     /// <summary>
@@ -365,7 +253,7 @@ public class ManagerController(
         }
 
         var updated = await groupService.SaveGroupAsync(group);
-        return Ok(await MapGroupToDetailDtoAsync(updated));
+        return Ok(MapGroupToDetailDtoAsync(updated));
     }
 
     /// <summary>
@@ -413,13 +301,13 @@ public class ManagerController(
 
             if ((int)agent.AgentType != (int)AgentType.SALES)
             {
-                errors.Add($"Agent {agent.User.WorkId} is not a SALES agent");
+                errors.Add($"Agent {agent.User.FirstName} {agent.User.LastName} is not a SALES agent");
                 continue;
             }
 
             if (agent.Group != null && agent.Group.Id != groupId)
             {
-                errors.Add($"Agent {agent.User.WorkId} is already assigned to another group");
+                errors.Add($"Agent {agent.User.FirstName} {agent.User.LastName} is already assigned to another group");
                 continue;
             }
 
@@ -435,15 +323,13 @@ public class ManagerController(
             {
                 ["id"] = updated.Leader.UserId,
                 ["firstName"] = updated.Leader.User.FirstName,
-                ["lastName"] = updated.Leader.User.LastName,
-                ["workId"] = updated.Leader.User.WorkId
+                ["lastName"] = updated.Leader.User.LastName
             },
             ["agents"] = updated.Agents.Select(agent => new Dictionary<string, object?>
             {
                 ["id"] = agent.UserId,
                 ["firstName"] = agent.User.FirstName,
                 ["lastName"] = agent.User.LastName,
-                ["workId"] = agent.User.WorkId,
                 ["email"] = agent.User.Email,
                 ["phoneNumber"] = agent.User.PhoneNumber ?? throw new InvalidOperationException(),
                 ["nationalId"] = agent.User.NationalId ?? throw new InvalidOperationException(),
@@ -501,17 +387,17 @@ public class ManagerController(
                 ["id"] = updatedGroup.Leader.UserId,
                 ["firstName"] = updatedGroup.Leader.User.FirstName,
                 ["lastName"] = updatedGroup.Leader.User.LastName,
-                ["workId"] = updatedGroup.Leader.User.WorkId
+                
             },
             ["agents"] = updatedGroup.Agents.Select(a => new Dictionary<string, object?>
             {
                 ["id"] = a.UserId,
                 ["firstName"] = a.User.FirstName,
                 ["lastName"] = a.User.LastName,
-                ["workId"] = a.User.WorkId,
+                
                 ["email"] = a.User.Email,
                 ["phoneNumber"] = a.User.PhoneNumber ?? throw new InvalidOperationException(),
-                ["nationalId"] = a.User.NationalId ?? throw new InvalidOperationException(),
+                ["nationalId"] = a.User.NationalId ?? "",
                 ["type"] = a.AgentType.ToString().ToLower(),
                 ["sector"] = a.Sector,
                 ["status"] = a.User.Active ? "active" : "inactive",
@@ -564,7 +450,6 @@ public class ManagerController(
                     PhoneNumber = agent.User.PhoneNumber ?? throw new InvalidOperationException(),
                     NationalId = agent.User.NationalId ?? throw new InvalidOperationException(),
                     Email = agent.User.Email,
-                    WorkId = agent.User.WorkId,
                     Role = agent.User.Role.ToString().ToLower(),
                     CreatedAt = agent.User.CreatedAt.ToString("yyyy-MM-dd") ?? "",
                     Active = agent.User.Active,
@@ -610,15 +495,13 @@ public class ManagerController(
                 {
                     ["id"] = updatedGroup.Leader.UserId,
                     ["firstName"] = updatedGroup.Leader.User.FirstName,
-                    ["lastName"] = updatedGroup.Leader.User.LastName,
-                    ["workId"] = updatedGroup.Leader.User.WorkId
+                    ["lastName"] = updatedGroup.Leader.User.LastName
                 },
                 ["agents"] = updatedGroup.Agents.Select(agent => new Dictionary<string, object?>
                 {
                     ["id"] = agent.UserId,
                     ["firstName"] = agent.User.FirstName,
                     ["lastName"] = agent.User.LastName,
-                    ["workId"] = agent.User.WorkId,
                     ["email"] = agent.User.Email,
                     ["phoneNumber"] = agent.User.PhoneNumber ?? throw new InvalidOperationException(),
                     ["nationalId"] = agent.User.NationalId ?? throw new InvalidOperationException(),
@@ -661,18 +544,16 @@ public class ManagerController(
             {
                 ["id"] = group.Leader.UserId,
                 ["firstName"] = group.Leader.User.FirstName,
-                ["lastName"] = group.Leader.User.LastName,
-                ["workId"] = group.Leader.User.WorkId
+                ["lastName"] = group.Leader.User.LastName
             },
             ["agents"] = group.Agents.Select(agent => new Dictionary<string, object?>
             {
                 ["id"] = agent.UserId,
                 ["firstName"] = agent.User.FirstName,
                 ["lastName"] = agent.User.LastName,
-                ["workId"] = agent.User.WorkId,
                 ["email"] = agent.User.Email,
                 ["phoneNumber"] = agent.User.PhoneNumber ?? throw new InvalidOperationException(),
-                ["nationalId"] = agent.User.NationalId ?? throw new InvalidOperationException(),
+                ["nationalId"] = agent.User.NationalId ?? "",
                 ["type"] = agent.AgentType.ToString().ToLower(),
                 ["sector"] = agent.Sector,
                 ["status"] = agent.User.Active ? "active" : "inactive",
@@ -725,8 +606,7 @@ public class ManagerController(
             // Get attendance records
             var attendances = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
 
-            // Get client count
-            var clientCount = await agentService.CountClientsByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
+            // Clients removed - no need to track client count
 
             return Ok(new Dictionary<string, object>
             {
@@ -734,7 +614,7 @@ public class ManagerController(
                 {
                     Id = $"agt-{agent.UserId:000}",
                     Email = agent.User.Email,
-                    WorkId = agent.User.WorkId,
+                    
                     FirstName = agent.User.FirstName,
                     LastName = agent.User.LastName,
                     Role = agent.User.Role.ToString().ToLower(),
@@ -742,7 +622,7 @@ public class ManagerController(
                     Status = agent.User.Active ? "active" : "inactive"
                 },
                 ["attendanceCount"] = attendances.Count(),
-                ["clientsCollected"] = clientCount,
+                ["clientsCollected"] = 0,
                 ["startDate"] = start.ToString("yyyy-MM-dd"),
                 ["endDate"] = end.ToString("yyyy-MM-dd")
             });
@@ -766,7 +646,7 @@ public class ManagerController(
         var presentCount = 0;
         var absentCount = 0;
         var presentAgents = new List<ManagerDashboardDTO.PresentAgent>();
-        var totalClients = 0;
+        // Clients removed - no need to track total clients
         var individualPerformance = new List<ManagerDashboardDTO.IndividualPerformanceItem>();
 
         foreach (var agent in agents)
@@ -792,12 +672,11 @@ public class ManagerController(
                 absentCount++;
             }
 
-            var agentClients = await agentService.CountClientsByAgentAndDateRangeAsync(agent, startOfToday, endOfToday);
-            totalClients += (int)agentClients;
+            // Clients removed - no need to track client counts
             individualPerformance.Add(new ManagerDashboardDTO.IndividualPerformanceItem
             {
                 Name = $"{agent.User.FirstName} {agent.User.LastName}",
-                Clients = (int)agentClients
+                Clients = 0
             });
         }
 
@@ -808,15 +687,11 @@ public class ManagerController(
 
         foreach (var group in groups)
         {
-            var groupClients = 0;
-            foreach (var member in group.Agents)
-            {
-                groupClients += (int)await agentService.CountClientsByAgentAndDateRangeAsync(member, startOfToday, endOfToday);
-            }
+            // Clients removed - no need to track group client counts
             groupPerformance.Add(new ManagerDashboardDTO.GroupPerformanceItem
             {
                 Name = group.Name,
-                Clients = groupClients
+                Clients = 0
             });
         }
 
@@ -849,7 +724,7 @@ public class ManagerController(
             {
                 TotalAgents = agents.Count(),
                 ActiveToday = presentCount,
-                ClientsCollected = totalClients,
+                ClientsCollected = 0,
                 GroupsCount = groups.Count()
             },
             Attendance = new ManagerDashboardDTO.AttendanceModel()
@@ -908,33 +783,7 @@ public class ManagerController(
         return Ok(response);
     }
 
-    /// <summary>
-    /// Get all clients collected by manager's agents (paginated) - Fetches a paginated list of all clients collected by the manager's agents.
-    /// </summary>
-    [HttpGet("performance/clients")]
-    public async Task<ActionResult<Dictionary<string, object>>> GetManagerClients(
-        [FromQuery] int page = 1,
-        [FromQuery] int limit = 20,
-        [FromQuery] string? search = null)
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var manager = await managerService.GetManagerByIdAsync(userId);
-        
-        var clientPage = await managerService.GetClientsCollectedAsync(manager, search, page - 1, limit);
-        
-        var response = new Dictionary<string, object>
-        {
-            ["clients"] = clientPage.Clients,
-            ["pagination"] = new Dictionary<string, object>
-            {
-                ["page"] = page,
-                ["limit"] = limit,
-                ["total"] = clientPage.TotalCount
-            }
-        };
-
-        return Ok(response);
-    }
+    // Clients endpoints removed
 
     /// <summary>
     /// Get attendance records for all agents (dashboard view) - Fetches attendance records and stats for all agents for the dashboard view.
@@ -1004,7 +853,7 @@ public class ManagerController(
                     {
                         ["id"] = first?.Id.ToString() ?? agent.UserId.ToString(),
                         ["agentName"] = $"{agent.User.FirstName} {agent.User.LastName}",
-                        ["workId"] = agent.User.WorkId,
+                        
                         ["date"] = queryDate.ToString("yyyy-MM-dd"),
                         ["timeIn"] = timeIn,
                         ["location"] = first?.Location ?? "",
@@ -1020,7 +869,7 @@ public class ManagerController(
                     {
                         ["id"] = agent.UserId.ToString(),
                         ["agentName"] = $"{agent.User.FirstName} {agent.User.LastName}",
-                        ["workId"] = agent.User.WorkId,
+                        
                         ["date"] = queryDate.ToString("yyyy-MM-dd"),
                         ["timeIn"] = null,
                         ["location"] = "",
@@ -1253,7 +1102,6 @@ public class ManagerController(
             ["sender"] = n.Sender != null ? new Dictionary<string, object>
             {
                 ["role"] = n.Sender.Role.ToString().ToLower(),
-                ["workId"] = n.Sender.WorkId ?? throw new InvalidOperationException("null value for workid in managercontroller"),
                 ["name"] = $"{n.Sender.FirstName} {n.Sender.LastName}"
             } : throw new InvalidOperationException("null value for sender in managercontroller")
         }).ToList();
@@ -1301,10 +1149,7 @@ public class ManagerController(
             return StatusCode(403, new { error = "Sender role mismatch" });
         }
 
-        if (!string.IsNullOrEmpty(body.SenderWorkId) && !body.SenderWorkId.Equals(sender.WorkId))
-        {
-            return StatusCode(403, new { error = "Sender workId mismatch" });
-        }
+        // WorkId validation removed
 
         var recipients = new List<User>();
         var resolvedRecipient = body.Recipient;
@@ -1322,8 +1167,7 @@ public class ManagerController(
                 Email = dto.Email,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                Role = dto.Role,
-                WorkId = dto.WorkId
+                Role = dto.Role
             }).ToList();
         }
         else if (body.Recipient.Equals("All Managers", StringComparison.OrdinalIgnoreCase))
@@ -1334,8 +1178,7 @@ public class ManagerController(
                 Email = dto.Email,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                Role = dto.Role,
-                WorkId = dto.WorkId
+                Role = dto.Role
             }).ToList();
         }
         else if (body.Recipient.Contains("@"))
@@ -1439,7 +1282,7 @@ public class ManagerController(
     /// <summary>
     /// Helper method to map Group to GroupDetailDTO
     /// </summary>
-    private async Task<GroupDetailDTO> MapGroupToDetailDtoAsync(Group group)
+    private GroupDetailDTO MapGroupToDetailDtoAsync(Group group)
     {
         var groupId = $"group-{group.Id:000}";
         var createdAt = group.CreatedAt.ToString("yyyy-MM-dd");
@@ -1448,9 +1291,6 @@ public class ManagerController(
 
         foreach (var agent in group.Agents)
         {
-            var agentClients = await clientService.CountClientsByAgentAsync(agent);
-            agent.ClientsCollected = (int)agentClients;
-            collectedClients += (int)agentClients;
             agents.Add(new GroupDetailDTO.AgentDTO
             {
                 Id = $"agent-{agent.UserId:000}",
@@ -1468,7 +1308,7 @@ public class ManagerController(
             };
         }
 
-        var performance = group.Agents.Count > 0 ? (int)((collectedClients / (double)group.Agents.Count) * 100) : 0;
+        var performance = 0;
 
         return new GroupDetailDTO
         {

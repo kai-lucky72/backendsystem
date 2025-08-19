@@ -1,0 +1,339 @@
+2025-08-19 08:10:58.482 +02:00 [INF] Executed DbCommand (21ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 08:10:58.581 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-19 08:10:58.799 +02:00 [INF] Executed DbCommand (203ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-19 08:10:58.944 +02:00 [INF] Executed DbCommand (14ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-19 08:10:58.956 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 08:10:58.961 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-19 08:10:59.026 +02:00 [INF] Executed DbCommand (59ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-19 08:10:59.048 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-19 08:10:59.100 +02:00 [INF] Executed DbCommand (35ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-08-19 08:10:59.267 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-19 08:10:59.442 +02:00 [INF] Now listening on: http://localhost:5238
+2025-08-19 08:10:59.446 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-08-19 08:10:59.447 +02:00 [INF] Hosting environment: Development
+2025-08-19 08:10:59.449 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-08-19 09:00:58.642 +02:00 [INF] Application is shutting down...
+2025-08-19 09:31:49.656 +02:00 [INF] Executed DbCommand (33ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 09:31:49.801 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-19 09:31:49.919 +02:00 [INF] Executed DbCommand (111ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-19 09:31:50.052 +02:00 [INF] Executed DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-19 09:31:50.075 +02:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 09:31:50.088 +02:00 [INF] Executed DbCommand (6ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-19 09:31:50.180 +02:00 [INF] Executed DbCommand (78ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-19 09:31:50.212 +02:00 [INF] No migrations were applied. The database is already up to date.
+2025-08-19 09:31:50.245 +02:00 [INF] Executed DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result
+2025-08-19 09:31:50.387 +02:00 [INF] User profile is available. Using 'C:\Users\Lamelo\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-08-19 09:31:50.550 +02:00 [INF] Now listening on: http://localhost:5238
+2025-08-19 09:31:50.555 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-08-19 09:31:50.576 +02:00 [INF] Hosting environment: Development
+2025-08-19 09:31:50.579 +02:00 [INF] Content root path: C:\Users\Lamelo\RiderProject\backend\backend
+2025-08-19 09:32:02.002 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.html - null null
+2025-08-19 09:32:02.060 +02:00 [WRN] Failed to determine the https port for redirect.
+2025-08-19 09:32:02.289 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.html - 200 null text/html;charset=utf-8 292.4617ms
+2025-08-19 09:32:02.444 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui.css - null null
+2025-08-19 09:32:02.445 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.css - null null
+2025-08-19 09:32:02.448 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger-ui/custom.css - null null
+2025-08-19 09:32:02.448 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger-ui/custom.js - null null
+2025-08-19 09:32:02.449 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - null null
+2025-08-19 09:32:02.449 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - null null
+2025-08-19 09:32:02.506 +02:00 [INF] Sending file. Request path: '/index.css'. Physical path: 'N/A'
+2025-08-19 09:32:02.527 +02:00 [INF] Sending file. Request path: '/swagger-ui.css'. Physical path: 'N/A'
+2025-08-19 09:32:02.528 +02:00 [INF] Sending file. Request path: '/swagger-ui-standalone-preset.js'. Physical path: 'N/A'
+2025-08-19 09:32:02.541 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.css - 200 202 text/css 95.1134ms
+2025-08-19 09:32:02.560 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui.css - 200 152035 text/css 114.8559ms
+2025-08-19 09:32:02.561 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-standalone-preset.js - 200 230007 text/javascript 111.8729ms
+2025-08-19 09:32:02.576 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/index.js - null null
+2025-08-19 09:32:02.591 +02:00 [INF] Sending file. Request path: '/swagger-ui-bundle.js'. Physical path: 'N/A'
+2025-08-19 09:32:02.620 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/index.js - 200 null application/javascript;charset=utf-8 44.5209ms
+2025-08-19 09:32:02.626 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/swagger-ui-bundle.js - 200 1426001 text/javascript 177.009ms
+2025-08-19 09:32:02.685 +02:00 [INF] Executing endpoint 'backend.Controllers.SwaggerController.GetCustomCss (backend)'
+2025-08-19 09:32:02.685 +02:00 [INF] Executing endpoint 'backend.Controllers.SwaggerController.GetCustomJs (backend)'
+2025-08-19 09:32:02.728 +02:00 [INF] Route matched with {action = "GetCustomJs", controller = "Swagger"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult GetCustomJs() on controller backend.Controllers.SwaggerController (backend).
+2025-08-19 09:32:02.728 +02:00 [INF] Route matched with {action = "GetCustomCss", controller = "Swagger"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.IActionResult GetCustomCss() on controller backend.Controllers.SwaggerController (backend).
+2025-08-19 09:32:02.757 +02:00 [INF] Executing action method backend.Controllers.SwaggerController.GetCustomJs (backend) - Validation state: "Valid"
+2025-08-19 09:32:02.757 +02:00 [INF] Executing action method backend.Controllers.SwaggerController.GetCustomCss (backend) - Validation state: "Valid"
+2025-08-19 09:32:02.774 +02:00 [INF] Executed action method backend.Controllers.SwaggerController.GetCustomJs (backend), returned result Microsoft.AspNetCore.Mvc.ContentResult in 0.8124ms.
+2025-08-19 09:32:02.774 +02:00 [INF] Executed action method backend.Controllers.SwaggerController.GetCustomCss (backend), returned result Microsoft.AspNetCore.Mvc.ContentResult in 0.5016ms.
+2025-08-19 09:32:02.793 +02:00 [INF] Executing ContentResult with HTTP Response ContentType of application/javascript
+2025-08-19 09:32:02.793 +02:00 [INF] Executing ContentResult with HTTP Response ContentType of text/css
+2025-08-19 09:32:02.815 +02:00 [INF] Executed action backend.Controllers.SwaggerController.GetCustomJs (backend) in 64.2272ms
+2025-08-19 09:32:02.815 +02:00 [INF] Executed action backend.Controllers.SwaggerController.GetCustomCss (backend) in 57.4005ms
+2025-08-19 09:32:02.820 +02:00 [INF] Executed endpoint 'backend.Controllers.SwaggerController.GetCustomJs (backend)'
+2025-08-19 09:32:02.823 +02:00 [INF] Executed endpoint 'backend.Controllers.SwaggerController.GetCustomCss (backend)'
+2025-08-19 09:32:02.825 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger-ui/custom.js - 200 2046 application/javascript 376.7708ms
+2025-08-19 09:32:02.826 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger-ui/custom.css - 200 1218 text/css 377.8582ms
+2025-08-19 09:32:03.010 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - null null
+2025-08-19 09:32:03.330 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 320.5978ms
+2025-08-19 09:49:27.683 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - null null
+2025-08-19 09:49:28.163 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 496.2212ms
+2025-08-19 10:33:30.708 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - null null
+2025-08-19 10:33:31.047 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 349.3009ms
+2025-08-19 18:27:20.967 +02:00 [INF] Executed DbCommand (9ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:27:21.019 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-19 18:27:21.204 +02:00 [INF] Executed DbCommand (169ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-19 18:27:21.336 +02:00 [INF] Executed DbCommand (22ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-19 18:27:21.351 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:27:21.356 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-19 18:27:21.439 +02:00 [INF] Executed DbCommand (72ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-19 18:27:21.503 +02:00 [INF] Applying migration '20250819162700_RemoveWorkIdAndNullableManagerId'.
+2025-08-19 18:27:21.641 +02:00 [ERR] Failed executing DbCommand (43ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE [agents] DROP CONSTRAINT [FK_agents_managers_manager_id];
+2025-08-19 18:40:32.544 +02:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:40:32.616 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-19 18:40:32.753 +02:00 [INF] Executed DbCommand (133ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-19 18:40:32.927 +02:00 [INF] Executed DbCommand (44ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-19 18:40:32.953 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:40:32.959 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-19 18:40:33.056 +02:00 [INF] Executed DbCommand (78ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-19 18:40:33.113 +02:00 [INF] Applying migration '20250819162700_RemoveWorkIdAndNullableManagerId'.
+2025-08-19 18:40:33.388 +02:00 [INF] Executed DbCommand (172ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+DECLARE @fk NVARCHAR(128);
+SELECT @fk = fk.name
+FROM sys.foreign_keys fk
+JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+WHERE fk.parent_object_id = OBJECT_ID(N'agents') AND c.name = 'manager_id';
+IF @fk IS NOT NULL EXEC('ALTER TABLE [agents] DROP CONSTRAINT [' + @fk + ']');
+2025-08-19 18:40:33.446 +02:00 [INF] Executed DbCommand (51ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_users_work_id' AND object_id = OBJECT_ID('[users]'))
+    DROP INDEX [IX_users_work_id] ON [users];
+2025-08-19 18:40:33.562 +02:00 [ERR] Failed executing DbCommand (112ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE Name = N'work_id' AND Object_ID = Object_ID(N'users'))
+    ALTER TABLE [users] DROP COLUMN [work_id];
+2025-08-19 18:43:27.166 +02:00 [INF] Executed DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:43:27.251 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-19 18:43:27.423 +02:00 [INF] Executed DbCommand (165ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-19 18:43:27.555 +02:00 [INF] Executed DbCommand (29ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-19 18:43:27.565 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:43:27.571 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-19 18:43:27.586 +02:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-19 18:43:27.607 +02:00 [INF] Applying migration '20250819162700_RemoveWorkIdAndNullableManagerId'.
+2025-08-19 18:43:27.807 +02:00 [INF] Executed DbCommand (137ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+DECLARE @fk NVARCHAR(128);
+SELECT @fk = fk.name
+FROM sys.foreign_keys fk
+JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+WHERE fk.parent_object_id = OBJECT_ID(N'agents') AND c.name = 'manager_id';
+IF @fk IS NOT NULL EXEC('ALTER TABLE [agents] DROP CONSTRAINT [' + @fk + ']');
+2025-08-19 18:43:27.827 +02:00 [INF] Executed DbCommand (18ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_users_work_id' AND object_id = OBJECT_ID('[users]'))
+    DROP INDEX [IX_users_work_id] ON [users];
+2025-08-19 18:43:27.952 +02:00 [INF] Executed DbCommand (124ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+DECLARE @dropIdxSql nvarchar(max) = N'';
+SELECT @dropIdxSql = STRING_AGG('DROP INDEX [' + i.name + '] ON [users];', ' ')
+FROM sys.indexes i
+JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+WHERE i.object_id = OBJECT_ID(N'users') AND c.name = 'work_id';
+IF @dropIdxSql IS NOT NULL AND LEN(@dropIdxSql) > 0 EXEC sp_executesql @dropIdxSql;
+2025-08-19 18:43:27.980 +02:00 [INF] Executed DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE Name = N'work_id' AND Object_ID = Object_ID(N'users'))
+    ALTER TABLE [users] DROP COLUMN [work_id];
+2025-08-19 18:43:28.033 +02:00 [INF] Executed DbCommand (49ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @var sysname;
+SELECT @var = [d].[name]
+FROM [sys].[default_constraints] [d]
+INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+WHERE ([d].[parent_object_id] = OBJECT_ID(N'[users]') AND [c].[name] = N'password_hash');
+IF @var IS NOT NULL EXEC(N'ALTER TABLE [users] DROP CONSTRAINT [' + @var + '];');
+ALTER TABLE [users] ALTER COLUMN [password_hash] varchar(255) NULL;
+2025-08-19 18:43:28.158 +02:00 [INF] Executed DbCommand (112ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @var1 sysname;
+SELECT @var1 = [d].[name]
+FROM [sys].[default_constraints] [d]
+INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+WHERE ([d].[parent_object_id] = OBJECT_ID(N'[agents]') AND [c].[name] = N'manager_id');
+IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [agents] DROP CONSTRAINT [' + @var1 + '];');
+ALTER TABLE [agents] ALTER COLUMN [manager_id] bigint NULL;
+2025-08-19 18:43:28.182 +02:00 [INF] Executed DbCommand (19ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_users_phone_number' AND object_id = OBJECT_ID('[users]'))
+    CREATE UNIQUE INDEX [IX_users_phone_number] ON [users] ([phone_number]) WHERE [phone_number] IS NOT NULL;
+2025-08-19 18:43:28.259 +02:00 [ERR] Failed executing DbCommand (74ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE [agents] ADD CONSTRAINT [FK_agents_managers_manager_id] FOREIGN KEY ([manager_id]) REFERENCES [managers] ([user_id]) ON DELETE SET NULL;
+2025-08-19 18:48:54.987 +02:00 [INF] Executed DbCommand (10ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:48:55.070 +02:00 [INF] Acquiring an exclusive lock for migration application. See https://aka.ms/efcore-docs-migrations-lock for more information if this takes too long.
+2025-08-19 18:48:55.206 +02:00 [INF] Executed DbCommand (117ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_getapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session', @LockMode = 'Exclusive';
+SELECT @result
+2025-08-19 18:48:55.317 +02:00 [INF] Executed DbCommand (18ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+BEGIN
+    CREATE TABLE [__EFMigrationsHistory] (
+        [MigrationId] nvarchar(150) NOT NULL,
+        [ProductVersion] nvarchar(32) NOT NULL,
+        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+    );
+END;
+2025-08-19 18:48:55.335 +02:00 [INF] Executed DbCommand (0ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2025-08-19 18:48:55.337 +02:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT OBJECT_ID(N'[__EFMigrationsHistory]');
+2025-08-19 18:48:55.361 +02:00 [INF] Executed DbCommand (21ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [MigrationId], [ProductVersion]
+FROM [__EFMigrationsHistory]
+ORDER BY [MigrationId];
+2025-08-19 18:48:55.373 +02:00 [INF] Applying migration '20250819162700_RemoveWorkIdAndNullableManagerId'.
+2025-08-19 18:48:55.563 +02:00 [INF] Executed DbCommand (111ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+DECLARE @fk NVARCHAR(128);
+SELECT @fk = fk.name
+FROM sys.foreign_keys fk
+JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+JOIN sys.columns c ON c.object_id = fkc.parent_object_id AND c.column_id = fkc.parent_column_id
+WHERE fk.parent_object_id = OBJECT_ID(N'agents') AND c.name = 'manager_id';
+IF @fk IS NOT NULL EXEC('ALTER TABLE [agents] DROP CONSTRAINT [' + @fk + ']');
+2025-08-19 18:48:55.585 +02:00 [INF] Executed DbCommand (20ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_users_work_id' AND object_id = OBJECT_ID('[users]'))
+    DROP INDEX [IX_users_work_id] ON [users];
+2025-08-19 18:48:55.690 +02:00 [INF] Executed DbCommand (101ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+DECLARE @dropIdxSql nvarchar(max) = N'';
+SELECT @dropIdxSql = STRING_AGG('DROP INDEX [' + i.name + '] ON [users];', ' ')
+FROM sys.indexes i
+JOIN sys.index_columns ic ON ic.object_id = i.object_id AND ic.index_id = i.index_id
+JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+WHERE i.object_id = OBJECT_ID(N'users') AND c.name = 'work_id';
+IF @dropIdxSql IS NOT NULL AND LEN(@dropIdxSql) > 0 EXEC sp_executesql @dropIdxSql;
+2025-08-19 18:48:55.716 +02:00 [INF] Executed DbCommand (24ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE Name = N'work_id' AND Object_ID = Object_ID(N'users'))
+    ALTER TABLE [users] DROP COLUMN [work_id];
+2025-08-19 18:48:55.779 +02:00 [INF] Executed DbCommand (60ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @var sysname;
+SELECT @var = [d].[name]
+FROM [sys].[default_constraints] [d]
+INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+WHERE ([d].[parent_object_id] = OBJECT_ID(N'[users]') AND [c].[name] = N'password_hash');
+IF @var IS NOT NULL EXEC(N'ALTER TABLE [users] DROP CONSTRAINT [' + @var + '];');
+ALTER TABLE [users] ALTER COLUMN [password_hash] varchar(255) NULL;
+2025-08-19 18:48:55.901 +02:00 [INF] Executed DbCommand (113ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @var1 sysname;
+SELECT @var1 = [d].[name]
+FROM [sys].[default_constraints] [d]
+INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+WHERE ([d].[parent_object_id] = OBJECT_ID(N'[agents]') AND [c].[name] = N'manager_id');
+IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [agents] DROP CONSTRAINT [' + @var1 + '];');
+ALTER TABLE [agents] ALTER COLUMN [manager_id] bigint NULL;
+2025-08-19 18:48:55.929 +02:00 [INF] Executed DbCommand (23ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+UPDATE a
+SET a.manager_id = NULL
+FROM agents a
+LEFT JOIN managers m ON m.user_id = a.manager_id
+WHERE m.user_id IS NULL;
+2025-08-19 18:48:55.978 +02:00 [INF] Executed DbCommand (42ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_users_phone_number' AND object_id = OBJECT_ID('[users]'))
+    CREATE UNIQUE INDEX [IX_users_phone_number] ON [users] ([phone_number]) WHERE [phone_number] IS NOT NULL;
+2025-08-19 18:48:56.019 +02:00 [INF] Executed DbCommand (35ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+ALTER TABLE [agents] ADD CONSTRAINT [FK_agents_managers_manager_id] FOREIGN KEY ([manager_id]) REFERENCES [managers] ([user_id]) ON DELETE SET NULL;
+2025-08-19 18:48:56.046 +02:00 [INF] Executed DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+VALUES (N'20250819162700_RemoveWorkIdAndNullableManagerId', N'9.0.7');
+2025-08-19 18:48:56.088 +02:00 [INF] Executed DbCommand (18ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+DECLARE @result int;
+EXEC @result = sp_releaseapplock @Resource = '__EFMigrationsLock', @LockOwner = 'Session';
+SELECT @result

@@ -19,5 +19,5 @@ public interface IManagerService
 
     Task<Dictionary<string, object>> GetPerformanceOverviewAsync(Manager manager, string period);
     
-    Task<(IEnumerable<Dictionary<string, object>> Clients, int TotalCount)> GetClientsCollectedAsync(Manager manager, string? search, int page, int pageSize);
+    // Clients removed; no clients collected API
 } 

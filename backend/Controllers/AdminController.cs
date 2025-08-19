@@ -31,49 +31,11 @@ public class AdminController(
     }
 
     /// <summary>
-    /// Create manager
+    /// Create manager - disabled (users are provisioned by external system)
     /// </summary>
     [HttpPost("managers")]
-    public async Task<ActionResult<ManagerListItemDTO>> CreateManager([FromBody] CreateManagerRequest request)
-    {
-        var admin = await userService.GetUserByIdAsync(long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException()));
-        if (admin == null)
-        {
-            return BadRequest("User not found or account is inactive/deleted.");
-        }
-        
-        // Use provided password or default to "Temp@1234" to match Java version
-        var password = string.IsNullOrWhiteSpace(request.Password) ? "Temp@1234" : request.Password;
-        
-        var manager = await managerService.CreateManagerAsync(
-            request.FirstName,
-            request.LastName,
-            request.PhoneNumber,
-            request.NationalId,
-            request.Email,
-            request.WorkId,
-            password,
-            admin
-        );
-        var user = manager.User;
-        var managerDto = new ManagerListItemDTO
-        {
-            Id = $"mgr-{user.Id:D3}",
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber ?? throw new InvalidOperationException(),
-            NationalId = user.NationalId ?? throw new InvalidOperationException(),
-            WorkId = user.WorkId,
-            Status = user.Active ? "active" : "inactive",
-            AgentsCount = 0,
-            LastLogin = user.LastLogin.HasValue ? user.LastLogin.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : "",
-            CreatedAt = user.CreatedAt.ToString("yyyy-MM-dd")
-        };
-        
-        // Return 201 CREATED status to match Java version
-        return StatusCode(201, managerDto);
-    }
+    public Task<ActionResult> CreateManager([FromBody] CreateManagerRequest _)
+        => Task.FromResult<ActionResult>(StatusCode(403, new { error = "User creation is disabled. Use external login (SSO)." }));
 
     /// <summary>
     /// Update user status
@@ -95,7 +57,7 @@ public class AdminController(
             PhoneNumber = updatedUser.PhoneNumber ?? "",
             NationalId = updatedUser.NationalId ?? "",
             Email = updatedUser.Email ?? "",
-            WorkId = updatedUser.WorkId ?? "",
+            
             Role = updatedUser.Role.ToString().ToLower(),
             CreatedAt = UserDTO.FormatDate(updatedUser.CreatedAt) ?? "",
             Active = updatedUser.Active,
@@ -127,7 +89,6 @@ public class AdminController(
         var logs = await auditLogService.GetLogsByDateRangeAsync(start, end);
         return Ok(logs);
     }
-
     [HttpGet("audit-logs/paged")]
     public async Task<ActionResult<IEnumerable<AuditLogDTO>>> GetPaginatedAuditLogs([FromQuery] int page = 0, [FromQuery] int size = 20)
     {
@@ -269,8 +230,7 @@ public class AdminController(
                 LastName = user.LastName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? throw new InvalidOperationException(),
-                NationalId = user.NationalId ?? throw new InvalidOperationException(),
-                WorkId = user.WorkId,
+                NationalId = user.NationalId ?? "",
                 Status = user.Active ? "active" : "inactive",
                 AgentsCount = agentsCount,
                 LastLogin = user.LastLogin.HasValue ? user.LastLogin.Value.ToString("yyyy-MM-ddTHH:mm:ssZ") : "",
@@ -294,7 +254,6 @@ public class AdminController(
             Email = user.Email ?? "",
             PhoneNumber = user.PhoneNumber ?? "",
             NationalId = user.NationalId ?? "",
-            WorkId = user.WorkId ?? "",
             Role = user.Role.ToString().ToLower(),
             CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? "",
             Active = user.Active,
@@ -387,7 +346,6 @@ public class AdminController(
         var recipient = body.GetValueOrDefault("recipient", "All Users");
         var priority = body.GetValueOrDefault("priority", "medium");
         var senderRole = body.GetValueOrDefault("senderRole", "");
-        var senderWorkId = body.GetValueOrDefault("senderWorkId", "");
         
         // Validate sender role and workId
         if (!string.IsNullOrEmpty(senderRole) && !string.Equals(senderRole, sender.Role.ToString().ToLower(), StringComparison.OrdinalIgnoreCase))
@@ -395,10 +353,7 @@ public class AdminController(
             return StatusCode(403, new { error = "Sender role mismatch" });
         }
         
-        if (!string.IsNullOrEmpty(senderWorkId) && !string.Equals(senderWorkId, sender.WorkId))
-        {
-            return StatusCode(403, new { error = "Sender workId mismatch" });
-        }
+        // WorkId validation removed
         
         // Send notification logic
         var result = await notificationService.SendNotificationAsync(body, sender);
@@ -419,7 +374,6 @@ public class AdminController(
             sender = new
             {
                 role = sender.Role.ToString().ToLower(),
-                workId = sender.WorkId,
                 name = $"{sender.FirstName} {sender.LastName}"
             }
         };
@@ -447,7 +401,6 @@ public class AdminController(
             sender = new
             {
                 role = n.SenderRole?.ToLower(),
-                workId = n.SenderWorkId,
                 name = n.SenderName
             }
         }).Cast<object>().ToList() ?? new List<object>();

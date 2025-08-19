@@ -10,7 +10,6 @@ public class ManagerListItemDTO
     public string Email { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string NationalId { get; set; } = string.Empty;
-    public string? WorkId { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public int AgentsCount { get; set; }
     public string LastLogin { get; set; } = string.Empty;

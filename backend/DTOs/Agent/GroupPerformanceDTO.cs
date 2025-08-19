@@ -13,7 +13,7 @@ public class GroupPerformanceDTO
     
     public class KPIs
     {
-        public int? TotalClients { get; set; }
+        public int? TotalClients { get; set; } = 0;
         public int? TeamMembersCount { get; set; }
         public TeamRank TeamRank { get; set; } = new();
     }
@@ -27,14 +27,14 @@ public class GroupPerformanceDTO
     public class PerformanceTrend
     {
         public string Name { get; set; } = string.Empty;
-        public int? Clients { get; set; }
+        public int? Clients { get; set; } = 0;
     }
     
     public class TeamMember
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public int? Clients { get; set; }
+        public int? Clients { get; set; } = 0;
         public int? Rate { get; set; }
         public bool IsTeamLeader { get; set; }
     }

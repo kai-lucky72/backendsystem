@@ -14,7 +14,7 @@ public class AgentService : IAgentService
     private readonly IUserService _userService;
     private readonly IAuditLogService _auditLogService;
     private readonly IAttendanceService _attendanceService;
-    private readonly IClientsCollectedService _clientsCollectedService;
+    
     private readonly ApplicationDbContext _context;
 
     public AgentService(
@@ -23,7 +23,6 @@ public class AgentService : IAgentService
         IUserService userService,
         IAuditLogService auditLogService,
         IAttendanceService attendanceService,
-        IClientsCollectedService clientsCollectedService,
         ApplicationDbContext context)
     {
         _logger = logger;
@@ -31,7 +30,6 @@ public class AgentService : IAgentService
         _userService = userService;
         _auditLogService = auditLogService;
         _attendanceService = attendanceService;
-        _clientsCollectedService = clientsCollectedService;
         _context = context;
     }
 
@@ -328,7 +326,6 @@ public class AgentService : IAgentService
         
         // Calculate aggregate metrics
         var totalAttendance = 0;
-        var totalClientsCollected = 0L;
         
         foreach (var agent in groupAgents)
         {
@@ -336,15 +333,13 @@ public class AgentService : IAgentService
             var agentAttendances = await _attendanceService.GetAttendanceByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
             totalAttendance += agentAttendances.Count();
             
-            // Get clients collected for each agent
-            var agentClients = await _clientsCollectedService.CountClientsByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
-            totalClientsCollected += agentClients;
+            // Clients removed: do not count clients
         }
         
         // Calculate averages
         var agentCount = groupAgents.Count;
         var avgAttendance = agentCount > 0 ? (double)totalAttendance / agentCount : 0;
-        var avgClientsCollected = agentCount > 0 ? (double)totalClientsCollected / agentCount : 0;
+        // Clients removed - no need to track client averages
         
         // Create result dictionary
         var result = new Dictionary<string, object>
@@ -354,8 +349,8 @@ public class AgentService : IAgentService
             ["memberCount"] = agentCount,
             ["totalAttendance"] = totalAttendance,
             ["averageAttendance"] = avgAttendance,
-            ["totalClientsCollected"] = totalClientsCollected,
-            ["averageClientsCollected"] = avgClientsCollected,
+            ["totalClientsCollected"] = 0,
+            ["averageClientsCollected"] = 0,
             ["startDate"] = startDateTime.Date.ToString("yyyy-MM-dd"),
             ["endDate"] = endDateTime.Date.ToString("yyyy-MM-dd")
         };
@@ -367,8 +362,7 @@ public class AgentService : IAgentService
             result["teamLeader"] = new Dictionary<string, object>
             {
                 ["id"] = group.Leader.UserId,
-                ["email"] = leaderUser.Email,
-                ["workId"] = leaderUser.WorkId ?? throw new InvalidOperationException(message:"null value for workid in agentservice")
+                ["email"] = leaderUser.Email
             };
         }
         
@@ -381,11 +375,7 @@ public class AgentService : IAgentService
         return await _attendanceService.GetAttendanceByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
     }
     
-    public async Task<long> CountClientsByAgentAndDateRangeAsync(Agent agent, DateTime startDateTime, DateTime endDateTime)
-    {
-        // Delegate to the ClientsCollectedService
-        return await _clientsCollectedService.CountClientsByAgentAndDateRangeAsync(agent, startDateTime, endDateTime);
-    }
+    // Clients removed: CountClientsByAgentAndDateRangeAsync no longer exists
     
     public async Task<IEnumerable<Agent>> GetAgentsByGroupIdAsync(long groupId)
     {

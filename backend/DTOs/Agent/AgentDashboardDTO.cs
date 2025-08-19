@@ -5,8 +5,8 @@ namespace backend.DTOs.Agent;
 public class AgentDashboardDTO
 {
     public bool AttendanceMarked { get; set; }
-    public int? ClientsThisMonth { get; set; }
-    public int? TotalClients { get; set; }
+    public int? ClientsThisMonth { get; set; } = 0;
+    public int? TotalClients { get; set; } = 0;
     public double? PerformanceRate { get; set; }
     public List<RecentActivity> RecentActivities { get; set; } = new();
 

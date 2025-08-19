@@ -14,17 +14,15 @@ public class CreateAgentRequest
     [RegularExpression(@"^[0-9+\-\s]+$", ErrorMessage = "Invalid phone number format")]
     public string PhoneNumber { get; set; } = string.Empty;
     
-    [Required(ErrorMessage = "National ID is required")]
-    public string NationalId { get; set; } = string.Empty;
+    // Optional
+    public string? NationalId { get; set; }
 
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Work ID is required")]
-    [RegularExpression(@"^[A-Z0-9]+$", ErrorMessage = "Work ID must contain only uppercase letters and numbers")]
-    [StringLength(10, MinimumLength = 5, ErrorMessage = "Work ID must be between 5 and 10 characters")]
-    public string WorkId { get; set; } = string.Empty;
+    // Deprecated
+    public string? WorkId { get; set; }
 
     // Password is now optional for agent creation
     public string? Password { get; set; }

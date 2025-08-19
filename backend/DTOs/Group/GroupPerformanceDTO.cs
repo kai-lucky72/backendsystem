@@ -10,7 +10,8 @@ public class GroupPerformanceDTO
     
     // Team leader information
     public long? TeamLeaderId { get; set; }
-    public string? TeamLeaderWorkId { get; set; }
+    // WorkId deprecated
+    public string? TeamLeaderPhone { get; set; }
     public string? TeamLeaderEmail { get; set; }
     
     // Group composition
@@ -25,9 +26,9 @@ public class GroupPerformanceDTO
     // Aggregated performance metrics
     public double? AverageAttendancePercentage { get; set; }
     public double? AverageDaysPresent { get; set; }
-    public double? AverageClientsCollected { get; set; }
-    public double? AverageClientsPerDay { get; set; }
-    public long? TotalClientsCollected { get; set; }
+    public double? AverageClientsCollected { get; set; } = 0;
+    public double? AverageClientsPerDay { get; set; } = 0;
+    public long? TotalClientsCollected { get; set; } = 0;
     
     // Trend metrics
     public double? ChangeFromPreviousPeriod { get; set; }
@@ -40,10 +41,9 @@ public class GroupPerformanceDTO
     public class GroupMemberSummaryDTO
     {
         public long AgentId { get; set; }
-        public string WorkId { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public double? AttendancePercentage { get; set; }
-        public long? ClientsCollected { get; set; }
+        public long? ClientsCollected { get; set; } = 0;
         public double? PerformanceScore { get; set; }
     }
 }

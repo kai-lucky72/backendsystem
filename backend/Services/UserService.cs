@@ -35,15 +35,12 @@ public class UserService : IUserService
         {
             throw new ArgumentException("Email already exists");
         }
-        if (await _userRepository.ExistsByWorkIdAsync(workId))
-        {
-            throw new ArgumentException("Work ID already exists");
-        }
+        // WorkId is deprecated
         if (await _userRepository.ExistsByPhoneNumberAsync(phoneNumber))
         {
             throw new ArgumentException("Phone number already exists");
         }
-        if (await _userRepository.ExistsByNationalIdAsync(nationalId))
+        if (!string.IsNullOrWhiteSpace(nationalId) && await _userRepository.ExistsByNationalIdAsync(nationalId))
         {
             throw new ArgumentException("National ID already exists");
         }
@@ -53,9 +50,9 @@ public class UserService : IUserService
             FirstName = firstName,
             LastName = lastName,
             PhoneNumber = phoneNumber,
-            NationalId = nationalId,
+            NationalId = string.IsNullOrWhiteSpace(nationalId) ? null : nationalId,
             Email = email,
-            WorkId = workId,
+            // WorkId removed
             PasswordHash = password != null ? _passwordHasher.HashPassword(null, password) : null,
             Role = role,
             Active = true
@@ -73,6 +70,39 @@ public class UserService : IUserService
         );
 
         return savedUser;
+    }
+
+    public async Task<User> CreateShadowUserAsync(string firstName, string lastName, string email, string phoneNumber, Role role, string? workId = null)
+    {
+        // If a user exists by email, return it
+        var existingByEmail = await _userRepository.GetByEmailAsync(email);
+        if (existingByEmail != null)
+        {
+            return existingByEmail;
+        }
+
+        // If phone unique exists, return it
+        if (await _userRepository.ExistsByPhoneNumberAsync(phoneNumber))
+        {
+            var all = await _userRepository.GetAllAsync();
+            var found = all.FirstOrDefault(u => u.PhoneNumber == phoneNumber);
+            if (found != null) return found;
+        }
+
+        var user = new User
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            PhoneNumber = phoneNumber,
+            Email = email,
+            WorkId = workId ?? $"EXT-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}",
+            PasswordHash = null,
+            Role = role,
+            Active = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        return await _userRepository.AddAsync(user);
     }
 
     public async Task<User?> GetUserByIdAsync(long id)
@@ -109,30 +139,7 @@ public class UserService : IUserService
         return user;
     }
 
-    public async Task<User?> GetUserByWorkIdAsync(string workId)
-    {
-        try
-        {
-            var user = await _userRepository.GetByWorkIdAsync(workId);
-            if (user == null)
-            {
-                return null; // User not found
-            }
-            
-            // Return null if user is inactive (don't throw error)
-            if (!user.Active)
-            {
-                return null; // User is inactive/deleted
-            }
-            
-            return user;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving user with workId: {WorkId}", workId);
-            return null; // Return null instead of throwing
-        }
-    }
+    // GetUserByWorkIdAsync removed (WorkId deprecated)
 
     public async Task<IEnumerable<User>> GetAllUsersAsync()
     {
@@ -180,10 +187,7 @@ public class UserService : IUserService
         return await _userRepository.ExistsByEmailAsync(email);
     }
     
-    public async Task<bool> IsWorkIdTakenAsync(string workId)
-    {
-        return await _userRepository.ExistsByWorkIdAsync(workId);
-    }
+    // IsWorkIdTakenAsync removed (WorkId deprecated)
 
     public async Task<bool> IsPhoneNumberTakenAsync(string phoneNumber)
     {
@@ -294,7 +298,6 @@ public class UserService : IUserService
             PhoneNumber = user.PhoneNumber ?? "",
             NationalId = user.NationalId ?? "",
             Email = user.Email ?? "",
-            WorkId = user.WorkId ?? "",
             Role = user.Role.ToString().ToLower(),
             CreatedAt = UserDTO.FormatDate(user.CreatedAt) ?? "",
             Active = user.Active,

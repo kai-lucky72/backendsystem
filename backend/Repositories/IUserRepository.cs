@@ -12,9 +12,9 @@ public interface IUserRepository
     
     // Custom methods from Java repository
     Task<User?> GetByEmailAsync(string email);
-    Task<User?> GetByWorkIdAsync(string workId);
+    // WorkId deprecated
     Task<bool> ExistsByEmailAsync(string email);
-    Task<bool> ExistsByWorkIdAsync(string workId);
+    // WorkId deprecated
     Task<bool> ExistsByPhoneNumberAsync(string phoneNumber);
     Task<bool> ExistsByNationalIdAsync(string nationalId);
     Task<int> CountByCreatedAtBetweenAsync(DateTime start, DateTime end);

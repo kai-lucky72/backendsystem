@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.SignalR;
 var builder = WebApplication.CreateBuilder(args);
 
 // Banner at the very top
-Console.WriteLine(@"\n===========================================\n   Prime Management App V3\n   Version: 3.0\n   Enterprise-grade platform for:\n   - Agent Management & Attendance Tracking\n   - Group Performance Monitoring\n   - Role-based Operations\n   - Client Collection Tracking\n   - Real-time Analytics\n===========================================\n");
+Console.WriteLine(@"\n===========================================\n   Prime Management App V3\n   Version: 3.0\n   Enterprise-grade platform for:\n   - Agent Management & Attendance Tracking\n   - Group Performance Monitoring\n   - Role-based Operations\n   - Real-time Analytics\n===========================================\n");
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -64,14 +64,18 @@ builder.Services.AddAuthentication(options =>
 // Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddHttpClient<IExternalAuthService, ExternalAuthService>();
+
+// Admin allow-list by phone number for system admins
+var adminPhones = builder.Configuration.GetSection("AdminAllowList:Phones").Get<string[]>() ?? Array.Empty<string>();
+builder.Services.AddSingleton(adminPhones);
 
 // Register business services
 builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IAttendanceTimeframeService, AttendanceTimeframeService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
-builder.Services.AddScoped<IClientsCollectedService, ClientsCollectedService>();
-builder.Services.AddScoped<IClientService, ClientService>();
+// Clients removed: do not register IClientsCollectedService or IClientService
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IManagerService, ManagerService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
@@ -82,8 +86,7 @@ builder.Services.AddScoped<IAgentRepository, AgentRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<IAttendanceTimeframeRepository, AttendanceTimeframeRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-builder.Services.AddScoped<IClientRepository, ClientRepository>();
-builder.Services.AddScoped<IClientsCollectedRepository, ClientsCollectedRepository>();
+// Clients removed: do not register client repositories
 builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
@@ -126,7 +129,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Prime Management App V3",
         Version = "3.0",
-        Description = @"Enterprise-grade platform for:\n- Agent Management & Attendance Tracking\n- Group Performance Monitoring\n- Role-based Operations\n- Client Collection Tracking\n- Real-time Analytics",
+        Description = @"Enterprise-grade platform for:\n- Agent Management & Attendance Tracking\n- Group Performance Monitoring\n- Role-based Operations\n- Real-time Analytics",
         Contact = new OpenApiContact
         {
             Name = "Prime Management Team",

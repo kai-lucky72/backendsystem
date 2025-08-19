@@ -22,14 +22,14 @@ public class AuthService : IAuthService
     {
         // Check if user already exists
         var existingUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == registerDto.Email || u.WorkId == registerDto.WorkId);
+            .FirstOrDefaultAsync(u => u.Email == registerDto.Email || u.PhoneNumber == registerDto.PhoneNumber);
         
         if (existingUser != null)
         {
             return new AuthResponseDto 
             { 
                 Success = false, 
-                Message = "User with this email or work ID already exists" 
+                Message = "User with this email or phone number already exists" 
             };
         }
 
@@ -38,7 +38,7 @@ public class AuthService : IAuthService
             Email = registerDto.Email,
             FirstName = registerDto.FirstName,
             LastName = registerDto.LastName,
-            WorkId = registerDto.WorkId,
+            PhoneNumber = registerDto.PhoneNumber,
             Role = registerDto.Role,
             CreatedAt = DateTime.UtcNow,
             PasswordHash = HashPassword(registerDto.Password)
@@ -58,7 +58,6 @@ public class AuthService : IAuthService
                 Email = user.Email, 
                 FirstName = user.FirstName, 
                 LastName = user.LastName,
-                WorkId = user.WorkId,
                 Role = user.Role
             } 
         };
@@ -67,7 +66,7 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto> LoginAsync(LoginDto loginDto)
     {
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.WorkId == loginDto.WorkId);
+            .FirstOrDefaultAsync(u => u.PhoneNumber == loginDto.PhoneNumber);
         
         if (user == null)
         {
@@ -80,7 +79,7 @@ public class AuthService : IAuthService
             return new AuthResponseDto { Success = false, Message = "User not found or account is inactive/deleted." };
         }
 
-        if (!VerifyPassword(loginDto.Password, user.PasswordHash))
+        if (user.PasswordHash == null || !VerifyPassword(loginDto.Password, user.PasswordHash))
         {
             return new AuthResponseDto { Success = false, Message = "Invalid credentials" };
         }
@@ -99,7 +98,6 @@ public class AuthService : IAuthService
                 Email = user.Email, 
                 FirstName = user.FirstName, 
                 LastName = user.LastName,
-                WorkId = user.WorkId,
                 Role = user.Role,
                 Active = user.Active
             } 
@@ -111,7 +109,7 @@ public class AuthService : IAuthService
         var user = await _context.Users.FindAsync(long.Parse(userId));
         if (user == null) return false;
 
-        if (!VerifyPassword(currentPassword, user.PasswordHash))
+        if (user.PasswordHash == null || !VerifyPassword(currentPassword, user.PasswordHash))
             return false;
 
         user.PasswordHash = HashPassword(newPassword);

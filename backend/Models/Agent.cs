@@ -11,9 +11,8 @@ public class Agent
     [Column("user_id")]
     public long UserId { get; set; }
 
-    [Required]
     [Column("manager_id")]
-    public long ManagerId { get; set; }
+    public long? ManagerId { get; set; }
 
     [Column("group_id")]
     public long? GroupId { get; set; }
@@ -29,15 +28,11 @@ public class Agent
     [JsonIgnore]
     public virtual User User { get; set; } = null!;
     [JsonIgnore]
-    public virtual Manager Manager { get; set; } = null!;
+    public virtual Manager? Manager { get; set; }
     [JsonIgnore]
     public virtual Group? Group { get; set; }
     [JsonIgnore]
-    public virtual ICollection<Client> Clients { get; set; } = new List<Client>();
-    [JsonIgnore]
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
-    [JsonIgnore]
-    public virtual ICollection<ClientsCollected> ClientsCollectedRecords { get; set; } = new List<ClientsCollected>();
     [JsonIgnore]
     public virtual ICollection<Group> LedGroups { get; set; } = new List<Group>();
 

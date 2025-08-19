@@ -1,4 +1,4 @@
-using backend.DTOs.Client;
+ 
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -23,8 +23,7 @@ public static class DateTimeExtensions
 public class AgentController(
         IAgentService agentService,
         IAttendanceService attendanceService,
-        IClientsCollectedService clientsCollectedService,
-        IClientService clientService,
+        
         IAttendanceTimeframeService attendanceTimeframeService,
         IGroupService groupService,
         INotificationService notificationService)
@@ -118,7 +117,7 @@ var attendanceDates = all
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var agent = await agentService.GetAgentByIdAsync(userId);
         var manager = agent.Manager;
-        var timeframe = await attendanceTimeframeService.GetTimeframeByManagerAsync(manager);
+        var timeframe = manager != null ? await attendanceTimeframeService.GetTimeframeByManagerAsync(manager) : null;
         string start = "09:00", end = "10:00";
         if (timeframe != null)
         {
@@ -144,33 +143,9 @@ var attendanceDates = all
         });
     }
 
-    [HttpPost("clients-collected")]
-    public async Task<ActionResult> CollectClient([FromBody] Dictionary<string, object> clientData)
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        var clientsCollected = await clientsCollectedService.CollectClientAsync(agent, clientData);
-        return Ok(clientsCollected);
-    }
+    // Clients collected removed
 
-    [HttpGet("clients-collected")]
-    public async Task<ActionResult> GetClientsCollected([FromQuery] DateTime? date = null)
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        IEnumerable<ClientsCollected> clients;
-        if (date.HasValue)
-        {
-            var startOfDay = date.Value.Date;
-            var endOfDay = startOfDay.AddDays(1).AddSeconds(-1);
-            clients = await clientsCollectedService.GetClientsByAgentAndDateRangeAsync(agent, startOfDay, endOfDay);
-        }
-        else
-        {
-            clients = await clientsCollectedService.GetClientsByAgentAsync(agent);
-        }
-        return Ok(clients);
-    }
+    // Clients collected removed
 
     // --- FULL DTO LOGIC FOR /performance ---
     [HttpGet("performance")]
@@ -195,9 +170,8 @@ var attendanceDates = all
             };
         }
         var attendances = (await attendanceService.GetAttendanceByAgentAndDateRangeAsync(agent, start, end)).ToList();
-        var totalClients = await clientService.CountClientsByAgentAndDateRangeAsync(agent, start, end);
         var chartData = await GenerateChartData(agent, start, end, attendances);
-        var stats = CalculatePerformanceStats(agent, start, end, attendances, totalClients, chartData);
+        var stats = CalculatePerformanceStats(agent, start, end, attendances, 0, chartData);
         var trends = await CalculateTrends(agent, period, chartData);
         var agentInfo = new DTOs.Agent.AgentPerformanceDTO.AgentInfo
         {
@@ -205,7 +179,6 @@ var attendanceDates = all
             FirstName = agent.User.FirstName,
             LastName = agent.User.LastName,
             Email = agent.User.Email,
-            WorkId = agent.User.WorkId,
             Type = agent.AgentType.ToString().ToLower(),
             Status = agent.User.Active ? "active" : "inactive"
         };
@@ -232,15 +205,14 @@ var attendanceDates = all
         var today = DateTime.Now;
         var startOfMonth = new DateTime(today.Year, today.Month, 1);
         var endOfMonth = startOfMonth.AddMonths(1).AddSeconds(-1);
-        var clientsThisMonth = await clientService.CountClientsByAgentAndDateRangeAsync(agent, startOfMonth, endOfMonth);
-        var totalClients = await clientService.CountClientsByAgentAsync(agent);
-        double performanceRate = await CalculatePerformanceRate(agent);
-        var recentActivities = await GetRecentActivities(agent);
+        // Clients removed - no need to track client counts
+        double performanceRate = CalculatePerformanceRate(agent);
+        var recentActivities = GetRecentActivities(agent);
         var dto = new DTOs.Agent.AgentDashboardDTO
         {
             AttendanceMarked = attendanceMarked,
-            ClientsThisMonth = (int)clientsThisMonth,
-            TotalClients = (int)totalClients,
+            ClientsThisMonth = 0,
+            TotalClients = 0,
             PerformanceRate = performanceRate,
             RecentActivities = recentActivities
         };
@@ -297,7 +269,6 @@ var attendanceDates = all
             if (n.Sender != null)
             {
                 senderObject["role"] = n.Sender.Role.ToString().ToLower();
-                senderObject["workId"] = n.Sender.WorkId ?? throw new InvalidOperationException(message:"null value for workid in agentcontroller");
                 senderObject["name"] = $"{n.Sender.FirstName} {n.Sender.LastName}";
             }
         
@@ -318,69 +289,15 @@ var attendanceDates = all
         return Ok(new { notifications = notificationList });
     }
 
-    [HttpPost("clients")]
-    public async Task<ActionResult> CreateClient([FromBody] CreateClientRequest request)
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        if (!await attendanceService.HasMarkedAttendanceTodayAsync(agent))
-        {
-            return StatusCode(403, new { message = "You must mark attendance for today before adding clients." });
-        }
-        var client = await clientService.CreateClientAsync(request, agent, agent.User);
-        var clientDto = clientService.MapToDTO(client);
-        return StatusCode(201, clientDto);
-    }
+    // Client creation removed
 
-    [HttpGet("clients")]
-    public async Task<ActionResult> GetClients()
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        var clients = await clientService.GetClientsByAgentAsync(agent);
-        var clientDtOs = clientService.MapToDTOList(clients);
-        return Ok(clientDtOs);
-    }
+    // Clients listing removed
 
-    [HttpGet("clients/{id}")]
-    public async Task<ActionResult> GetClientById(long id)
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        var client = await clientService.GetClientByIdAsync(id);
-        if (client.Agent.UserId != agent.UserId)
-            return StatusCode(403);
-        var clientDto = clientService.MapToDTO(client);
-        return Ok(clientDto);
-    }
+    // Get client by id removed
 
-    [HttpGet("clients/search")]
-    public async Task<ActionResult> SearchClient([FromQuery] string nationalId = null, [FromQuery] string phoneNumber = null)
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        Client client = null;
-        if (!string.IsNullOrEmpty(nationalId))
-            client = await clientService.GetClientByNationalIdAsync(nationalId);
-        else if (!string.IsNullOrEmpty(phoneNumber))
-            client = await clientService.GetClientByPhoneNumberAsync(phoneNumber);
-        else
-            return BadRequest();
-        if (client.Agent.UserId != agent.UserId)
-            return StatusCode(403);
-        var clientDto = clientService.MapToDTO(client);
-        return Ok(clientDto);
-    }
+    // Client search removed
 
-    [HttpGet("clients/date-range")]
-    public async Task<ActionResult> GetClientsByDateRange([FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-    {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        var clients = await clientService.GetClientsByAgentAndDateRangeAsync(agent, startDate, endDate);
-        var clientDtOs = clientService.MapToDTOList(clients);
-        return Ok(clientDtOs);
-    }
+    // Clients by date range removed
 
     // --- PRIVATE HELPERS ---
     private async Task<string> CalculateAttendanceStatusAsync(Agent agent, DateTime? timestamp)
@@ -389,7 +306,7 @@ var attendanceDates = all
             return "present";
             
         // Get the attendance timeframe for the manager
-        var timeframe = await attendanceTimeframeService.GetTimeframeByManagerAsync(agent.Manager);
+        var timeframe = agent.Manager != null ? await attendanceTimeframeService.GetTimeframeByManagerAsync(agent.Manager) : null;
         
         var startTime = timeframe?.StartTime ?? new TimeOnly(6, 0); // Default 6:00 AM
         var endTime = timeframe?.EndTime ?? new TimeOnly(9, 0); // Default 9:00 AM
@@ -430,7 +347,7 @@ var attendanceDates = all
                 else
                     present++;
             }
-            var clientCount = (await clientService.GetClientsByAgentAndDateRangeAsync(agent, startOfDay, endOfDay)).Count();
+            var clientCount = 0;
             chartData.Add(new DTOs.Agent.AgentPerformanceDTO.ChartDataPoint
             {
                 Date = date.ToString("yyyy-MM-dd"),
@@ -459,7 +376,7 @@ var attendanceDates = all
             }
         }
         double attendanceRate = totalDays > 0 ? (double)presentCount / totalDays * 100 : 0;
-        double clientCollectionRate = totalDays > 0 ? (double)totalClients / totalDays * 100 : 0;
+        double clientCollectionRate = 0;
         return new DTOs.Agent.AgentPerformanceDTO.PerformanceStats
         {
             TotalAttendanceDays = totalDays,
@@ -493,7 +410,7 @@ var attendanceDates = all
                 break;
         }
         var attendances = (await attendanceService.GetAttendanceByAgentAndDateRangeAsync(agent, startDate, endDate)).ToList();
-        var totalClients = await clientService.CountClientsByAgentAndDateRangeAsync(agent, startDate, endDate);
+        var totalClients = 0L;
         var currentPeriodChartData = await GenerateChartData(agent, startDate, endDate, attendances);
         var currentPeriodStats = CalculatePerformanceStats(agent, startDate, endDate, attendances, totalClients, currentPeriodChartData);
         trends.Add(new DTOs.Agent.AgentPerformanceDTO.PerformanceTrend
@@ -502,7 +419,7 @@ var attendanceDates = all
             Present = currentPeriodStats.PresentCount,
             Late = currentPeriodStats.LateCount,
             Absent = currentPeriodStats.AbsentCount,
-            TotalClients = currentPeriodStats.TotalClients,
+            TotalClients = 0,
             AttendanceRate = currentPeriodStats.AttendanceRate,
             ClientCollectionRate = currentPeriodStats.ClientCollectionRate
         });
@@ -525,35 +442,22 @@ var attendanceDates = all
         };
     }
 
-    private async Task<double> CalculatePerformanceRate(Agent agent)
+    private double CalculatePerformanceRate(Agent agent)
     {
-        var today = DateTime.Now.Date;
-        var thirtyDaysAgo = today.AddDays(-30);
-        int daysWithClients = 0;
-        for (var date = thirtyDaysAgo; date <= today; date = date.AddDays(1))
-        {
-            var startOfDay = date;
-            var endOfDay = date.AddDays(1).AddSeconds(-1);
-            var clientsOnDay = (await clientService.GetClientsByAgentAndDateRangeAsync(agent, startOfDay, endOfDay)).Count();
-            if (clientsOnDay > 0)
-                daysWithClients++;
-        }
-        return (double)daysWithClients / 30 * 100;
+        return 0;
     }
 
-    private async Task<List<DTOs.Agent.AgentDashboardDTO.RecentActivity>> GetRecentActivities(Agent agent)
+    private List<DTOs.Agent.AgentDashboardDTO.RecentActivity> GetRecentActivities(Agent agent)
     {
-        var recentClients = (await clientService.GetRecentClientsByAgentAsync(agent, 5)).ToList();
+        var recentClients = new List<object>();
         var activities = new List<DTOs.Agent.AgentDashboardDTO.RecentActivity>();
-        foreach (var client in recentClients)
+        foreach (var _ in recentClients)
         {
-            var creationTime = client.CreatedAt;
-            var timeDescription = FormatTimeAgo(creationTime);
             activities.Add(new DTOs.Agent.AgentDashboardDTO.RecentActivity
             {
-                Id = $"act-{client.Id}",
-                Description = $"Added new client: {client.FullName}",
-                Timestamp = timeDescription
+                Id = $"act-0",
+                Description = $"",
+                Timestamp = ""
             });
         }
         return activities;
@@ -603,7 +507,7 @@ var attendanceDates = all
         var leader = group.Leader;
         int totalGroupClients = 0;
         foreach (var member in teamMembers)
-            totalGroupClients += (int)await clientService.CountClientsByAgentAsync(member);
+            totalGroupClients += 0;
         // Team rank among all groups
         var allGroups = await groupService.GetGroupsByManagerAsync(group.Manager);
         var groupClientCounts = new List<int>();
@@ -611,7 +515,7 @@ var attendanceDates = all
         {
             int groupClients = 0;
             foreach (var m in g.Agents ?? new List<Agent>())
-                groupClients += (int)await clientService.CountClientsByAgentAsync(m);
+                groupClients += 0;
             groupClientCounts.Add(groupClients);
         }
         groupClientCounts.Sort((a, b) => b.CompareTo(a));
@@ -632,7 +536,7 @@ var attendanceDates = all
             var weekEnd = weekStart.AddDays(6);
             int weekClients = 0;
             foreach (var member in teamMembers)
-                weekClients += (await clientService.GetClientsByAgentAndDateRangeAsync(member, weekStart, weekEnd)).Count();
+                weekClients += 0;
             trends.Add(new DTOs.Agent.GroupPerformanceDTO.PerformanceTrend
             {
                 Name = $"Week {4 - i}",
@@ -644,8 +548,8 @@ var attendanceDates = all
         if (leader != null && leader.User != null)
         {
             var leaderUser = leader.User;
-            int leaderClients = (int)await clientService.CountClientsByAgentAsync(leader);
-            int leaderRate = (int)await CalculatePerformanceRate(leader);
+            int leaderClients = 0;
+            int leaderRate = (int)CalculatePerformanceRate(leader);
             teamLeaderDto = new DTOs.Agent.GroupPerformanceDTO.TeamMember
             {
                 Id = leaderUser.Id.ToString(),
@@ -663,8 +567,8 @@ var attendanceDates = all
             if (member.User == null) continue; // Skip members without user data
             
             var memberUser = member.User;
-            int memberClients = (int)await clientService.CountClientsByAgentAsync(member);
-            int memberRate = (int)await CalculatePerformanceRate(member);
+            int memberClients = 0;
+            int memberRate = (int)CalculatePerformanceRate(member);
             teamMemberDtOs.Add(new DTOs.Agent.GroupPerformanceDTO.TeamMember
             {
                 Id = memberUser.Id.ToString(),
@@ -674,24 +578,8 @@ var attendanceDates = all
                 IsTeamLeader = false
             });
         }
-        // Recent activities from the last 5 clients added by any group member
-        var allRecentClients = new List<Client>();
-        foreach (var member in teamMembers)
-            allRecentClients.AddRange(await clientService.GetRecentClientsByAgentAsync(member, 5));
-        allRecentClients = allRecentClients.OrderByDescending(c => c.CreatedAt).ToList();
+        // Recent activities (clients removed) - return empty list for now
         var recentActivities = new List<DTOs.Agent.GroupPerformanceDTO.RecentActivity>();
-        int maxActivities = Math.Min(5, allRecentClients.Count);
-        for (int i = 0; i < maxActivities; i++)
-        {
-            var client = allRecentClients[i];
-            var timeDescription = FormatTimeAgo(client.CreatedAt);
-            recentActivities.Add(new DTOs.Agent.GroupPerformanceDTO.RecentActivity
-            {
-                Id = $"act-{client.Id}",
-                Description = $"Added client: {client.FullName}",
-                Timestamp = timeDescription
-            });
-        }
         return new DTOs.Agent.GroupPerformanceDTO
         {
             GroupName = groupName,

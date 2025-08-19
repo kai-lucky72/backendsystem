@@ -31,7 +31,7 @@ public interface IAgentService
     
     Task<IEnumerable<Attendance>> GetAttendanceByAgentAndDateRangeAsync(Agent agent, DateTime startDateTime, DateTime endDateTime);
     
-    Task<long> CountClientsByAgentAndDateRangeAsync(Agent agent, DateTime startDateTime, DateTime endDateTime);
+    // Clients removed; no client counting
     
     Task<Agent> UpdateAgentAsync(long id, Dictionary<string, object> updateFields);
     

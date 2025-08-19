@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using backend.Data;
 
@@ -11,9 +12,11 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250818191138_RemoveClientTables")]
+    partial class RemoveClientTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,7 +40,7 @@ namespace backend.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("group_id");
 
-                    b.Property<long?>("ManagerId")
+                    b.Property<long>("ManagerId")
                         .HasColumnType("bigint")
                         .HasColumnName("manager_id");
 
@@ -327,6 +330,7 @@ namespace backend.Migrations
                         .HasColumnName("national_id");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("varchar(255)")
                         .HasColumnName("password_hash");
 
@@ -343,6 +347,11 @@ namespace backend.Migrations
                         .HasColumnType("varchar(20)")
                         .HasColumnName("role");
 
+                    b.Property<string>("WorkId")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("work_id");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -352,9 +361,8 @@ namespace backend.Migrations
                         .IsUnique()
                         .HasFilter("[national_id] IS NOT NULL");
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique()
-                        .HasFilter("[phone_number] IS NOT NULL");
+                    b.HasIndex("WorkId")
+                        .IsUnique();
 
                     b.ToTable("users", (string)null);
                 });
@@ -369,7 +377,8 @@ namespace backend.Migrations
                     b.HasOne("backend.Models.Manager", "Manager")
                         .WithMany("Agents")
                         .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("backend.Models.User", "User")
                         .WithOne("Agent")

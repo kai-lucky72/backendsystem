@@ -21,10 +21,10 @@ public class DashboardMetricsDTO
     public int? AgentsWithPerfectAttendance { get; set; }
     public int? AgentsWithLowAttendance { get; set; }
     
-    // Performance metrics
-    public long? TotalClientsCollected { get; set; }
-    public double? AverageClientsPerAgent { get; set; }
-    public double? AverageClientsPerActiveDay { get; set; }
+    // Performance metrics (clients removed)
+    public long? TotalClientsCollected { get; set; } = 0;
+    public double? AverageClientsPerAgent { get; set; } = 0;
+    public double? AverageClientsPerActiveDay { get; set; } = 0;
     
     // Agent type breakdown
     public Dictionary<string, int> AgentsByType { get; set; } = new();
@@ -44,7 +44,7 @@ public class DashboardMetricsDTO
         public string ManagerName { get; set; } = string.Empty;
         public int? MemberCount { get; set; }
         public double? AttendanceRate { get; set; }
-        public long? TotalClients { get; set; }
+        public long? TotalClients { get; set; } = 0;
         public double? PerformanceScore { get; set; }
     }
     
