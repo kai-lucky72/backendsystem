@@ -31,38 +31,38 @@ namespace backend.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-	private readonly IUserService _userService;
-	private readonly IAgentService _agentService;
-	private readonly IJwtService _jwtService;
+    private readonly IUserService _userService;
+    private readonly IAgentService _agentService;
+    private readonly IJwtService _jwtService;
 	private readonly IExternalAuthService _externalAuthService;
-	private readonly ILogger<AuthController> _logger;
+    private readonly ILogger<AuthController> _logger;
 	private readonly IConfiguration _configuration;
 
-	public AuthController(
-		IUserService userService, 
-		IAgentService agentService,
-		IJwtService jwtService,
+    public AuthController(
+        IUserService userService, 
+        IAgentService agentService,
+        IJwtService jwtService,
 		IExternalAuthService externalAuthService,
 		ILogger<AuthController> logger,
 		IConfiguration configuration)
-	{
-		_userService = userService;
-		_agentService = agentService;
-		_jwtService = jwtService;
+    {
+        _userService = userService;
+        _agentService = agentService;
+        _jwtService = jwtService;
 		_externalAuthService = externalAuthService;
-		_logger = logger;
+        _logger = logger;
 		_configuration = configuration;
-	}
+    }
 
-	/// <summary>
+    /// <summary>
 	/// User login - Delegates to external auth with phone number and password
-	/// </summary>
+    /// </summary>
 	/// <param name="request">Authentication request containing phone number and password</param>
-	/// <returns>Authentication response with JWT token and user information</returns>
-	[HttpPost("login")]
-	[AllowAnonymous]
-	public async Task<ActionResult<AuthResponse>> Login([FromBody][Required] AuthRequest request)
-	{
+    /// <returns>Authentication response with JWT token and user information</returns>
+    [HttpPost("login")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> Login([FromBody][Required] AuthRequest request)
+    {
 		if (!ModelState.IsValid) return BadRequest(ModelState);
 		_logger.LogInformation("LOGIN REQUEST RECEIVED - phone: {Phone}", request.PhoneNumber);
 
@@ -139,15 +139,15 @@ public class AuthController : ControllerBase
 			}
 			await _userService.UpdateUserAsync(user);
 
-			var token = _jwtService.GenerateToken(user);
-
-			var userInfo = new AuthResponse.UserInfo
-			{
+        var token = _jwtService.GenerateToken(user);
+            
+        var userInfo = new AuthResponse.UserInfo
+        {
 				Id = user.Id.ToString(),
-				Name = user.FirstName + " " + user.LastName,
-				Email = user.Email,
-				Role = user.Role.ToString().ToLower()
-			};
+            Name = user.FirstName + " " + user.LastName,
+            Email = user.Email,
+                Role = user.Role.ToString().ToLower()
+            };
 			if (user.Role == Role.AGENT && user.Agent != null)
 			{
 				userInfo.AgentType = user.Agent.AgentType.ToString().ToLower();
@@ -158,21 +158,21 @@ public class AuthController : ControllerBase
 			}
 
 			return Ok(new AuthResponse { Token = token, User = userInfo });
-		}
-		catch (Exception ex)
-		{
-			_logger.LogError(ex, "Authentication error: {Message}", ex.Message);
-			return Unauthorized();
-		}
-	}
-
-	[HttpPost]
-	[Route("/auth/login")]
-	[AllowAnonymous]
-	public async Task<ActionResult<AuthResponse>> LoginAlternativeRoute([FromBody][Required] AuthRequest request)
-	{
-		return await Login(request);
-	}
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Authentication error: {Message}", ex.Message);
+            return Unauthorized();
+        }
+    }
+ 
+    [HttpPost]
+    [Route("/auth/login")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> LoginAlternativeRoute([FromBody][Required] AuthRequest request)
+    {
+        return await Login(request);
+    }
 
 	private static Role MapEmployeeTypeToRole(string employeeTypes)
 	{
@@ -185,124 +185,124 @@ public class AuthController : ControllerBase
 		};
 	}
 
-	/// <summary>
-	/// Health check endpoint to test database connectivity
-	/// </summary>
-	[HttpGet("health")]
-	[AllowAnonymous]
-	public async Task<ActionResult> HealthCheck()
-	{
-		try
-		{
-			var allUsers = await _userService.GetAllUsersAsync();
-			var activeUsers = await _userService.GetActiveUsersAsync();
-			return Ok(new { 
-				status = "healthy", 
-				totalUsers = allUsers.Count(),
-				activeUsers = activeUsers.Count(),
-				inactiveUsers = allUsers.Count() - activeUsers.Count(),
-				timestamp = DateTime.UtcNow
-			});
-		}
-		catch (Exception ex)
-		{
-			return StatusCode(500, new { 
-				status = "unhealthy", 
-				error = ex.Message,
-				timestamp = DateTime.UtcNow
-			});
-		}
-	}
+    /// <summary>
+    /// Health check endpoint to test database connectivity
+    /// </summary>
+    [HttpGet("health")]
+    [AllowAnonymous]
+    public async Task<ActionResult> HealthCheck()
+    {
+        try
+        {
+            var allUsers = await _userService.GetAllUsersAsync();
+            var activeUsers = await _userService.GetActiveUsersAsync();
+            return Ok(new { 
+                status = "healthy", 
+                totalUsers = allUsers.Count(),
+                activeUsers = activeUsers.Count(),
+                inactiveUsers = allUsers.Count() - activeUsers.Count(),
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { 
+                status = "unhealthy", 
+                error = ex.Message,
+                timestamp = DateTime.UtcNow
+            });
+        }
+    }
 
-	/// <summary>
-	/// Test endpoint to verify active/inactive user validation
-	/// </summary>
-	[HttpGet("test-active-validation")]
-	[AllowAnonymous]
-	public async Task<ActionResult> TestActiveValidation()
-	{
-		try
-		{
-			var results = new List<object>();
+    /// <summary>
+    /// Test endpoint to verify active/inactive user validation
+    /// </summary>
+    [HttpGet("test-active-validation")]
+    [AllowAnonymous]
+    public async Task<ActionResult> TestActiveValidation()
+    {
+        try
+        {
+            var results = new List<object>();
 			// Keep minimal test stub (no WorkId anymore)
 			results.Add(new { message = "ok" });
-			return Ok(new { 
-				message = "Active user validation test completed",
-				results = results,
-				timestamp = DateTime.UtcNow
-			});
-		}
-		catch (Exception ex)
-		{
+            return Ok(new { 
+                message = "Active user validation test completed",
+                results = results,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
 			return StatusCode(500, new { message = ex.Message });
-		}
-	}
- 
-	/// <summary>
-	/// Refresh JWT token for persistent login
-	/// </summary>
-	[HttpPost("refresh-token")]
-	[AllowAnonymous]
-	public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenRequest request)
-	{
-		try
-		{
-			// Validate the current token
-			var principal = _jwtService.GetPrincipalFromToken(request.Token);
-			if (principal == null)
-			{
-				return Unauthorized(new { message = "Invalid token" });
-			}
+        }
+    }
 
-			// Check if token is expired
-			if (_jwtService.IsTokenExpired(request.Token))
-			{
-				return Unauthorized(new { message = "Token has expired" });
-			}
+    /// <summary>
+    /// Refresh JWT token for persistent login
+    /// </summary>
+    [HttpPost("refresh-token")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        try
+        {
+            // Validate the current token
+            var principal = _jwtService.GetPrincipalFromToken(request.Token);
+            if (principal == null)
+            {
+                return Unauthorized(new { message = "Invalid token" });
+            }
 
-			// Get user ID from token
-			var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-			if (userIdClaim == null || !long.TryParse(userIdClaim.Value, out var userId))
-			{
-				return Unauthorized(new { message = "Invalid token claims" });
-			}
+            // Check if token is expired
+            if (_jwtService.IsTokenExpired(request.Token))
+            {
+                return Unauthorized(new { message = "Token has expired" });
+            }
 
-			// Get user from database
-			var user = await _userService.GetUserByIdAsync(userId);
-			if (user == null)
-			{
-				return Unauthorized(new { message = "User not found or account is inactive/deleted." });
-			}
+            // Get user ID from token
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !long.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized(new { message = "Invalid token claims" });
+            }
 
-			// Check if user is still active
-			if (!user.Active)
-			{
-				return Unauthorized(new { message = "User account is inactive/deleted." });
-			}
+            // Get user from database
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "User not found or account is inactive/deleted." });
+            }
 
-			// Generate new token
-			var newToken = _jwtService.GenerateToken(user);
+            // Check if user is still active
+            if (!user.Active)
+            {
+                return Unauthorized(new { message = "User account is inactive/deleted." });
+            }
 
-			return Ok(new AuthResponseDto
-			{
-				Success = true,
-				Token = newToken,
-				Message = "Token refreshed successfully",
-				User = new UserDto
-				{
-					Id = user.Id,
-					FirstName = user.FirstName,
-					LastName = user.LastName,
-					Email = user.Email,
-					Role = user.Role,
-					Active = user.Active
-				}
-			});
-		}
-		catch (Exception ex)
-		{
-			_logger.LogError(ex, "Error refreshing token");
-			return StatusCode(500, new { message = "Internal server error during token refresh" });
-		}
-	}
+            // Generate new token
+            var newToken = _jwtService.GenerateToken(user);
+
+            return Ok(new AuthResponseDto
+            {
+                Success = true,
+                Token = newToken,
+                Message = "Token refreshed successfully",
+                User = new UserDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Role = user.Role,
+                    Active = user.Active
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refreshing token");
+            return StatusCode(500, new { message = "Internal server error during token refresh" });
+        }
+    }
 }
