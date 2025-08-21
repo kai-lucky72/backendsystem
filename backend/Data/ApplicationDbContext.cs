@@ -63,16 +63,13 @@ public class ApplicationDbContext : DbContext
             entity.ToTable("managers");
             entity.HasKey(e => e.UserId);
             entity.Property(e => e.UserId).HasColumnType("bigint");
-            entity.Property(e => e.CreatedById).HasColumnType("bigint");
+            // created_by removed
             entity.Property(e => e.Department).HasColumnType("varchar(100)");
             entity.HasOne(e => e.User)
                 .WithOne(e => e.Manager)
                 .HasForeignKey<Manager>(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne(e => e.CreatedBy)
-                .WithMany(e => e.CreatedManagers)
-                .HasForeignKey(e => e.CreatedById)
-                .OnDelete(DeleteBehavior.Restrict);
+            // CreatedBy relationship removed
         });
 
         // Configure Agent entity

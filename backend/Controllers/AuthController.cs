@@ -183,7 +183,7 @@ public class AuthController : ControllerBase
 			"sales agent" => Role.AGENT,
 			_ => Role.AGENT
 		};
-	}
+    }
 
     /// <summary>
     /// Health check endpoint to test database connectivity

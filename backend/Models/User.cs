@@ -66,8 +66,7 @@ public class User
     public virtual ICollection<Notification> ReceivedNotifications { get; set; } = new List<Notification>();
     [JsonIgnore]
     public virtual ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();
-    [JsonIgnore]
-    public virtual ICollection<Manager> CreatedManagers { get; set; } = new List<Manager>();
+    // Removed CreatedManagers (no longer tracking manager creators)
 
     // Computed property for UserName (to maintain compatibility)
     [NotMapped]

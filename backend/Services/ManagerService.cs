@@ -56,10 +56,9 @@ public class ManagerService : IManagerService
             try
             {
                 _logger.LogDebug("Attempting direct SQL insert for manager");
-                var insertSql = "INSERT INTO managers (user_id, created_by) VALUES (@UserId, @CreatedBy)";
+                var insertSql = "INSERT INTO managers (user_id) VALUES (@UserId)";
                 var rowsAffected = await _context.Database.ExecuteSqlRawAsync(insertSql,
-                    new Microsoft.Data.SqlClient.SqlParameter("@UserId", managerUser.Id),
-                    new Microsoft.Data.SqlClient.SqlParameter("@CreatedBy", admin.Id));
+                    new Microsoft.Data.SqlClient.SqlParameter("@UserId", managerUser.Id));
                 
                 if (rowsAffected > 0)
                 {
@@ -82,8 +81,7 @@ public class ManagerService : IManagerService
                     var manager = new Manager
                     {
                         UserId = managerUser.Id,
-                        User = managerUser,
-                        CreatedBy = admin
+                        User = managerUser
                     };
                     
                     _logger.LogDebug("Falling back to repository persist for manager entity");
@@ -107,11 +105,10 @@ public class ManagerService : IManagerService
             _logger.LogDebug("Successfully created manager entity with ID: {ManagerId}", savedManager.UserId);
             
             // Log the action
-            await _auditLogService.LogEventAsync(
+            await _auditLogService.LogSystemEventAsync(
                     "CREATE_MANAGER",
                     "MANAGER",
                     savedManager.UserId.ToString(),
-                    admin,
                     $"Manager created: {email}"
             );
             
@@ -150,11 +147,10 @@ public class ManagerService : IManagerService
         var user = manager.User;
         
         // Log the action before deletion
-        await _auditLogService.LogEventAsync(
+        await _auditLogService.LogSystemEventAsync(
                 "DELETE_MANAGER",
                 "MANAGER",
                 id.ToString(),
-                manager.CreatedBy, // Use the admin who created the manager
                 $"Manager deleted: {user.Email}"
         );
         
@@ -241,11 +237,10 @@ public class ManagerService : IManagerService
         _logger.LogInformation("Manager updated successfully. Final Active status: {ActiveStatus}", updatedManager.User.Active);
         
         // Log the action
-        await _auditLogService.LogEventAsync(
+        await _auditLogService.LogSystemEventAsync(
                 "UPDATE_MANAGER",
                 "MANAGER",
                 id.ToString(),
-                manager.CreatedBy,
                 $"Manager updated: {string.Join(", ", updateFields.Keys)}"
         );
         

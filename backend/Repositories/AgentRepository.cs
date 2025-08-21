@@ -61,7 +61,7 @@ public class AgentRepository : IAgentRepository
             .Include(a => a.User)
             .Include(a => a.Manager)
             .Include(a => a.Group)
-            .Where(a => a.ManagerId == manager.UserId)
+            .Where(a => a.ManagerId == manager.UserId || a.ManagerId == null)
             .ToListAsync();
     }
 

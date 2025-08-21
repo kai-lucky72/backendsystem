@@ -14,15 +14,6 @@ public class Manager
     [ForeignKey("UserId")]
     [JsonIgnore]
     public virtual User User { get; set; } = null!;
-
-    [Required]
-    [ForeignKey("CreatedBy")]
-    [Column("created_by")]
-    public long CreatedById { get; set; }
-    
-    [ForeignKey("CreatedById")]
-    [JsonIgnore]
-    public virtual User CreatedBy { get; set; } = null!;
     
     [Column("department")]
     public string? Department { get; set; }
@@ -36,7 +27,7 @@ public class Manager
     public virtual ICollection<AttendanceTimeframe> AttendanceTimeframes { get; set; } = new List<AttendanceTimeframe>();
     
     // Utility method to set up the entity correctly
-    public static Manager Create(User managerUser, User admin)
+    public static Manager Create(User managerUser)
     {
         if (managerUser.Id == 0)
         {
@@ -46,9 +37,7 @@ public class Manager
         return new Manager
         {
             UserId = managerUser.Id,
-            User = managerUser,
-            CreatedById = admin.Id,
-            CreatedBy = admin
+            User = managerUser
         };
     }
 }

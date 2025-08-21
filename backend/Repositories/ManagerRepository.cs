@@ -17,7 +17,6 @@ public class ManagerRepository : IManagerRepository
     {
         return await _context.Managers
             .Include(m => m.User)
-            .Include(m => m.CreatedBy)
             .ToListAsync();
     }
 
@@ -25,7 +24,6 @@ public class ManagerRepository : IManagerRepository
     {
         return await _context.Managers
             .Include(m => m.User)
-            .Include(m => m.CreatedBy)
             .FirstOrDefaultAsync(m => m.UserId == id);
     }
 
@@ -57,8 +55,7 @@ public class ManagerRepository : IManagerRepository
     {
         return await _context.Managers
             .Include(m => m.User)
-            .Include(m => m.CreatedBy)
-            .Where(m => m.CreatedById == admin.Id)
+            .Where(m => false)
             .ToListAsync();
     }
 }
