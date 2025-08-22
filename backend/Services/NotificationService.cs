@@ -28,8 +28,8 @@ public class NotificationService : INotificationService
     {
         var notification = new Notification
         {
-            Sender = sender,
-            Recipient = recipient,
+            SenderId = sender.Id,
+            RecipientId = recipient.Id,
             Title = title,
             Message = message,
             SentAt = DateTime.Now,
@@ -56,8 +56,8 @@ public class NotificationService : INotificationService
     {
         var notification = new Notification
         {
-            Sender = sender,
-            Recipient = null, // null for broadcast
+            SenderId = sender.Id,
+            RecipientId = null, // null for broadcast
             Title = title,
             Message = message,
             SentAt = DateTime.Now,
@@ -195,6 +195,39 @@ public class NotificationService : INotificationService
         return await _notificationRepository.CountAllAsync();
     }
     
+    public async Task<bool> MarkAsReadAsync(long notificationId, User user)
+    {
+        var notification = await _notificationRepository.GetByIdAsync(notificationId);
+        if (notification == null)
+        {
+            return false;
+        }
+        // Only recipient can mark as read; broadcast can be marked by anyone
+        if (notification.RecipientId.HasValue && notification.RecipientId.Value != user.Id)
+        {
+            return false;
+        }
+        if (!notification.ReadStatus)
+        {
+            notification.ReadStatus = true;
+            await _notificationRepository.UpdateAsync(notification);
+        }
+        return true;
+    }
+
+    public async Task<int> MarkAllAsReadAsync(User user)
+    {
+        var toUpdate = (await _notificationRepository.GetByRecipientOrderBySentAtDescAsync(user)).Where(n => !n.ReadStatus).ToList();
+        var count = 0;
+        foreach (var n in toUpdate)
+        {
+            n.ReadStatus = true;
+            await _notificationRepository.UpdateAsync(n);
+            count++;
+        }
+        return count;
+    }
+
     private NotificationMessage CreateNotificationMessage(User sender, string message, string type)
     {
         return new NotificationMessage

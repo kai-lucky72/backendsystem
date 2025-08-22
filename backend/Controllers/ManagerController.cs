@@ -777,7 +777,19 @@ public class ManagerController(
             var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
             var manager = await managerService.GetManagerByIdAsync(userId);
             
-            var queryDate = !string.IsNullOrWhiteSpace(date) ? DateTime.Parse(date).Date : DateTime.Today;
+            DateTime queryDate;
+            if (!string.IsNullOrWhiteSpace(date))
+            {
+                if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out queryDate))
+                {
+                    return BadRequest(new { error = "Invalid date format. Use yyyy-MM-dd." });
+                }
+                queryDate = queryDate.Date;
+            }
+            else
+            {
+                queryDate = DateTime.Today;
+            }
 
             if (queryDate > DateTime.Today)
             {
@@ -793,7 +805,7 @@ public class ManagerController(
 
             var startOfDay = queryDate;
             var endOfDay = queryDate.AddDays(1).AddSeconds(-1);
-            var agents = await agentService.GetAllAgentsAsync();
+            var agents = (await agentService.GetAllAgentsAsync())?.ToList() ?? new List<Agent>();
 
             var presentCount = 0;
             var lateCount = 0;
@@ -802,13 +814,18 @@ public class ManagerController(
 
             foreach (var agent in agents)
             {
+                if (agent == null) continue;
+                if (agent.User == null)
+                {
+                    continue;
+                }
                 var agentCreated = agent.User.CreatedAt.Date;
                 if (queryDate < agentCreated)
                 {
                     continue;
                 }
 
-                var attendances = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, startOfDay, endOfDay);
+                var attendances = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, startOfDay, endOfDay) ?? Enumerable.Empty<Attendance>();
                 if (attendances.Any())
                 {
                     var first = attendances.OrderBy(a => a.Timestamp).FirstOrDefault();
@@ -818,11 +835,19 @@ public class ManagerController(
                     if (first != null)
                     {
                         timeIn = first.Timestamp?.ToString("HH:mm") ?? "--:--";
-                        var status = await CalculateAttendanceStatusAsync(agent, first.Timestamp);
-                        if (status == "late")
+                        var ts = first.Timestamp;
+                        if (ts.HasValue)
                         {
-                            lateCount++;
-                            isLate = true;
+                            var status = await CalculateAttendanceStatusAsync(agent, ts);
+                            if (status == "late")
+                            {
+                                lateCount++;
+                                isLate = true;
+                            }
+                            else
+                            {
+                                presentCount++;
+                            }
                         }
                         else
                         {
@@ -903,17 +928,28 @@ public class ManagerController(
 
                 foreach (var agent in agents)
                 {
+                    if (agent == null) continue;
+                    if (agent.User == null)
+                        continue;
                     var agentCreated = agent.User.CreatedAt.Date;
                     if (d < agentCreated) continue;
 
-                    var att = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, s, e);
+                    var att = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, s, e) ?? Enumerable.Empty<Attendance>();
                     if (att.Any())
                     {
                         var first = att.OrderBy(a => a.Timestamp).FirstOrDefault();
-                        var status = await CalculateAttendanceStatusAsync(agent, first.Timestamp);
-                        if (status == "late")
+                        var ts = first?.Timestamp;
+                        if (ts.HasValue)
                         {
-                            dayLate++;
+                            var status = await CalculateAttendanceStatusAsync(agent, ts);
+                            if (status == "late")
+                            {
+                                dayLate++;
+                            }
+                            else
+                            {
+                                dayPresent++;
+                            }
                         }
                         else
                         {
@@ -964,7 +1000,9 @@ public class ManagerController(
             return StatusCode(500, new Dictionary<string, object>
             {
                 ["error"] = "Failed to retrieve attendance data",
-                ["message"] = ex.Message
+                ["message"] = ex.Message,
+                ["inner"] = ex.InnerException?.Message ?? "",
+                ["stack"] = ex.StackTrace ?? ""
             });
         }
     }
@@ -1063,12 +1101,20 @@ public class ManagerController(
         {
             return BadRequest("User not found or account is inactive/deleted.");
         }
-        var allNotifications = await notificationService.GetNotificationsByRecipientAsync(currentUser);
+        // Combine sent, received and broadcast notifications
+        var sent = await notificationService.GetNotificationsBySenderAsync(currentUser);
+        var received = await notificationService.GetNotificationsByRecipientAsync(currentUser);
+        var broadcast = await notificationService.GetBroadcastNotificationsAsync();
+        var allNotifications = sent.Concat(received).Concat(broadcast)
+            .GroupBy(n => n.Id)
+            .Select(g => g.First())
+            .OrderByDescending(n => n.SentAt)
+            .ToList();
 
-        var total = allNotifications.Count();
+        var total = allNotifications.Count;
         var fromIndex = Math.Min((page - 1) * limit, total);
         var toIndex = Math.Min(fromIndex + limit, total);
-        var paged = allNotifications.Skip(fromIndex).Take(toIndex - fromIndex).ToList();
+        var paged = allNotifications.Skip(fromIndex).Take(Math.Max(0, toIndex - fromIndex)).ToList();
 
         var notifications = paged.Select(n => new Dictionary<string, object>
         {
@@ -1175,11 +1221,26 @@ public class ManagerController(
             {
                 recipients.AddRange(group.Agents.Select(a => a.User));
             }
-            else if (long.TryParse(body.Recipient, out var idTarget))
+            else
             {
-                var user = await userService.GetUserByIdAsync(idTarget);
-                if (user != null) recipients.Add(user);
+                // Attempt to extract numeric id from formatted ids like agt-042, mgr-001, usr-123
+                var digits = System.Text.RegularExpressions.Regex.Replace(body.Recipient, @"[^0-9]", "");
+                if (!string.IsNullOrWhiteSpace(digits) && long.TryParse(digits, out var numericId))
+                {
+                    var user = await userService.GetUserByIdAsync(numericId);
+                    if (user != null) recipients.Add(user);
+                }
+                else if (long.TryParse(body.Recipient, out var idTarget))
+                {
+                    var user = await userService.GetUserByIdAsync(idTarget);
+                    if (user != null) recipients.Add(user);
+                }
             }
+        }
+
+        if (!recipients.Any() && !body.Recipient.Equals("All Users", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest(new { error = "Recipient not found. Use email, numeric id, agt-XXX, mgr-XXX, group name, or 'All Users'." });
         }
 
         // Notification sending
@@ -1236,8 +1297,8 @@ public class ManagerController(
         if (!timestamp.HasValue)
             return "present";
             
-        // Get the attendance timeframe for the manager
-        var timeframe = await attendanceTimeframeService.GetTimeframeByManagerAsync(agent.Manager);
+        // Use latest global attendance timeframe
+        var timeframe = await attendanceTimeframeService.GetLatestTimeframeAsync();
         
         var startTime = timeframe?.StartTime ?? new TimeOnly(6, 0); // Default 6:00 AM
         var endTime = timeframe?.EndTime ?? new TimeOnly(9, 0); // Default 9:00 AM

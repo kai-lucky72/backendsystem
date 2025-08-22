@@ -32,4 +32,8 @@ public interface INotificationService
     Task<PagedNotificationsResponseDTO> GetNotificationsPagedAsync(int page, int limit);
     
     Task<int> GetTotalSentCountAsync();
+
+    // Read status updates
+    Task<bool> MarkAsReadAsync(long notificationId, User user);
+    Task<int> MarkAllAsReadAsync(User user);
 }

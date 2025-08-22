@@ -84,7 +84,7 @@ public class AttendanceService : IAttendanceService
 
     public async Task<IEnumerable<Attendance>> GetAttendanceByAgentAndDateRangeAsync(Agent agent, DateTime start, DateTime end)
     {
-        return await _attendanceRepository.GetByAgentAndDateRangeAsync(agent, start, end);
+        return await _attendanceRepository.GetByAgentAndDateRangeAsync(agent.UserId, start, end);
     }
 
     public async Task<bool> HasMarkedAttendanceTodayAsync(Agent agent)
@@ -93,7 +93,7 @@ public class AttendanceService : IAttendanceService
         var startOfDay = today;
         var endOfDay = today.AddDays(1).AddSeconds(-1);
         
-        var attendance = await _attendanceRepository.GetFirstByAgentAndTimestampBetweenOrderByTimestampDescAsync(agent, startOfDay, endOfDay);
+        var attendance = await _attendanceRepository.GetFirstByAgentAndTimestampBetweenOrderByTimestampDescAsync(agent.UserId, startOfDay, endOfDay);
         return attendance != null;
     }
 

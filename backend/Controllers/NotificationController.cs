@@ -46,6 +46,39 @@ public class NotificationController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/read")]
+    public async Task<ActionResult> MarkRead(long id)
+    {
+        try
+        {
+            var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
+            var user = await _userService.GetUserByIdAsync(userId) ?? throw new InvalidOperationException("User not found");
+            var ok = await _notificationService.MarkAsReadAsync(id, user);
+            if (!ok) return Forbid();
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error marking as read: {ex.Message}");
+        }
+    }
+
+    [HttpPost("read-all")]
+    public async Task<ActionResult<object>> MarkAllRead()
+    {
+        try
+        {
+            var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("User ID not found"));
+            var user = await _userService.GetUserByIdAsync(userId) ?? throw new InvalidOperationException("User not found");
+            var count = await _notificationService.MarkAllAsReadAsync(user);
+            return Ok(new { updated = count });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error marking all as read: {ex.Message}");
+        }
+    }
+
     [HttpGet("broadcast")]
     public async Task<ActionResult<IEnumerable<Notification>>> GetBroadcastNotifications()
     {

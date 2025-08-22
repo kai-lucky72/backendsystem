@@ -12,6 +12,6 @@ public interface IAttendanceRepository
     
     // Custom methods from Java repository
     Task<IEnumerable<Attendance>> GetByAgentOrderByTimestampDescAsync(Agent agent);
-    Task<IEnumerable<Attendance>> GetByAgentAndDateRangeAsync(Agent agent, DateTime startDate, DateTime endDate);
-    Task<Attendance?> GetFirstByAgentAndTimestampBetweenOrderByTimestampDescAsync(Agent agent, DateTime startDateTime, DateTime endDateTime);
+    Task<IEnumerable<Attendance>> GetByAgentAndDateRangeAsync(long agentId, DateTime startDate, DateTime endDate);
+    Task<Attendance?> GetFirstByAgentAndTimestampBetweenOrderByTimestampDescAsync(long agentId, DateTime startDateTime, DateTime endDateTime);
 }
