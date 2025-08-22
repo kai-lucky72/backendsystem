@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using backend.DTOs;
 using Microsoft.Extensions.Configuration;
+using System.Net.Http;
 
 namespace backend.Controllers;
 
@@ -97,7 +98,21 @@ public class AuthController : ControllerBase
 			}
 
 			// 2) External authentication for regular users
-			var external = await _externalAuthService.AuthenticateAsync(request.PhoneNumber, request.Password);
+			ExternalAuthResult? external = null;
+			try
+			{
+				external = await _externalAuthService.AuthenticateAsync(request.PhoneNumber, request.Password);
+			}
+			catch (HttpRequestException httpEx)
+			{
+				_logger.LogError(httpEx, "External auth unreachable: {Message}", httpEx.Message);
+				return StatusCode(503, new { message = "External authentication service unavailable. Please try again.", error = httpEx.Message });
+			}
+			catch (TaskCanceledException tex)
+			{
+				_logger.LogError(tex, "External auth timed out: {Message}", tex.Message);
+				return StatusCode(503, new { message = "External authentication service timeout. Please try again.", error = tex.Message });
+			}
 			if (external == null)
 			{
 				return Unauthorized(new { message = "User not found or invalid credentials." });

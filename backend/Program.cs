@@ -11,6 +11,10 @@ using backend.Repositories;
 using Serilog;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.SignalR;
+using System.Net;
+using System.Net.Http;
+using System.Net.Security;
+using System.Security.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +68,32 @@ builder.Services.AddAuthentication(options =>
 // Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddHttpClient<IExternalAuthService, ExternalAuthService>();
+builder.Services.AddHttpClient<IExternalAuthService, ExternalAuthService>(client =>
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("PrimeManagementBackend/3.0");
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+    client.Timeout = TimeSpan.FromSeconds(25);
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var systemProxy = WebRequest.DefaultWebProxy;
+    if (systemProxy != null)
+    {
+        try { systemProxy.Credentials = CredentialCache.DefaultCredentials; } catch {}
+    }
+
+    return new SocketsHttpHandler
+{
+    Proxy = systemProxy,
+    UseProxy = true,
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+    PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+    SslOptions = new SslClientAuthenticationOptions
+    {
+        EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
+    }
+    };
+});
 
 // Admin allow-list by phone number for system admins
 var adminPhones = builder.Configuration.GetSection("AdminAllowList:Phones").Get<string[]>() ?? Array.Empty<string>();

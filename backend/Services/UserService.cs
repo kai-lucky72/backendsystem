@@ -285,7 +285,24 @@ public class UserService : IUserService
 
     public async Task UpdateUserAsync(User user)
     {
+        // First update the core user
         await _userRepository.UpdateAsync(user);
+
+        // Ensure domain profiles are persisted when present
+        if (user.Role == Role.AGENT)
+        {
+            var existingAgent = await _agentRepository.GetByUserIdAsync(user.Id);
+            if (existingAgent == null && user.Agent != null)
+            {
+                await _agentRepository.AddAsync(user.Agent);
+            }
+        }
+
+        if (user.Role == Role.MANAGER)
+        {
+            // Managers are managed via ManagerRepository in ManagerService; no direct repo here
+            // This method intentionally only handles Agent upsert to avoid circular dependencies
+        }
     }
 
     private UserDTO MapToDTO(User user)

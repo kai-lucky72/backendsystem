@@ -69,4 +69,13 @@ public class AttendanceTimeframeRepository : IAttendanceTimeframeRepository
             .ThenInclude(m => m!.User)
             .FirstOrDefaultAsync(at => at.ManagerId == manager.UserId);
     }
+
+    public async Task<AttendanceTimeframe?> GetLatestAsync()
+    {
+        return await _context.AttendanceTimeframes
+            .Include(at => at.Manager)
+            .ThenInclude(m => m!.User)
+            .OrderByDescending(at => at.UpdatedAt ?? at.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
 }

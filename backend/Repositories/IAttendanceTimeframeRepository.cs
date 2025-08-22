@@ -13,4 +13,7 @@ public interface IAttendanceTimeframeRepository
     // Custom methods from Java repository
     Task<IEnumerable<AttendanceTimeframe>> GetByManagerIdAsync(long managerId);
     Task<AttendanceTimeframe?> GetByManagerAsync(Manager manager);
+
+    // New: latest timeframe irrespective of manager (global setting)
+    Task<AttendanceTimeframe?> GetLatestAsync();
 }

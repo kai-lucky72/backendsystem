@@ -31,8 +31,8 @@ public class AttendanceService : IAttendanceService
             throw new InvalidOperationException("Attendance already marked today");
         }
         
-        // Get the attendance timeframe for the manager
-        var timeframe = await _attendanceTimeframeRepository.GetByManagerAsync(agent.Manager);
+        // Use the latest global attendance timeframe
+        var timeframe = await _attendanceTimeframeRepository.GetLatestAsync();
         
         var startTime = timeframe?.StartTime ?? new TimeOnly(6, 0); // Default 6:00 AM
         var endTime = timeframe?.EndTime ?? new TimeOnly(9, 0); // Default 9:00 AM

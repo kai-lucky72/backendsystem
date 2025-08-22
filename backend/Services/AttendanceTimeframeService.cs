@@ -77,6 +77,7 @@ public class AttendanceTimeframeService : IAttendanceTimeframeService
         
         timeframe.StartTime = startTime;
         timeframe.EndTime = endTime;
+        timeframe.UpdatedAt = DateTime.UtcNow;
         
         var updatedTimeframe = await _attendanceTimeframeRepository.UpdateAsync(timeframe);
         
@@ -89,6 +90,11 @@ public class AttendanceTimeframeService : IAttendanceTimeframeService
         );
         
         return updatedTimeframe;
+    }
+    
+    public async Task<AttendanceTimeframe?> GetLatestTimeframeAsync()
+    {
+        return await _attendanceTimeframeRepository.GetLatestAsync();
     }
     
     private void ValidateTimeframe(TimeOnly startTime, TimeOnly endTime)

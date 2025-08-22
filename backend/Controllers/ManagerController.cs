@@ -47,9 +47,7 @@ public class ManagerController(
     [ProducesResponseType(typeof(List<AgentListItemDTO>), 200)]
     public async Task<ActionResult<List<AgentListItemDTO>>> GetAgents()
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var manager = await managerService.GetManagerByIdAsync(userId);
-        var agents = await agentService.GetAgentsByManagerAsync(manager);
+        var agents = await agentService.GetAllAgentsAsync();
         
         var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
         var today = DateTime.UtcNow;
@@ -96,16 +94,8 @@ public class ManagerController(
     [ProducesResponseType(404)]
     public async Task<ActionResult<UserDTO>> UpdateAgent(long id, [FromBody] Dictionary<string, object> updateRequest)
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var manager = await managerService.GetManagerByIdAsync(userId);
-
-        // Check if an agent belongs to this manager
+        // Any manager can update any agent (no ownership model)
         var agent = await agentService.GetAgentByIdAsync(id);
-        if (agent.Manager.UserId != manager.UserId)
-        {
-            return Forbid();
-        }
-
         // Update agent with the provided fields
         var updatedAgent = await agentService.UpdateAgentAsync(id, updateRequest);
 
@@ -151,16 +141,7 @@ public class ManagerController(
     [ProducesResponseType(204)]
     public async Task<ActionResult> DeleteAgent(long id)
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var manager = await managerService.GetManagerByIdAsync(userId);
-
-        // Check if an agent belongs to this manager
-        var agent = await agentService.GetAgentByIdAsync(id);
-        if (agent.Manager.UserId != manager.UserId)
-        {
-            return Forbid();
-        }
-
+        // Any manager can delete any agent (no ownership model)
         await agentService.DeleteAgentAsync(id);
         return NoContent();
     }
@@ -638,7 +619,7 @@ public class ManagerController(
     {
         var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
         var manager = await managerService.GetManagerByIdAsync(userId);
-        var agents = await agentService.GetAgentsByManagerAsync(manager);
+        var agents = await agentService.GetAllAgentsAsync();
         
         var startOfToday = DateTime.Today;
         var endOfToday = DateTime.Today.AddDays(1).AddSeconds(-1);
@@ -812,7 +793,7 @@ public class ManagerController(
 
             var startOfDay = queryDate;
             var endOfDay = queryDate.AddDays(1).AddSeconds(-1);
-            var agents = await agentService.GetAgentsByManagerAsync(manager);
+            var agents = await agentService.GetAllAgentsAsync();
 
             var presentCount = 0;
             var lateCount = 0;
@@ -885,7 +866,7 @@ public class ManagerController(
 
             var startTime = "06:00";
             var endTime = "09:00";
-            var timeframeEntity = await attendanceTimeframeService.GetTimeframeByManagerAsync(manager);
+            var timeframeEntity = await attendanceTimeframeService.GetLatestTimeframeAsync();
             if (timeframeEntity != null)
             {
                 startTime = timeframeEntity.StartTime.ToString(@"hh\:mm");
@@ -1000,7 +981,7 @@ public class ManagerController(
         var queryDate = !string.IsNullOrWhiteSpace(date) ? DateTime.Parse(date).Date : DateTime.Today;
         var startOfDay = queryDate;
         var endOfDay = queryDate.AddDays(1).AddSeconds(-1);
-        var agents = await agentService.GetAgentsByManagerAsync(manager);
+        var agents = await agentService.GetAllAgentsAsync();
 
         var present = 0;
         var late = 0;

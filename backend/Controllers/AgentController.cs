@@ -114,16 +114,9 @@ var attendanceDates = all
     [HttpGet("attendance/timeframe")]
     public async Task<ActionResult> GetAttendanceTimeframe()
     {
-        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
-        var agent = await agentService.GetAgentByIdAsync(userId);
-        var manager = agent.Manager;
-        var timeframe = manager != null ? await attendanceTimeframeService.GetTimeframeByManagerAsync(manager) : null;
-        string start = "09:00", end = "10:00";
-        if (timeframe != null)
-        {
-            start = timeframe.StartTime.ToString();
-            end = timeframe.EndTime.ToString();
-        }
+        var timeframe = await attendanceTimeframeService.GetLatestTimeframeAsync();
+        string start = timeframe?.StartTime.ToString() ?? "09:00";
+        string end = timeframe?.EndTime.ToString() ?? "10:00";
         return Ok(new Dictionary<string, string> { ["startTime"] = start, ["endTime"] = end });
     }
 
@@ -305,8 +298,8 @@ var attendanceDates = all
         if (!timestamp.HasValue)
             return "present";
             
-        // Get the attendance timeframe for the manager
-        var timeframe = agent.Manager != null ? await attendanceTimeframeService.GetTimeframeByManagerAsync(agent.Manager) : null;
+        // Use the latest global timeframe
+        var timeframe = await attendanceTimeframeService.GetLatestTimeframeAsync();
         
         var startTime = timeframe?.StartTime ?? new TimeOnly(6, 0); // Default 6:00 AM
         var endTime = timeframe?.EndTime ?? new TimeOnly(9, 0); // Default 9:00 AM
