@@ -6741,3 +6741,46 @@ ORDER BY [n].[sent_at] DESC
 2025-08-22 17:09:46.906 +02:00 [INF] Executed action backend.Controllers.ManagerController.GetManagerNotifications (backend) in 1966.9225ms
 2025-08-22 17:09:46.924 +02:00 [INF] Executed endpoint 'backend.Controllers.ManagerController.GetManagerNotifications (backend)'
 2025-08-22 17:09:47.585 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/api/manager/notifications - 200 null application/json; charset=utf-8 2753.3239ms
+2025-08-22 17:16:23.421 +02:00 [INF] Request starting HTTP/1.1 OPTIONS http://localhost:5238/api/manager/dashboard - null null
+2025-08-22 17:16:23.454 +02:00 [INF] CORS policy execution successful.
+2025-08-22 17:16:23.483 +02:00 [INF] Request finished HTTP/1.1 OPTIONS http://localhost:5238/api/manager/dashboard - 204 null null 61.4962ms
+2025-08-22 17:16:23.506 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5238/api/manager/dashboard - application/json null
+2025-08-22 17:16:23.519 +02:00 [INF] CORS policy execution successful.
+2025-08-22 17:16:23.733 +02:00 [INF] Executing endpoint 'backend.Controllers.ManagerController.GetDashboard (backend)'
+2025-08-22 17:16:23.754 +02:00 [INF] Route matched with {action = "GetDashboard", controller = "Manager"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.ActionResult`1[backend.DTOs.Manager.ManagerDashboardDTO]] GetDashboard() on controller backend.Controllers.ManagerController (backend).
+2025-08-22 17:16:24.082 +02:00 [INF] Executed DbCommand (83ms) [Parameters=[@__id_0='?' (DbType = Int64)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [m].[user_id], [m].[department], [u].[Id], [u].[active], [u].[created_at], [u].[email], [u].[first_name], [u].[last_login], [u].[last_name], [u].[national_id], [u].[password_hash], [u].[phone_number], [u].[profile_image_url], [u].[role]
+FROM [managers] AS [m]
+INNER JOIN [users] AS [u] ON [m].[user_id] = [u].[Id]
+WHERE [m].[user_id] = @__id_0
+2025-08-22 17:16:24.157 +02:00 [INF] Executed DbCommand (48ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [a].[user_id], [a].[agent_type], [a].[group_id], [a].[manager_id], [a].[Sector], [u].[Id], [u].[active], [u].[created_at], [u].[email], [u].[first_name], [u].[last_login], [u].[last_name], [u].[national_id], [u].[password_hash], [u].[phone_number], [u].[profile_image_url], [u].[role], [m].[user_id], [m].[department], [a0].[Id], [a0].[created_at], [a0].[description], [a0].[leader_id], [a0].[manager_id], [a0].[Name]
+FROM [agents] AS [a]
+INNER JOIN [users] AS [u] ON [a].[user_id] = [u].[Id]
+LEFT JOIN [managers] AS [m] ON [a].[manager_id] = [m].[user_id]
+LEFT JOIN [agent_groups] AS [a0] ON [a].[group_id] = [a0].[Id]
+2025-08-22 17:16:24.304 +02:00 [INF] Executed DbCommand (118ms) [Parameters=[@__agentId_0='?' (DbType = Int64), @__startDate_1='?' (DbType = DateTime2), @__endDate_2='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [a].[Id], [a].[agent_id], [a].[Location], [a].[Sector], [a].[Timestamp], [a0].[user_id], [a0].[agent_type], [a0].[group_id], [a0].[manager_id], [a0].[Sector], [u].[Id], [u].[active], [u].[created_at], [u].[email], [u].[first_name], [u].[last_login], [u].[last_name], [u].[national_id], [u].[password_hash], [u].[phone_number], [u].[profile_image_url], [u].[role]
+FROM [attendance] AS [a]
+INNER JOIN [agents] AS [a0] ON [a].[agent_id] = [a0].[user_id]
+INNER JOIN [users] AS [u] ON [a0].[user_id] = [u].[Id]
+WHERE [a].[agent_id] = @__agentId_0 AND [a].[Timestamp] >= @__startDate_1 AND [a].[Timestamp] <= @__endDate_2
+ORDER BY [a].[Timestamp] DESC
+2025-08-22 17:16:24.468 +02:00 [INF] Executed DbCommand (136ms) [Parameters=[@__manager_UserId_0='?' (DbType = Int64)], CommandType='"Text"', CommandTimeout='30']
+SELECT [a].[Id], [a].[created_at], [a].[description], [a].[leader_id], [a].[manager_id], [a].[Name], [m].[user_id], [m].[department], [u].[Id], [u].[active], [u].[created_at], [u].[email], [u].[first_name], [u].[last_login], [u].[last_name], [u].[national_id], [u].[password_hash], [u].[phone_number], [u].[profile_image_url], [u].[role], [a0].[user_id], [a0].[agent_type], [a0].[group_id], [a0].[manager_id], [a0].[Sector], [u0].[Id], [u0].[active], [u0].[created_at], [u0].[email], [u0].[first_name], [u0].[last_login], [u0].[last_name], [u0].[national_id], [u0].[password_hash], [u0].[phone_number], [u0].[profile_image_url], [u0].[role]
+FROM [agent_groups] AS [a]
+INNER JOIN [managers] AS [m] ON [a].[manager_id] = [m].[user_id]
+INNER JOIN [users] AS [u] ON [m].[user_id] = [u].[Id]
+LEFT JOIN [agents] AS [a0] ON [a].[leader_id] = [a0].[user_id]
+LEFT JOIN [users] AS [u0] ON [a0].[user_id] = [u0].[Id]
+WHERE [a].[manager_id] = @__manager_UserId_0
+2025-08-22 17:16:24.763 +02:00 [INF] Executed DbCommand (275ms) [Parameters=[@__manager_UserId_0='?' (DbType = Int64)], CommandType='"Text"', CommandTimeout='30']
+SELECT TOP(1) [a].[Id], [a].[applies_to_all_agents], [a].[break_duration], [a].[created_at], [a].[day_of_week], [a].[end_time], [a].[manager_id], [a].[start_time], [a].[updated_at], [m].[user_id], [m].[department], [u].[Id], [u].[active], [u].[created_at], [u].[email], [u].[first_name], [u].[last_login], [u].[last_name], [u].[national_id], [u].[password_hash], [u].[phone_number], [u].[profile_image_url], [u].[role]
+FROM [attendance_timeframes] AS [a]
+INNER JOIN [managers] AS [m] ON [a].[manager_id] = [m].[user_id]
+INNER JOIN [users] AS [u] ON [m].[user_id] = [u].[Id]
+WHERE [a].[manager_id] = @__manager_UserId_0
+2025-08-22 17:16:24.804 +02:00 [INF] Executing OkObjectResult, writing value of type 'backend.DTOs.Manager.ManagerDashboardDTO'.
+2025-08-22 17:16:24.845 +02:00 [INF] Executed action backend.Controllers.ManagerController.GetDashboard (backend) in 1074.7189ms
+2025-08-22 17:16:24.865 +02:00 [INF] Executed endpoint 'backend.Controllers.ManagerController.GetDashboard (backend)'
+2025-08-22 17:16:24.879 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5238/api/manager/dashboard - 200 null application/json; charset=utf-8 1373.4321ms

@@ -19,6 +19,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Group> Groups { get; set; }
     
     // Client management removed
+    // External read-only proposals stored locally
+    public DbSet<CollectedProposal> CollectedProposals { get; set; }
     
     // Attendance tracking
     public DbSet<Attendance> Attendances { get; set; }
@@ -82,6 +84,8 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.GroupId).HasColumnType("bigint");
             entity.Property(e => e.AgentType).HasColumnType("varchar(20)").HasConversion<string>();
             entity.Property(e => e.Sector).HasColumnType("varchar(100)");
+            entity.Property<string?>("ExternalDistributionChannelId").HasColumnName("external_distribution_channel_id").HasColumnType("varchar(50)");
+            entity.Property<string?>("ExternalUserId").HasColumnName("external_user_id").HasColumnType("varchar(50)");
             entity.HasOne(e => e.User)
                 .WithOne(e => e.Agent)
                 .HasForeignKey<Agent>(e => e.UserId)
@@ -94,6 +98,17 @@ public class ApplicationDbContext : DbContext
                 .WithMany(e => e.Agents)
                 .HasForeignKey(e => e.GroupId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure CollectedProposal entity
+        builder.Entity<CollectedProposal>(entity =>
+        {
+            entity.ToTable("collected_proposals");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnType("bigint");
+            entity.Property(e => e.AgentId).HasColumnType("bigint");
+            entity.HasIndex(e => e.ProposalNumber).IsUnique();
+            entity.HasIndex(e => new { e.AgentId, e.ProposalDate });
         });
 
         // Configure Group entity

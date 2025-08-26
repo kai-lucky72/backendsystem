@@ -147,10 +147,16 @@ public class AuthController : ControllerBase
 				// Persist minimal manager row; CreatedBy not enforced for external users
 				user.Manager = new Manager { UserId = user.Id };
 			}
-			if (user.Role == Role.AGENT && user.Agent == null)
+			if (user.Role == Role.AGENT)
 			{
-				// Allow ManagerId to be assigned later by an admin/manager; set defaults
-				user.Agent = new Agent { UserId = user.Id, AgentType = AgentType.INDIVIDUAL, Sector = "General" };
+				// Ensure agent profile exists
+				if (user.Agent == null)
+				{
+					user.Agent = new Agent { UserId = user.Id, AgentType = AgentType.INDIVIDUAL, Sector = "General" };
+				}
+				// Bind external identifiers for client syncing
+				user.Agent.ExternalDistributionChannelId = string.IsNullOrWhiteSpace(external.Code) ? user.Agent.ExternalDistributionChannelId : external.Code;
+				user.Agent.ExternalUserId = external.Id.ToString();
 			}
 			await _userService.UpdateUserAsync(user);
 

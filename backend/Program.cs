@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,6 +96,13 @@ builder.Services.AddHttpClient<IExternalAuthService, ExternalAuthService>(client
     };
 });
 
+// HttpClient for external clients endpoint (proposals)
+builder.Services.AddHttpClient<IExternalClientService, ExternalClientService>(client =>
+{
+    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
 // Admin allow-list by phone number for system admins
 var adminPhones = builder.Configuration.GetSection("AdminAllowList:Phones").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddSingleton(adminPhones);
@@ -109,6 +117,8 @@ builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IManagerService, ManagerService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICollectedProposalRepository, CollectedProposalRepository>();
+builder.Services.AddScoped<ICollectedProposalService, CollectedProposalService>();
 
 // Register repositories
 builder.Services.AddScoped<IAgentRepository, AgentRepository>();

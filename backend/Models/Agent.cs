@@ -24,6 +24,13 @@ public class Agent
     [Required]
     public string Sector { get; set; } = string.Empty;
 
+    // External system bindings
+    [Column("external_distribution_channel_id")]
+    public string? ExternalDistributionChannelId { get; set; }
+
+    [Column("external_user_id")]
+    public string? ExternalUserId { get; set; }
+
     // Navigation properties
     [JsonIgnore]
     public virtual User User { get; set; } = null!;

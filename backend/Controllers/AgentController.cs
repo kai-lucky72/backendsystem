@@ -26,9 +26,49 @@ public class AgentController(
         
         IAttendanceTimeframeService attendanceTimeframeService,
         IGroupService groupService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ICollectedProposalService collectedProposalService)
     : ControllerBase
 {
+    [HttpPost("clients/sync")]
+    public async Task<ActionResult> SyncMyClients(CancellationToken ct)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
+        await collectedProposalService.SyncAgentProposalsAsync(userId, ct);
+        return Ok(new { status = "ok" });
+    }
+
+    [HttpGet("clients")]
+    public async Task<ActionResult<IReadOnlyList<backend.Models.CollectedProposal>>> GetMyClients([FromQuery] string? from = null, [FromQuery] string? to = null, CancellationToken ct = default)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+        var agent = await agentService.GetAgentByIdAsync(userId);
+        if (agent == null) return NotFound(new { error = "Agent not found" });
+
+        DateTime fromDate;
+        if (string.Equals(from, "auto", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(from))
+            fromDate = agent.User.CreatedAt.Date;
+        else if (!DateTime.TryParse(from, out fromDate))
+            return BadRequest(new { error = "Invalid from date" });
+
+        DateTime? toDate = null;
+        if (!string.IsNullOrWhiteSpace(to))
+        {
+            if (DateTime.TryParse(to, out var td)) toDate = td; else return BadRequest(new { error = "Invalid to date" });
+        }
+
+        var list = await collectedProposalService.GetAgentProposalsAsync(userId, fromDate, toDate, ct);
+        if (list.Count == 0)
+        {
+            // Auto-sync if empty, then re-read
+            await collectedProposalService.SyncAgentProposalsAsync(userId, ct);
+            list = await collectedProposalService.GetAgentProposalsAsync(userId, fromDate, toDate, ct);
+        }
+        return Ok(list);
+    }
     [HttpPost("attendance")]
     public async Task<ActionResult> MarkAttendance([FromBody] Dictionary<string, string> body)
     {
@@ -198,14 +238,17 @@ var attendanceDates = all
         var today = DateTime.Now;
         var startOfMonth = new DateTime(today.Year, today.Month, 1);
         var endOfMonth = startOfMonth.AddMonths(1).AddSeconds(-1);
-        // Clients removed - no need to track client counts
+        // Clients collected via external sync (filtered by local join date)
+        var monthFrom = (agent.User.CreatedAt.Date > startOfMonth.Date) ? agent.User.CreatedAt.Date : startOfMonth.Date;
+        var monthProposals = await collectedProposalService.GetAgentProposalsAsync(userId, monthFrom, endOfMonth);
+        var totalProposals = await collectedProposalService.GetAgentProposalsAsync(userId, agent.User.CreatedAt.Date, null);
         double performanceRate = CalculatePerformanceRate(agent);
-        var recentActivities = GetRecentActivities(agent);
+        var recentActivities = await GetRecentActivities(agent);
         var dto = new DTOs.Agent.AgentDashboardDTO
         {
             AttendanceMarked = attendanceMarked,
-            ClientsThisMonth = 0,
-            TotalClients = 0,
+            ClientsThisMonth = monthProposals.Count,
+            TotalClients = totalProposals.Count,
             PerformanceRate = performanceRate,
             RecentActivities = recentActivities
         };
@@ -440,20 +483,51 @@ var attendanceDates = all
         return 0;
     }
 
-    private List<DTOs.Agent.AgentDashboardDTO.RecentActivity> GetRecentActivities(Agent agent)
+    private async Task<List<DTOs.Agent.AgentDashboardDTO.RecentActivity>> GetRecentActivities(Agent agent)
     {
-        var recentClients = new List<object>();
-        var activities = new List<DTOs.Agent.AgentDashboardDTO.RecentActivity>();
-        foreach (var _ in recentClients)
+        var items = new List<(DateTime when, DTOs.Agent.AgentDashboardDTO.RecentActivity activity)>();
+
+        // Recent attendance events (last 5)
+        var attendances = await attendanceService.GetAttendanceByAgentAsync(agent);
+        foreach (var att in attendances
+                     .Where(a => a.Timestamp.HasValue)
+                     .OrderByDescending(a => a.Timestamp)
+                     .Take(5))
         {
-            activities.Add(new DTOs.Agent.AgentDashboardDTO.RecentActivity
+            var when = att.Timestamp!.Value;
+            items.Add((when, new DTOs.Agent.AgentDashboardDTO.RecentActivity
             {
-                Id = $"act-0",
-                Description = $"",
-                Timestamp = ""
-            });
+                Id = $"att-{att.Id}",
+                Description = "Marked attendance",
+                Timestamp = FormatTimeAgo(when)
+            }));
         }
-        return activities;
+
+        // Recent collected proposals (last 5 since local join date)
+        var proposals = await collectedProposalService.GetAgentProposalsAsync(agent.UserId, agent.User.CreatedAt.Date, null);
+        foreach (var p in proposals
+                     .OrderByDescending(p => p.ProposalDate ?? p.FetchedAtUtc)
+                     .Take(5))
+        {
+            var when = p.ProposalDate ?? p.FetchedAtUtc;
+            var customer = string.IsNullOrWhiteSpace(p.CustomerName) ? "Client" : p.CustomerName;
+            var number = string.IsNullOrWhiteSpace(p.ProposalNumber) ? "proposal" : $"proposal {p.ProposalNumber}";
+            items.Add((when, new DTOs.Agent.AgentDashboardDTO.RecentActivity
+            {
+                Id = $"prop-{p.Id}",
+                Description = $"Collected {number} for {customer}",
+                Timestamp = FormatTimeAgo(when)
+            }));
+        }
+
+        // Merge, sort by most recent, take top 10
+        var merged = items
+            .OrderByDescending(x => x.when)
+            .Take(10)
+            .Select(x => x.activity)
+            .ToList();
+
+        return merged;
     }
 
     private string MapPriorityToType(object priority)

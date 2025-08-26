@@ -25,7 +25,8 @@ public class ManagerController(
     IGroupService groupService,
     IAttendanceTimeframeService attendanceTimeframeService,
     IUserService userService,
-    INotificationService notificationService)
+    INotificationService notificationService,
+    ICollectedProposalService collectedProposalService)
     : ControllerBase
 {
     /// <summary>
@@ -83,6 +84,42 @@ public class ManagerController(
         }
 
         return Ok(agentDto);
+    }
+
+    /// <summary>
+    /// Sync external proposals for an agent (manager-triggered)
+    /// </summary>
+    [HttpPost("agents/{agentId}/clients/sync")]
+    public async Task<ActionResult> SyncAgentClients(long agentId, CancellationToken ct)
+    {
+        await collectedProposalService.SyncAgentProposalsAsync(agentId, ct);
+        return Ok(new { status = "ok" });
+    }
+
+    /// <summary>
+    /// List locally stored proposals for an agent
+    /// </summary>
+    [HttpGet("agents/{agentId}/clients")]
+    public async Task<ActionResult<IReadOnlyList<backend.Models.CollectedProposal>>> GetAgentClients(long agentId, [FromQuery] string? from = null, [FromQuery] string? to = null, CancellationToken ct = default)
+    {
+        var agent = await agentService.GetAgentByIdAsync(agentId);
+        if (agent == null) return NotFound(new { error = "Agent not found" });
+
+        DateTime fromDate;
+        if (string.Equals(from, "auto", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(from))
+            fromDate = agent.User.CreatedAt.Date;
+        else if (!DateTime.TryParse(from, out fromDate))
+            return BadRequest(new { error = "Invalid from date" });
+
+        DateTime? toDate = null;
+        if (!string.IsNullOrWhiteSpace(to))
+        {
+            if (DateTime.TryParse(to, out var td)) toDate = td;
+            else return BadRequest(new { error = "Invalid to date" });
+        }
+
+        var list = await collectedProposalService.GetAgentProposalsAsync(agentId, fromDate, toDate, ct);
+        return Ok(list);
     }
 
     /// <summary>
@@ -627,7 +664,8 @@ public class ManagerController(
         var presentCount = 0;
         var absentCount = 0;
         var presentAgents = new List<ManagerDashboardDTO.PresentAgent>();
-        // Clients removed - no need to track total clients
+        // Compute clients collected from synced proposals
+        var totalClients = 0;
         var individualPerformance = new List<ManagerDashboardDTO.IndividualPerformanceItem>();
 
         foreach (var agent in agents)
@@ -653,11 +691,13 @@ public class ManagerController(
                 absentCount++;
             }
 
-            // Clients removed - no need to track client counts
+            // Clients collected (since local join date)
+            var proposalsTotal = await collectedProposalService.GetAgentProposalsAsync(agent.UserId, agent.User.CreatedAt.Date, null);
+            totalClients += proposalsTotal.Count;
             individualPerformance.Add(new ManagerDashboardDTO.IndividualPerformanceItem
             {
                 Name = $"{agent.User.FirstName} {agent.User.LastName}",
-                Clients = 0
+                Clients = proposalsTotal.Count
             });
         }
 
@@ -668,11 +708,17 @@ public class ManagerController(
 
         foreach (var group in groups)
         {
-            // Clients removed - no need to track group client counts
+            // Sum clients across group members
+            var groupClientCount = 0;
+            foreach (var a in group.Agents)
+            {
+                var count = (await collectedProposalService.GetAgentProposalsAsync(a.UserId, a.User.CreatedAt.Date, null)).Count;
+                groupClientCount += count;
+            }
             groupPerformance.Add(new ManagerDashboardDTO.GroupPerformanceItem
             {
                 Name = group.Name,
-                Clients = 0
+                Clients = groupClientCount
             });
         }
 
@@ -705,7 +751,7 @@ public class ManagerController(
             {
                 TotalAgents = agents.Count(),
                 ActiveToday = presentCount,
-                ClientsCollected = 0,
+                ClientsCollected = totalClients,
                 GroupsCount = groups.Count()
             },
             Attendance = new ManagerDashboardDTO.AttendanceModel()
