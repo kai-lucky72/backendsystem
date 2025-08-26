@@ -52,6 +52,7 @@ public class ManagerDashboardDTO
 
     public class RecentActivity
     {
+        public string Id { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Timestamp { get; set; } = string.Empty;
     }

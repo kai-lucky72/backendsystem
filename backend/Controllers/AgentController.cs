@@ -27,26 +27,23 @@ public class AgentController(
         IAttendanceTimeframeService attendanceTimeframeService,
         IGroupService groupService,
         INotificationService notificationService,
-        ICollectedProposalService collectedProposalService)
+        IExternalClientService externalClientService)
     : ControllerBase
 {
+    // External-only mode: sync endpoint is a no-op or removed
     [HttpPost("clients/sync")]
-    public async Task<ActionResult> SyncMyClients(CancellationToken ct)
-    {
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
-        await collectedProposalService.SyncAgentProposalsAsync(userId, ct);
-        return Ok(new { status = "ok" });
-    }
+    public Task<ActionResult> SyncMyClients(CancellationToken ct) => Task.FromResult<ActionResult>(Ok(new { status = "noop" }));
 
     [HttpGet("clients")]
-    public async Task<ActionResult<IReadOnlyList<backend.Models.CollectedProposal>>> GetMyClients([FromQuery] string? from = null, [FromQuery] string? to = null, CancellationToken ct = default)
+    public async Task<ActionResult<object>> GetMyClients([FromQuery] string? from = null, [FromQuery] string? to = null, [FromQuery] int page = 1, [FromQuery] int limit = 20, CancellationToken ct = default)
     {
         var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
 
         var agent = await agentService.GetAgentByIdAsync(userId);
         if (agent == null) return NotFound(new { error = "Agent not found" });
+        if (string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId))
+            return Conflict(new { error = "Agent is not linked to external distribution channel" });
 
         DateTime fromDate;
         if (string.Equals(from, "auto", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(from))
@@ -60,14 +57,28 @@ public class AgentController(
             if (DateTime.TryParse(to, out var td)) toDate = td; else return BadRequest(new { error = "Invalid to date" });
         }
 
-        var list = await collectedProposalService.GetAgentProposalsAsync(userId, fromDate, toDate, ct);
-        if (list.Count == 0)
-        {
-            // Auto-sync if empty, then re-read
-            await collectedProposalService.SyncAgentProposalsAsync(userId, ct);
-            list = await collectedProposalService.GetAgentProposalsAsync(userId, fromDate, toDate, ct);
-        }
-        return Ok(list);
+        var external = await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!, ct);
+        var filtered = external
+            .Where(p => p.ProposalDate.HasValue)
+            .Where(p => p.ProposalDate!.Value.Date >= fromDate.Date && (!toDate.HasValue || p.ProposalDate!.Value.Date <= toDate.Value.Date))
+            .OrderByDescending(p => p.ProposalDate)
+            .ToList();
+
+        var total = filtered.Count;
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 20;
+        var items = filtered
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .Select(p => new {
+                proposalNumber = p.ProposalNumber,
+                customerName = p.CustomerName,
+                proposalDate = p.ProposalDate,
+                premium = p.TotalPremium
+            })
+            .ToList();
+
+        return Ok(new { items, page, limit, total });
     }
     [HttpPost("attendance")]
     public async Task<ActionResult> MarkAttendance([FromBody] Dictionary<string, string> body)
@@ -238,10 +249,13 @@ var attendanceDates = all
         var today = DateTime.Now;
         var startOfMonth = new DateTime(today.Year, today.Month, 1);
         var endOfMonth = startOfMonth.AddMonths(1).AddSeconds(-1);
-        // Clients collected via external sync (filtered by local join date)
+        // Clients collected via external fetch (filtered by local join date)
         var monthFrom = (agent.User.CreatedAt.Date > startOfMonth.Date) ? agent.User.CreatedAt.Date : startOfMonth.Date;
-        var monthProposals = await collectedProposalService.GetAgentProposalsAsync(userId, monthFrom, endOfMonth);
-        var totalProposals = await collectedProposalService.GetAgentProposalsAsync(userId, agent.User.CreatedAt.Date, null);
+        var proposals = string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId)
+            ? new List<backend.DTOs.External.ExternalProposalDto>()
+            : (await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!)).ToList();
+        var monthProposals = proposals.Where(p => p.ProposalDate.HasValue && p.ProposalDate.Value.Date >= monthFrom.Date && p.ProposalDate.Value.Date <= endOfMonth.Date).ToList();
+        var totalProposals = proposals.Where(p => p.ProposalDate.HasValue && p.ProposalDate.Value.Date >= agent.User.CreatedAt.Date).ToList();
         double performanceRate = CalculatePerformanceRate(agent);
         var recentActivities = await GetRecentActivities(agent);
         var dto = new DTOs.Agent.AgentDashboardDTO
@@ -504,17 +518,20 @@ var attendanceDates = all
         }
 
         // Recent collected proposals (last 5 since local join date)
-        var proposals = await collectedProposalService.GetAgentProposalsAsync(agent.UserId, agent.User.CreatedAt.Date, null);
+        var proposals = string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId)
+            ? new List<backend.DTOs.External.ExternalProposalDto>()
+            : (await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!)).ToList();
         foreach (var p in proposals
-                     .OrderByDescending(p => p.ProposalDate ?? p.FetchedAtUtc)
+                     .Where(p => p.ProposalDate.HasValue && p.ProposalDate.Value.Date >= agent.User.CreatedAt.Date)
+                     .OrderByDescending(p => p.ProposalDate)
                      .Take(5))
         {
-            var when = p.ProposalDate ?? p.FetchedAtUtc;
+            var when = p.ProposalDate ?? DateTime.UtcNow;
             var customer = string.IsNullOrWhiteSpace(p.CustomerName) ? "Client" : p.CustomerName;
             var number = string.IsNullOrWhiteSpace(p.ProposalNumber) ? "proposal" : $"proposal {p.ProposalNumber}";
             items.Add((when, new DTOs.Agent.AgentDashboardDTO.RecentActivity
             {
-                Id = $"prop-{p.Id}",
+                Id = $"prop-{number}",
                 Description = $"Collected {number} for {customer}",
                 Timestamp = FormatTimeAgo(when)
             }));
@@ -528,6 +545,66 @@ var attendanceDates = all
             .ToList();
 
         return merged;
+    }
+
+    [HttpGet("recent-activities")]
+    public async Task<ActionResult<object>> GetRecentActivitiesPaged([FromQuery] int page = 1, [FromQuery] int limit = 20, [FromQuery] string? from = null, [FromQuery] string? to = null)
+    {
+        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
+        var agent = await agentService.GetAgentByIdAsync(userId);
+
+        DateTime fromDate;
+        if (string.Equals(from, "auto", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(from))
+            fromDate = agent.User.CreatedAt.Date;
+        else if (!DateTime.TryParse(from, out fromDate))
+            return BadRequest(new { error = "Invalid from date" });
+
+        DateTime? toDate = null;
+        if (!string.IsNullOrWhiteSpace(to))
+        {
+            if (DateTime.TryParse(to, out var td)) toDate = td; else return BadRequest(new { error = "Invalid to date" });
+        }
+
+        var combined = new List<(DateTime when, DTOs.Agent.AgentDashboardDTO.RecentActivity activity)>();
+
+        var attendances = await attendanceService.GetAttendanceByAgentAsync(agent);
+        foreach (var att in attendances.Where(a => a.Timestamp.HasValue))
+        {
+            var d = att.Timestamp!.Value;
+            if (d.Date < fromDate.Date || (toDate.HasValue && d.Date > toDate.Value.Date)) continue;
+            combined.Add((d, new DTOs.Agent.AgentDashboardDTO.RecentActivity
+            {
+                Id = $"att-{att.Id}",
+                Description = "Marked attendance",
+                Timestamp = FormatTimeAgo(d)
+            }));
+        }
+
+        if (!string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId))
+        {
+            var proposals = await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!);
+            foreach (var p in proposals.Where(p => p.ProposalDate.HasValue))
+            {
+                var d = p.ProposalDate!.Value;
+                if (d.Date < fromDate.Date || (toDate.HasValue && d.Date > toDate.Value.Date)) continue;
+                var customer = string.IsNullOrWhiteSpace(p.CustomerName) ? "Client" : p.CustomerName;
+                var number = string.IsNullOrWhiteSpace(p.ProposalNumber) ? "proposal" : $"proposal {p.ProposalNumber}";
+                combined.Add((d, new DTOs.Agent.AgentDashboardDTO.RecentActivity
+                {
+                    Id = $"prop-{number}",
+                    Description = $"Collected {number} for {customer}",
+                    Timestamp = FormatTimeAgo(d)
+                }));
+            }
+        }
+
+        var sorted = combined.OrderByDescending(x => x.when).ToList();
+        var total = sorted.Count;
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 20;
+        var items = sorted.Skip((page - 1) * limit).Take(limit).Select(x => x.activity).ToList();
+
+        return Ok(new { items, page, limit, total });
     }
 
     private string MapPriorityToType(object priority)

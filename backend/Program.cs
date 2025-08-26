@@ -117,8 +117,7 @@ builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IManagerService, ManagerService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ICollectedProposalRepository, CollectedProposalRepository>();
-builder.Services.AddScoped<ICollectedProposalService, CollectedProposalService>();
+// External-only mode: do not register local collected proposals storage/services
 
 // Register repositories
 builder.Services.AddScoped<IAgentRepository, AgentRepository>();

@@ -26,7 +26,7 @@ public class ManagerController(
     IAttendanceTimeframeService attendanceTimeframeService,
     IUserService userService,
     INotificationService notificationService,
-    ICollectedProposalService collectedProposalService)
+    IExternalClientService externalClientService)
     : ControllerBase
 {
     /// <summary>
@@ -90,20 +90,18 @@ public class ManagerController(
     /// Sync external proposals for an agent (manager-triggered)
     /// </summary>
     [HttpPost("agents/{agentId}/clients/sync")]
-    public async Task<ActionResult> SyncAgentClients(long agentId, CancellationToken ct)
-    {
-        await collectedProposalService.SyncAgentProposalsAsync(agentId, ct);
-        return Ok(new { status = "ok" });
-    }
+    public Task<ActionResult> SyncAgentClients(long agentId, CancellationToken ct) => Task.FromResult<ActionResult>(Ok(new { status = "noop" }));
 
     /// <summary>
     /// List locally stored proposals for an agent
     /// </summary>
     [HttpGet("agents/{agentId}/clients")]
-    public async Task<ActionResult<IReadOnlyList<backend.Models.CollectedProposal>>> GetAgentClients(long agentId, [FromQuery] string? from = null, [FromQuery] string? to = null, CancellationToken ct = default)
+    public async Task<ActionResult<object>> GetAgentClients(long agentId, [FromQuery] string? from = null, [FromQuery] string? to = null, [FromQuery] int page = 1, [FromQuery] int limit = 20, CancellationToken ct = default)
     {
         var agent = await agentService.GetAgentByIdAsync(agentId);
         if (agent == null) return NotFound(new { error = "Agent not found" });
+        if (string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId))
+            return Conflict(new { error = "Agent is not linked to external distribution channel" });
 
         DateTime fromDate;
         if (string.Equals(from, "auto", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(from))
@@ -118,8 +116,27 @@ public class ManagerController(
             else return BadRequest(new { error = "Invalid to date" });
         }
 
-        var list = await collectedProposalService.GetAgentProposalsAsync(agentId, fromDate, toDate, ct);
-        return Ok(list);
+        var external = await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!, ct);
+        var filtered = external
+            .Where(p => p.ProposalDate.HasValue)
+            .Where(p => p.ProposalDate!.Value.Date >= fromDate.Date && (!toDate.HasValue || p.ProposalDate!.Value.Date <= toDate.Value.Date))
+            .OrderByDescending(p => p.ProposalDate)
+            .ToList();
+
+        var total = filtered.Count;
+        if (page < 1) page = 1;
+        if (limit < 1) limit = 20;
+        var items = filtered
+            .Skip((page - 1) * limit)
+            .Take(limit)
+            .Select(p => new {
+                proposalNumber = p.ProposalNumber,
+                customerName = p.CustomerName,
+                proposalDate = p.ProposalDate,
+                premium = p.TotalPremium
+            })
+            .ToList();
+        return Ok(new { items, page, limit, total });
     }
 
     /// <summary>
@@ -692,7 +709,10 @@ public class ManagerController(
             }
 
             // Clients collected (since local join date)
-            var proposalsTotal = await collectedProposalService.GetAgentProposalsAsync(agent.UserId, agent.User.CreatedAt.Date, null);
+            var proposals = string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId)
+                ? new List<backend.DTOs.External.ExternalProposalDto>()
+                : (await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!)).ToList();
+            var proposalsTotal = proposals.Where(p => p.ProposalDate.HasValue && p.ProposalDate.Value.Date >= agent.User.CreatedAt.Date).ToList();
             totalClients += proposalsTotal.Count;
             individualPerformance.Add(new ManagerDashboardDTO.IndividualPerformanceItem
             {
@@ -712,7 +732,10 @@ public class ManagerController(
             var groupClientCount = 0;
             foreach (var a in group.Agents)
             {
-                var count = (await collectedProposalService.GetAgentProposalsAsync(a.UserId, a.User.CreatedAt.Date, null)).Count;
+                var proposals = string.IsNullOrWhiteSpace(a.ExternalDistributionChannelId)
+                    ? new List<backend.DTOs.External.ExternalProposalDto>()
+                    : (await externalClientService.GetProposalsByDistributionChannelAsync(a.ExternalDistributionChannelId!)).ToList();
+                var count = proposals.Count(p => p.ProposalDate.HasValue && p.ProposalDate.Value.Date >= a.User.CreatedAt.Date);
                 groupClientCount += count;
             }
             groupPerformance.Add(new ManagerDashboardDTO.GroupPerformanceItem
@@ -742,8 +765,59 @@ public class ManagerController(
 
         var rate = agents.Count() == 0 ? 0 : (int)Math.Round((presentCount * 100.0) / agents.Count());
 
-        // For demo, recent activities are empty. You can fetch from auditLogService or similar.
+        // Build recent activities from attendance and external proposals (latest 10)
         var recentActivities = new List<ManagerDashboardDTO.RecentActivity>();
+        var mergedActivities = new List<(DateTime when, ManagerDashboardDTO.RecentActivity activity)>();
+
+        // Attendance activities (today)
+        foreach (var agent in agents)
+        {
+            var todayAttendance = await agentService.GetAttendanceByAgentAndDateRangeAsync(agent, startOfToday, endOfToday);
+            var first = todayAttendance.OrderBy(a => a.Timestamp).FirstOrDefault();
+            if (first?.Timestamp != null)
+            {
+                var name = $"{agent.User.FirstName} {agent.User.LastName}";
+                var when = first.Timestamp!.Value;
+                mergedActivities.Add((when, new ManagerDashboardDTO.RecentActivity
+                {
+                    Id = $"att-{first.Id}",
+                    Description = $"{name} marked attendance",
+                    Timestamp = when.ToString("o")
+                }));
+            }
+        }
+
+        // External proposals (limit per agent to avoid heavy loads)
+        var sevenDaysAgo = DateTime.Today.AddDays(-7);
+        foreach (var agent in agents)
+        {
+            if (string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId)) continue;
+            var proposals = await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!);
+            var name = $"{agent.User.FirstName} {agent.User.LastName}";
+            foreach (var p in proposals
+                         .Where(p => p.ProposalDate.HasValue)
+                         .Where(p => p.ProposalDate!.Value.Date >= agent.User.CreatedAt.Date)
+                         .Where(p => p.ProposalDate!.Value.Date >= sevenDaysAgo)
+                         .OrderByDescending(p => p.ProposalDate)
+                         .Take(2))
+            {
+                var when = p.ProposalDate!.Value;
+                var number = string.IsNullOrWhiteSpace(p.ProposalNumber) ? "proposal" : p.ProposalNumber;
+                var customer = string.IsNullOrWhiteSpace(p.CustomerName) ? "a client" : p.CustomerName;
+                mergedActivities.Add((when, new ManagerDashboardDTO.RecentActivity
+                {
+                    Id = $"prop-{number}",
+                    Description = $"{name} collected {number} for {customer}",
+                    Timestamp = when.ToString("o")
+                }));
+            }
+        }
+
+        recentActivities = mergedActivities
+            .OrderByDescending(x => x.when)
+            .Take(5)
+            .Select(x => x.activity)
+            .ToList();
 
         var dashboard = new ManagerDashboardDTO
         {
