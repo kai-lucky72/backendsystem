@@ -26,7 +26,6 @@ public class AgentPerformanceDTO
     {
         public int TotalAttendanceDays { get; set; }
         public int PresentCount { get; set; }
-        public int LateCount { get; set; }
         public int AbsentCount { get; set; }
         public long TotalClients { get; set; } = 0;
         public double AttendanceRate { get; set; }
@@ -37,7 +36,6 @@ public class AgentPerformanceDTO
     {
         public string Date { get; set; } = string.Empty;
         public int Present { get; set; }
-        public int Late { get; set; }
         public int Absent { get; set; }
         public int Clients { get; set; }
         public bool Attendance { get; set; }
@@ -54,7 +52,6 @@ public class AgentPerformanceDTO
     {
         public string Name { get; set; } = string.Empty;
         public int Present { get; set; }
-        public int Late { get; set; }
         public int Absent { get; set; }
         public long TotalClients { get; set; } = 0;
         public double AttendanceRate { get; set; }

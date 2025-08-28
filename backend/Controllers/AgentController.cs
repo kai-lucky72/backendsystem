@@ -74,11 +74,124 @@ public class AgentController(
                 proposalNumber = p.ProposalNumber,
                 customerName = p.CustomerName,
                 proposalDate = p.ProposalDate,
-                premium = p.TotalPremium
+                premium = p.TotalPremium,
+                converted = p.Converted,
+                convertedDate = p.ConvertedDate
             })
             .ToList();
 
         return Ok(new { items, page, limit, total });
+    }
+
+    [HttpGet("clients/download")]
+    public async Task<IActionResult> DownloadMyClients(
+        [FromQuery] string? period = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] string? format = null,
+        CancellationToken ct = default)
+    {
+        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!long.TryParse(userIdStr, out var userId)) return Unauthorized();
+
+        var agent = await agentService.GetAgentByIdAsync(userId);
+        if (agent == null) return NotFound(new { error = "Agent not found" });
+        if (string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId))
+            return Conflict(new { error = "Agent is not linked to external distribution channel" });
+
+        var (fromDate, toDate) = ResolveDateRange(agent.User.CreatedAt.Date, period, startDate, endDate);
+
+        var proposals = await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!, ct);
+        var filtered = proposals
+            .Where(p => p.ProposalDate.HasValue)
+            .Where(p => p.ProposalDate!.Value.Date >= fromDate.Date && p.ProposalDate!.Value.Date <= toDate.Date)
+            .OrderByDescending(p => p.ProposalDate)
+            .ToList();
+
+        var exportFormat = (format ?? "csv").ToLower();
+        if (exportFormat == "csv")
+        {
+            var csv = BuildCsv(filtered);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+            var fileName = $"clients_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            return File(bytes, "text/csv", fileName);
+        }
+        else
+        {
+            var fileName = $"clients_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            var json = System.Text.Json.JsonSerializer.Serialize(filtered, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+            return File(bytes, "application/json", fileName);
+        }
+    }
+
+    private static string BuildCsv(IEnumerable<backend.DTOs.External.ExternalProposalDto> items)
+    {
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine(string.Join(",", new[]
+        {
+            "ProposalNumber","CustomerCode","CustomerName","ProposalDate","Premium","RiskPremium","SavingsPremium","TotalPremium","PremiumFrequency","PaymentMode","Institutions","DueDate","Converted","ConvertedDate"
+        }));
+        foreach (var p in items)
+        {
+            string Escape(object? v) => v == null ? "" : (v is string s ? "\"" + s.Replace("\"", "\"\"") + "\"" : v.ToString());
+            sb.AppendLine(string.Join(",", new[]
+            {
+                Escape(p.ProposalNumber),
+                Escape(p.CustomerCode),
+                Escape(p.CustomerName),
+                Escape(p.ProposalDate?.ToString("s")),
+                Escape(p.Premium),
+                Escape(p.RiskPremium),
+                Escape(p.SavingsPremium),
+                Escape(p.TotalPremium),
+                Escape(p.PremiumFrequency),
+                Escape(p.PaymentMode),
+                Escape(p.Institutions),
+                Escape(p.DueDate?.ToString("s")),
+                Escape(p.Converted),
+                Escape(p.ConvertedDate?.ToString("s"))
+            }));
+        }
+        return sb.ToString();
+    }
+
+    private static (DateTime from, DateTime to) ResolveDateRange(DateTime createdAt, string? period, DateTime? startDate, DateTime? endDate)
+    {
+        var today = DateTime.Today;
+        DateTime fromDate;
+        DateTime toDate;
+
+        if (startDate.HasValue || endDate.HasValue)
+        {
+            fromDate = startDate?.Date ?? createdAt.Date;
+            toDate = (endDate ?? today).Date;
+        }
+        else
+        {
+            switch ((period ?? "").ToLower())
+            {
+                case "weekly":
+                    toDate = today;
+                    fromDate = today.AddDays(-7);
+                    break;
+                case "monthly":
+                    toDate = today;
+                    fromDate = today.AddMonths(-1);
+                    break;
+                default:
+                    toDate = today;
+                    fromDate = createdAt.Date;
+                    break;
+            }
+        }
+
+        if (fromDate.Date < createdAt.Date) fromDate = createdAt.Date;
+        if (toDate.Date < fromDate.Date) toDate = fromDate.Date;
+        return (fromDate.Date, toDate.Date);
     }
     [HttpPost("attendance")]
     public async Task<ActionResult> MarkAttendance([FromBody] Dictionary<string, string> body)
@@ -388,21 +501,13 @@ var attendanceDates = all
             var endOfDay = date.AddDays(1).AddSeconds(-1);
             var dayAttendances = attendances.Where(a => a.Timestamp.HasValue && a.Timestamp.Value.Date == date).ToList();
             bool hasAttendance = dayAttendances.Any();
-            int present = 0, late = 0, absent = hasAttendance ? 0 : 1;
-            foreach (var att in dayAttendances)
-            {
-                var status = await CalculateAttendanceStatusAsync(agent, att.Timestamp);
-                if (status == "late")
-                    late++;
-                else
-                    present++;
-            }
+            int present = hasAttendance ? 1 : 0;
+            int absent = hasAttendance ? 0 : 1;
             var clientCount = 0;
             chartData.Add(new DTOs.Agent.AgentPerformanceDTO.ChartDataPoint
             {
                 Date = date.ToString("yyyy-MM-dd"),
                 Present = present,
-                Late = late,
                 Absent = absent,
                 Clients = clientCount,
                 Attendance = hasAttendance
@@ -413,14 +518,13 @@ var attendanceDates = all
 
     private DTOs.Agent.AgentPerformanceDTO.PerformanceStats CalculatePerformanceStats(Agent agent, DateTime start, DateTime end, List<Attendance> attendances, long totalClients, List<DTOs.Agent.AgentPerformanceDTO.ChartDataPoint> chartData)
     {
-        int presentCount = 0, lateCount = 0, absentCount = 0, totalDays = 0;
+        int presentCount = 0, absentCount = 0, totalDays = 0;
         for (var date = start.Date; date <= end.Date; date = date.AddDays(1))
         {
             var dayData = chartData.FirstOrDefault(c => c.Date == date.ToString("yyyy-MM-dd"));
             if (dayData != null)
             {
                 presentCount += dayData.Present;
-                lateCount += dayData.Late;
                 absentCount += dayData.Absent;
                 totalDays++;
             }
@@ -431,7 +535,6 @@ var attendanceDates = all
         {
             TotalAttendanceDays = totalDays,
             PresentCount = presentCount,
-            LateCount = lateCount,
             AbsentCount = absentCount,
             TotalClients = totalClients,
             AttendanceRate = attendanceRate,
@@ -467,7 +570,6 @@ var attendanceDates = all
         {
             Name = "Current Period",
             Present = currentPeriodStats.PresentCount,
-            Late = currentPeriodStats.LateCount,
             Absent = currentPeriodStats.AbsentCount,
             TotalClients = 0,
             AttendanceRate = currentPeriodStats.AttendanceRate,
@@ -478,7 +580,6 @@ var attendanceDates = all
         {
             Name = "Previous Period",
             Present = 0,
-            Late = 0,
             Absent = 0,
             TotalClients = 0,
             AttendanceRate = 0,

@@ -133,10 +133,141 @@ public class ManagerController(
                 proposalNumber = p.ProposalNumber,
                 customerName = p.CustomerName,
                 proposalDate = p.ProposalDate,
-                premium = p.TotalPremium
+                premium = p.TotalPremium,
+                converted = p.Converted,
+                convertedDate = p.ConvertedDate
             })
             .ToList();
         return Ok(new { items, page, limit, total });
+    }
+
+    [HttpGet("agents/{agentId}/clients/download")]
+    public async Task<IActionResult> DownloadAgentClients(string agentId,
+        [FromQuery] string? period = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null,
+        [FromQuery] string? format = null,
+        CancellationToken ct = default)
+    {
+        var userId = long.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException());
+        var manager = await managerService.GetManagerByIdAsync(userId);
+
+        // Support either numeric id or formatted agt-XYZ id
+        long parsedAgentId;
+        if (long.TryParse(agentId, out var numericId))
+        {
+            parsedAgentId = numericId;
+        }
+        else if (agentId.StartsWith("agt-", StringComparison.OrdinalIgnoreCase))
+        {
+            var rest = agentId.Substring(4);
+            if (!long.TryParse(rest, out parsedAgentId))
+                return BadRequest(new { error = "Invalid agentId format" });
+        }
+        else
+        {
+            return BadRequest(new { error = "Invalid agentId format" });
+        }
+
+        var agent = await agentService.GetAgentByIdAsync(parsedAgentId);
+        if (agent == null) return NotFound(new { error = "Agent not found" });
+        if (string.IsNullOrWhiteSpace(agent.ExternalDistributionChannelId))
+            return Conflict(new { error = "Agent is not linked to external distribution channel" });
+
+        var (fromDate, toDate) = ResolveDateRange(agent.User.CreatedAt.Date, period, startDate, endDate);
+
+        var proposals = await externalClientService.GetProposalsByDistributionChannelAsync(agent.ExternalDistributionChannelId!, ct);
+        var filtered = proposals
+            .Where(p => p.ProposalDate.HasValue)
+            .Where(p => p.ProposalDate!.Value.Date >= fromDate.Date && p.ProposalDate!.Value.Date <= toDate.Date)
+            .OrderByDescending(p => p.ProposalDate)
+            .ToList();
+
+        var exportFormat = (format ?? "csv").ToLower();
+        if (exportFormat == "csv")
+        {
+            var csv = BuildCsv(filtered);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+            var fileName = $"agent_{parsedAgentId}_clients_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            return File(bytes, "text/csv", fileName);
+        }
+        else
+        {
+            var fileName = $"agent_{parsedAgentId}_clients_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+            var json = System.Text.Json.JsonSerializer.Serialize(filtered, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+            var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+            return File(bytes, "application/json", fileName);
+        }
+    }
+
+    private static string BuildCsv(IEnumerable<backend.DTOs.External.ExternalProposalDto> items)
+    {
+        // Header
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine(string.Join(",", new[]
+        {
+            "ProposalNumber","CustomerCode","CustomerName","ProposalDate","Premium","RiskPremium","SavingsPremium","TotalPremium","PremiumFrequency","PaymentMode","Institutions","DueDate","Converted","ConvertedDate"
+        }));
+        foreach (var p in items)
+        {
+            string Escape(object? v) => v == null ? "" : (v is string s ? "\"" + s.Replace("\"", "\"\"") + "\"" : v.ToString());
+            sb.AppendLine(string.Join(",", new[]
+            {
+                Escape(p.ProposalNumber),
+                Escape(p.CustomerCode),
+                Escape(p.CustomerName),
+                Escape(p.ProposalDate?.ToString("s")),
+                Escape(p.Premium),
+                Escape(p.RiskPremium),
+                Escape(p.SavingsPremium),
+                Escape(p.TotalPremium),
+                Escape(p.PremiumFrequency),
+                Escape(p.PaymentMode),
+                Escape(p.Institutions),
+                Escape(p.DueDate?.ToString("s")),
+                Escape(p.Converted),
+                Escape(p.ConvertedDate?.ToString("s"))
+            }));
+        }
+        return sb.ToString();
+    }
+
+    private static (DateTime from, DateTime to) ResolveDateRange(DateTime createdAt, string? period, DateTime? startDate, DateTime? endDate)
+    {
+        var today = DateTime.Today;
+        DateTime fromDate;
+        DateTime toDate;
+
+        if (startDate.HasValue || endDate.HasValue)
+        {
+            fromDate = startDate?.Date ?? createdAt.Date;
+            toDate = (endDate ?? today).Date;
+        }
+        else
+        {
+            switch ((period ?? "").ToLower())
+            {
+                case "weekly":
+                    toDate = today;
+                    fromDate = today.AddDays(-7);
+                    break;
+                case "monthly":
+                    toDate = today;
+                    fromDate = today.AddMonths(-1);
+                    break;
+                default:
+                    toDate = today;
+                    fromDate = createdAt.Date;
+                    break;
+            }
+        }
+
+        if (fromDate.Date < createdAt.Date) fromDate = createdAt.Date;
+        if (toDate.Date < fromDate.Date) toDate = fromDate.Date;
+        return (fromDate.Date, toDate.Date);
     }
 
     /// <summary>
