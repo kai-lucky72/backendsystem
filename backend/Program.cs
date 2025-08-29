@@ -37,7 +37,7 @@ builder.Services.AddOpenApi();
 
 // Configure Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlConnectionToIngenzi")));
 
 // Identity removed - using custom authentication
 
@@ -136,20 +136,15 @@ builder.Services.AddAutoMapper(typeof(Program));
 // For FluentValidation in .NET 9, use AddFluentValidation() if available, otherwise ensure validators are registered manually.
 // builder.Services.AddFluentValidationAutoValidation(); // Commented out: not available in .NET 9
 
-// Add HealthChecks for DB and Redis
+// Add HealthChecks for DB only (Redis removed)
 builder.Services.AddHealthChecks()
-    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException())
-    .AddRedis(builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException());
+    .AddSqlServer(builder.Configuration.GetConnectionString("SqlConnectionToIngenzi") ?? throw new InvalidOperationException());
 
 // For Prometheus, ensure the prometheus-net.AspNetCore package is installed and add the correct using if needed.
 // builder.Services.AddHostedService<Prometheus.MetricPusher>(); // Commented out: add package if needed
 // app.UseMetricServer(); // exposes /metrics - commented out until package is added
 
-// Add Redis distributed cache
-builder.Services.AddStackExchangeRedisCache(options =>
-{
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
-});
+// Distributed cache removed (Redis)
 
 // Configure CORS
 builder.Services.AddCors(options =>

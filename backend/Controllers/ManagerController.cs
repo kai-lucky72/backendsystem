@@ -86,11 +86,7 @@ public class ManagerController(
         return Ok(agentDto);
     }
 
-    /// <summary>
-    /// Sync external proposals for an agent (manager-triggered)
-    /// </summary>
-    [HttpPost("agents/{agentId}/clients/sync")]
-    public Task<ActionResult> SyncAgentClients(long agentId, CancellationToken ct) => Task.FromResult<ActionResult>(Ok(new { status = "noop" }));
+    // Sync endpoint removed
 
     /// <summary>
     /// List locally stored proposals for an agent

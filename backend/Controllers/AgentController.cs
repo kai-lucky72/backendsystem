@@ -30,9 +30,7 @@ public class AgentController(
         IExternalClientService externalClientService)
     : ControllerBase
 {
-    // External-only mode: sync endpoint is a no-op or removed
-    [HttpPost("clients/sync")]
-    public Task<ActionResult> SyncMyClients(CancellationToken ct) => Task.FromResult<ActionResult>(Ok(new { status = "noop" }));
+    // Sync endpoint removed
 
     [HttpGet("clients")]
     public async Task<ActionResult<object>> GetMyClients([FromQuery] string? from = null, [FromQuery] string? to = null, [FromQuery] int page = 1, [FromQuery] int limit = 20, CancellationToken ct = default)
@@ -48,6 +46,8 @@ public class AgentController(
         DateTime fromDate;
         if (string.Equals(from, "auto", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(from))
             fromDate = agent.User.CreatedAt.Date;
+    
+    
         else if (!DateTime.TryParse(from, out fromDate))
             return BadRequest(new { error = "Invalid from date" });
 

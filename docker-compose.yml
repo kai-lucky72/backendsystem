@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: prime-backend:latest
+    container_name: prime-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=mssql,1433;Database=prime_db;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+      - JwtSettings__SecretKey=ChangeThisInProduction
+      - JwtSettings__Issuer=PrimeManagementApp
+      - JwtSettings__Audience=PrimeManagementAppUsers
+      - JwtSettings__ExpirationInMinutes=1440
+      - ExternalClients__BaseUrl=https://apps.prime.rw
+      - ExternalClients__ProposalsPath=/customerbackend/api/proposalRegistersByAgent
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mssql
+    volumes:
+      - api-logs:/app/logs
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+
+volumes:
+  mssql-data:
+  api-logs:

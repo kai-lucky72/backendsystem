@@ -73,7 +73,7 @@ public class ExternalAuthService : IExternalAuthService
 			throw;
 		}
 	}
-
+	
 	private static string Truncate(string? text, int max = 512)
 	{
 		if (string.IsNullOrEmpty(text)) return string.Empty;

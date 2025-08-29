@@ -19,8 +19,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Group> Groups { get; set; }
     
     // Client management removed
-    // External read-only proposals stored locally
-    public DbSet<CollectedProposal> CollectedProposals { get; set; }
     
     // Attendance tracking
     public DbSet<Attendance> Attendances { get; set; }
@@ -100,16 +98,7 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        // Configure CollectedProposal entity
-        builder.Entity<CollectedProposal>(entity =>
-        {
-            entity.ToTable("collected_proposals");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnType("bigint");
-            entity.Property(e => e.AgentId).HasColumnType("bigint");
-            entity.HasIndex(e => e.ProposalNumber).IsUnique();
-            entity.HasIndex(e => new { e.AgentId, e.ProposalDate });
-        });
+        // CollectedProposal entity removed
 
         // Configure Group entity
         builder.Entity<Group>(entity =>
