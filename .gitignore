@@ -1,0 +1,11 @@
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+
+backend/bin
+backend/obj
+config.bat
+node_modules
